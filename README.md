@@ -3680,7 +3680,7 @@ EOF
 ### 通过API访问Rancher
 API-key
 ~~~bash
-curl -k -H 'Authorization: Bearer token-xefti:sfdffigqngigqwinsdaidnfaignqwingasdfgasfg' https://dfn.qiudog.top:20443/v3
+curl -k -H 'Authorization: Bearer token-12345:67890' https://a.b.c/v3
 ~~~
 
 ### 在Air Gap环境中以HA方式部署Rancher
