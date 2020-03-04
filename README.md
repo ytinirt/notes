@@ -3069,10 +3069,11 @@ NSS_SDB_USE_CACHE=yes curl -s -H "Authorization : Bearer ${TOKEN}" -k https://10
 ### 客户端访问集群时context配置
 
 ```bash
-kubectl config set-cluster deploy-cluster --server=https://${KUBE_APISERVER}:6443 --certificate-authority=/root/openssl/ca.crt --embed-certs=true
-ls -al /root/openssl/ #get client ca ,cluster for ip
-kubectl config set-credentials deploy-user --client-key=/root/openssl/client.key --client-certificate=/root/openssl/client.crt --embed-certs=true
+# 注意，ca.crt、client.crt和client.key需要来自目标集群，例如配置中的deploy-cluster
+kubectl config set-cluster deploy-cluster --server=https://${KUBE_APISERVER_IP_OR_DOMAINNAME}:${KUBE_APISERVER_PORT} --certificate-authority=./ca.crt --embed-certs=true
+kubectl config set-credentials deploy-user --client-key=./client.key --client-certificate=./client.crt --embed-certs=true
 kubectl config set-context deploy-context --cluster=deploy-cluster --user=deploy-user --namespace=default
+# 切换到deploy-cluster集群，注意，后面的kubectl都是在deploy-cluster上操作
 kubectl config use-context deploy-context
 ```
 
@@ -3093,7 +3094,7 @@ kubectl get cm hehe -o jsonpath='{.data.mysql-node-rc-template\.yaml}'
 kubectl create configmap -n default os-watchdog-config --from-file=i18n_zh.json --from-file=i18n_en.json -o yaml --dry-run | kubectl apply -f -
 ~~~
 
-#### 
+####
 
 ### 日志相关配置
 
@@ -3439,7 +3440,7 @@ tc qdisc delete dev eth0 root netem delay 1000ms 100ms 30%
 # 模拟丢包10%
 tc qdisc add dev eth0 root netem loss 10%
 # 模拟丢包10% 有50%成功率
-tc qdisc add dev eth0 root netem loss 10% 50% 
+tc qdisc add dev eth0 root netem loss 10% 50%
 ~~~
 
 ### 错误类型说明
@@ -3673,7 +3674,7 @@ EOF
    docker restart {container_id}
    ```
 
-   
+
 
 ## Rancher
 
@@ -5014,4 +5015,3 @@ Ctrl + F
 ```
 alt + 9745
 ```
-
