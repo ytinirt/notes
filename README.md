@@ -3062,6 +3062,11 @@ NSS_SDB_USE_CACHE=yes curl -H "Authorization : Bearer ${TOKEN}" -k https://10.10
 # Pod（容器）里直接获取token的方法
 TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
 NSS_SDB_USE_CACHE=yes curl -s -H "Authorization : Bearer ${TOKEN}" -k https://10.100.0.1/api/v1/nodes?labelSelector=nodeType%3Dcontroller | jq -r .items[].metadata.name
+
+# 从SA(serviceaccount)处获取token的方法
+NS=cattle-system
+SA=cattle
+TOKEN=$(kubectl get secrets -n ${NS} $(kubectl get sa -n ${NS} ${SA} -o jsonpath='{.secrets[0].name}') -o jsonpath='{.data.token}' | base64 -d)
 ```
 
 
@@ -3071,8 +3076,13 @@ NSS_SDB_USE_CACHE=yes curl -s -H "Authorization : Bearer ${TOKEN}" -k https://10
 ```bash
 # 注意，ca.crt、client.crt和client.key需要来自目标集群，例如配置中的deploy-cluster
 kubectl config set-cluster deploy-cluster --server=https://${KUBE_APISERVER_IP_OR_DOMAINNAME}:${KUBE_APISERVER_PORT} --certificate-authority=./ca.crt --embed-certs=true
+
 kubectl config set-credentials deploy-user --client-key=./client.key --client-certificate=./client.crt --embed-certs=true
+# 或者
+kubectl config set-credentials local-cluster-user --token=eyJhb
+
 kubectl config set-context deploy-context --cluster=deploy-cluster --user=deploy-user --namespace=default
+
 # 切换到deploy-cluster集群，注意，后面的kubectl都是在deploy-cluster上操作
 kubectl config use-context deploy-context
 ```
