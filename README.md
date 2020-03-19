@@ -1851,6 +1851,8 @@ ProcessSizeMax=0
 # 排查load average过高的可疑线程
 # milk-cdn服务产生很多Dl状态(不可中断线程)的线程，导致load average很高，重启服务后恢复正常。目前在持续观察这种情况如何产生。
 ps -eTo stat,pid,tid,ppid,comm --no-header | sed -e 's/^ \*//' | perl -nE 'chomp;say if (m!^S*[RD]+\S*!)'
+# 查看进程状态
+ps -e -o pid,stat,comm,lstart,wchan=WIDE-WCHAN-COLUMN
 top                 #监控进程/线程状态    ->f->选择关注项
 ps                  #查看进程/线程
 ps -o ppid= 19312   #查找19312的父进程，注意 ppid= 和 19312 间的空格
@@ -1938,6 +1940,7 @@ virt-what           # 判断是否虚拟机（Guest、VM）运行
 ss state ESTABLISHED    #查看TCP已连接数
 ss -s
 ss -aonp            # 查看套接字 socket 连接信息，基本等同于 netstat -ptn
+ss -tpn dst :8080   #
 netstat -aonp
 lsblk
 ethtool				# 查看以太接口信息
@@ -3036,6 +3039,8 @@ kubectl label node 172.25.19.117 cellGrp-  # 删除节点的cellGrp标签
 kubectl exec -it <pod名称> [-c <pod中容器名称>] <sh | bash> # k8s直接进容器
 kubectl edit clusterrole   # 查看/修改RBAC
 kubectl get events         # 查看事件
+kubectl get events --field-selector type=Warning # 过滤查看Warning类型的事件
+kubectl get events --field-selector type!=Normal # 过滤查看异常类型的事件
 curl  -s 'http://172.25.19.109:8888/api/v1/namespaces/default/pods?labelSelector=app=rabbitmq-cluster,node=rabbit2' | jq '.items[].metadata.name' | tr -d '"'
 
 # 通过curl直接访问Kubernetes的HTTPS RESTful API，注意：
@@ -3064,8 +3069,8 @@ TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
 NSS_SDB_USE_CACHE=yes curl -s -H "Authorization : Bearer ${TOKEN}" -k https://10.100.0.1/api/v1/nodes?labelSelector=nodeType%3Dcontroller | jq -r .items[].metadata.name
 
 # 从SA(serviceaccount)处获取token的方法
-NS=cattle-system
-SA=cattle
+NS=default
+SA=admin
 TOKEN=$(kubectl get secrets -n ${NS} $(kubectl get sa -n ${NS} ${SA} -o jsonpath='{.secrets[0].name}') -o jsonpath='{.data.token}' | base64 -d)
 ```
 
@@ -3265,6 +3270,56 @@ cmake ../mysql-server-mysql-5.7.20/ -LH
 
 
 
+## CoreDNS
+
+常见操作
+
+```bash
+
+```
+
+### 通过hosts方式手动增加A记录
+编辑cm/coredns，在Corefile中增加hosts插件配置，并增加hosts文件：
+```bash
+# kubectl edit cm -n kube-system coredns
+...
+data:
+  Corefile: |
+    .:53 {
+...
+        hosts /etc/coredns/hosts {
+          fallthrough
+        }
+        kubernetes cluster.local in-addr.arpa ip6.arpa {
+          pods insecure
+          fallthrough in-addr.arpa ip6.arpa
+        }
+...
+    }
+  hosts: |
+    10.125.31.214  kcm.paas.cloudos
+kind: ConfigMap
+...
+```
+
+编辑deploy/coredns，将cm中hosts文件挂载给工作负载：
+```bash
+# kubectl edit deploy coredns -n kube-system
+...
+volumes:
+- configMap:
+    defaultMode: 420
+    items:
+    - key: Corefile
+      path: Corefile
+    - key: hosts
+      path: hosts
+    name: coredns
+  name: config-volume
+...
+```
+
+以后，通过往cm/coredns的.data.hosts中增加记录即可。
 
 
 ## Etcd
@@ -3290,6 +3345,13 @@ etcdctl 2>/dev/null -o extended get /coreos.com/network/subnets/10.101.13.0-24
 
 
 ### v3常见操作
+
+性能测试
+
+```bash
+etcdctl3 check perf
+```
+
 
 获取所有key
 
