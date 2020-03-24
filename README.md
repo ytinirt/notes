@@ -1924,8 +1924,9 @@ slabtop -s c        #查看slabinfo信息
 pmstat              #查看系统全局性能  high-level system performance overview
 sar -r 3            #查看内存使用情况（不包括swap）来自package: pcp-import-sar2pcp
 sar -u 3            #查看CPU消耗情况
-sar -q 3            #查看CPU load
-sar -n SOCK         #查看网络流量
+sar -q 3            #查看CPU load，可以查看到历史CPU/系统负载
+sar -n ALL          #查看网络统计信息
+sar -n keyword [,...] #关键字包括：DEV 网络设备信息；NFS 客户端统计信息；NFSD 服务端统计信息；SOCK 套接字信息；IP ipv4流量信息；ICMP；TCP；UDP...
 watch more /proc/net/dev    #定位丢包情况
 cat /proc/net/snmp  #查看和分析240秒内网络包量、流量、错包、丢包，重传率时RetransSegs/OutSegs
 dig @127.0.0.1 -4 masternode  #查看域名解析地址，其中指定server为127.0.0.1，且仅查询A记录（ipv4）
@@ -2498,6 +2499,11 @@ journalctl -b -u docker # 自某次引导后的信息
 
 ### 其它技巧
 
+通过文件锁，确保系统中只有一个脚本在执行：
+```bash
+flock -xn /tmp/file-xxx.lock -c "/opt/bin/shell-script.sh"
+```
+
 curl常用命令
 
 ```bash
@@ -2998,6 +3004,36 @@ done
 # Kubernetes
 
 
+## 对象名称和字符串格式检查
+参见[Object Names and IDs](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/)，Kubernetes中绝大多数对象名称需符合[RFC 1123](https://tools.ietf.org/html/rfc1123)要求，具体的：
+* contain no more than 253 characters
+* contain only lowercase alphanumeric characters, ‘-’ or ‘.’
+* start with an alphanumeric character
+* end with an alphanumeric character
+
+其对应正则表达式为
+```bash
+'[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*'
+```
+
+标签Label的key合法格式
+> Valid label keys have two segments: an optional prefix and name, separated by a slash (/).
+> The name segment is required and must be 63 characters or less, beginning and ending with an alphanumeric character ([a-z0-9A-Z]) with dashes (-), underscores (_), dots (.), and alphanumerics between.
+> The prefix is optional. If specified, the prefix must be a DNS subdomain: a series of DNS labels separated by dots (.), not longer than 253 characters in total, followed by a slash (/).
+> Valid label values must be 63 characters or less and must be empty or begin and end with an alphanumeric character ([a-z0-9A-Z]) with dashes (-), underscores (_), dots (.), and alphanumerics between.
+
+标签Label的value合法格式
+> Valid label values must be 63 characters or less and must be empty or begin and end with an alphanumeric character ([a-z0-9A-Z]) with dashes (-), underscores (_), dots (.), and alphanumerics between.
+
+参见[Labels and Selectors](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/)
+
+就文件名filename而言，参照[The POSIX portable file name character set](https://www.ibm.com/support/knowledgecenter/en/SSLTBW_2.2.0/com.ibm.zos.v2r2.bpxa400/bpxug469.htm)：
+* Uppercase A to Z
+* Lowercase a to z
+* Numbers 0 to 9
+* Period (.)
+* Underscore (_)
+* Hyphen (-)
 
 
 
