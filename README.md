@@ -2912,7 +2912,7 @@ docker system df    # 查看容器、镜像的存储用量
 docker 重启是增加 live-restore 选项，可以降低重启docker的开销，重启docker daemon的时候容器不重启  除非bip这些变了。
 docker push xxxx   # 将镜像push到私有registry，注意，nodeB希望从nodeA的registry获取镜像时，nodeA上必须先push到registry才行
 docker pull xxxx   # 从registry上下载镜像至本地
-docker run -it --name test --net container:6d054b93d4b1 openstack-keystone:D1101 bash
+docker run -it --name test --net container:1a9bfd40505e --entrypoint=/usr/bin/sh openstack-glance:RC2  # 共享容器网络，glance中携带tcpdump命令，可网络抓包
 docker run -it --name test --net=host openstack-keystone:D1101 bash
 docker rm -f $(docker ps | grep haproxy | awk '{print $1}')
 docker build -t centos:base -f Dockerfile .
@@ -3003,6 +3003,70 @@ done
 
 # Kubernetes
 
+## kube-proxy集群内负载均衡
+作为K8s集群内默认负载均衡解决方案，kube-proxy支持模式方式：
+* [ipvs](https://kubernetes.io/blog/2018/07/09/ipvs-based-in-cluster-load-balancing-deep-dive/)，未来发展方向
+* [iptables](https://kubernetes.io/docs/concepts/services-networking/service/)，默认方式
+* [user-space](https://kubernetes.io/docs/concepts/services-networking/service/)，已逐渐被淘汰
+
+### 深入iptables模式的kube-proxy
+
+#### 实现会话亲和性
+开启会话亲和性，`sessionAffinity: ClientIP`时，iptables规则：
+```bash
+:KUBE-SEP-2ZNXFH2VOSGBPAVV - [0:0]
+:KUBE-SEP-G2V5AWNNIXO6IYNV - [0:0]
+:KUBE-SEP-SRB22U7BNHNW5WLR - [0:0]
+:KUBE-SVC-TYE23RAXJNHAJ33G - [0:0]
+-A KUBE-NODEPORTS -p tcp -m comment --comment "space22pbugsd/yibao-b:yibao-b" -m tcp --dport 13332 -j KUBE-MARK-MASQ
+-A KUBE-NODEPORTS -p tcp -m comment --comment "space22pbugsd/yibao-b:yibao-b" -m tcp --dport 13332 -j KUBE-SVC-TYE23RAXJNHAJ33G
+-A KUBE-SEP-2ZNXFH2VOSGBPAVV -s 10.244.1.31/32 -m comment --comment "space22pbugsd/yibao-b:yibao-b" -j KUBE-MARK-MASQ
+-A KUBE-SEP-2ZNXFH2VOSGBPAVV -p tcp -m comment --comment "space22pbugsd/yibao-b:yibao-b" -m recent --set --name KUBE-SEP-2ZNXFH2VOSGBPAVV --mask 255.255.255.255 --rsource -m tcp -j DNAT --to-destination 10.244.1.31:13332
+-A KUBE-SEP-G2V5AWNNIXO6IYNV -s 10.246.0.133/32 -m comment --comment "space22pbugsd/yibao-b:yibao-b" -j KUBE-MARK-MASQ
+-A KUBE-SEP-G2V5AWNNIXO6IYNV -p tcp -m comment --comment "space22pbugsd/yibao-b:yibao-b" -m recent --set --name KUBE-SEP-G2V5AWNNIXO6IYNV --mask 255.255.255.255 --rsource -m tcp -j DNAT --to-destination 10.246.0.133:13332
+-A KUBE-SEP-SRB22U7BNHNW5WLR -s 10.243.1.179/32 -m comment --comment "space22pbugsd/yibao-b:yibao-b" -j KUBE-MARK-MASQ
+-A KUBE-SEP-SRB22U7BNHNW5WLR -p tcp -m comment --comment "space22pbugsd/yibao-b:yibao-b" -m recent --set --name KUBE-SEP-SRB22U7BNHNW5WLR --mask 255.255.255.255 --rsource -m tcp -j DNAT --to-destination 10.243.1.179:13332
+-A KUBE-SERVICES ! -s 10.240.0.0/12 -d 10.100.218.244/32 -p tcp -m comment --comment "space22pbugsd/yibao-b:yibao-b cluster IP" -m tcp --dport 13332 -j KUBE-MARK-MASQ
+-A KUBE-SERVICES -d 10.100.218.244/32 -p tcp -m comment --comment "space22pbugsd/yibao-b:yibao-b cluster IP" -m tcp --dport 13332 -j KUBE-SVC-TYE23RAXJNHAJ33G
+-A KUBE-SVC-TYE23RAXJNHAJ33G -m comment --comment "space22pbugsd/yibao-b:yibao-b" -m recent --rcheck --seconds 10800 --reap --name KUBE-SEP-SRB22U7BNHNW5WLR --mask 255.255.255.255 --rsource -j KUBE-SEP-SRB22U7BNHNW5WLR
+-A KUBE-SVC-TYE23RAXJNHAJ33G -m comment --comment "space22pbugsd/yibao-b:yibao-b" -m recent --rcheck --seconds 10800 --reap --name KUBE-SEP-2ZNXFH2VOSGBPAVV --mask 255.255.255.255 --rsource -j KUBE-SEP-2ZNXFH2VOSGBPAVV
+-A KUBE-SVC-TYE23RAXJNHAJ33G -m comment --comment "space22pbugsd/yibao-b:yibao-b" -m recent --rcheck --seconds 10800 --reap --name KUBE-SEP-G2V5AWNNIXO6IYNV --mask 255.255.255.255 --rsource -j KUBE-SEP-G2V5AWNNIXO6IYNV
+-A KUBE-SVC-TYE23RAXJNHAJ33G -m comment --comment "space22pbugsd/yibao-b:yibao-b" -m statistic --mode random --probability 0.33332999982 -j KUBE-SEP-SRB22U7BNHNW5WLR
+-A KUBE-SVC-TYE23RAXJNHAJ33G -m comment --comment "space22pbugsd/yibao-b:yibao-b" -m statistic --mode random --probability 0.50000000000 -j KUBE-SEP-2ZNXFH2VOSGBPAVV
+-A KUBE-SVC-TYE23RAXJNHAJ33G -m comment --comment "space22pbugsd/yibao-b:yibao-b" -j KUBE-SEP-G2V5AWNNIXO6IYNV
+```
+通过`recent`模块实现会话亲和性。
+
+关闭会话亲和性，`sessionAffinity: None`时，iptables规则：
+```bash
+:KUBE-SEP-2ZNXFH2VOSGBPAVV - [0:0]
+:KUBE-SEP-G2V5AWNNIXO6IYNV - [0:0]
+:KUBE-SEP-SRB22U7BNHNW5WLR - [0:0]
+:KUBE-SVC-TYE23RAXJNHAJ33G - [0:0]
+-A KUBE-NODEPORTS -p tcp -m comment --comment "space22pbugsd/yibao-b:yibao-b" -m tcp --dport 13332 -j KUBE-MARK-MASQ
+-A KUBE-NODEPORTS -p tcp -m comment --comment "space22pbugsd/yibao-b:yibao-b" -m tcp --dport 13332 -j KUBE-SVC-TYE23RAXJNHAJ33G
+-A KUBE-SEP-2ZNXFH2VOSGBPAVV -s 10.244.1.31/32 -m comment --comment "space22pbugsd/yibao-b:yibao-b" -j KUBE-MARK-MASQ
+-A KUBE-SEP-2ZNXFH2VOSGBPAVV -p tcp -m comment --comment "space22pbugsd/yibao-b:yibao-b" -m tcp -j DNAT --to-destination 10.244.1.31:13332
+-A KUBE-SEP-G2V5AWNNIXO6IYNV -s 10.246.0.133/32 -m comment --comment "space22pbugsd/yibao-b:yibao-b" -j KUBE-MARK-MASQ
+-A KUBE-SEP-G2V5AWNNIXO6IYNV -p tcp -m comment --comment "space22pbugsd/yibao-b:yibao-b" -m tcp -j DNAT --to-destination 10.246.0.133:13332
+-A KUBE-SEP-SRB22U7BNHNW5WLR -s 10.243.1.179/32 -m comment --comment "space22pbugsd/yibao-b:yibao-b" -j KUBE-MARK-MASQ
+-A KUBE-SEP-SRB22U7BNHNW5WLR -p tcp -m comment --comment "space22pbugsd/yibao-b:yibao-b" -m tcp -j DNAT --to-destination 10.243.1.179:13332
+-A KUBE-SERVICES ! -s 10.240.0.0/12 -d 10.100.218.244/32 -p tcp -m comment --comment "space22pbugsd/yibao-b:yibao-b cluster IP" -m tcp --dport 13332 -j KUBE-MARK-MASQ
+-A KUBE-SERVICES -d 10.100.218.244/32 -p tcp -m comment --comment "space22pbugsd/yibao-b:yibao-b cluster IP" -m tcp --dport 13332 -j KUBE-SVC-TYE23RAXJNHAJ33G
+-A KUBE-SVC-TYE23RAXJNHAJ33G -m comment --comment "space22pbugsd/yibao-b:yibao-b" -m statistic --mode random --probability 0.33332999982 -j KUBE-SEP-SRB22U7BNHNW5WLR
+-A KUBE-SVC-TYE23RAXJNHAJ33G -m comment --comment "space22pbugsd/yibao-b:yibao-b" -m statistic --mode random --probability 0.50000000000 -j KUBE-SEP-2ZNXFH2VOSGBPAVV
+-A KUBE-SVC-TYE23RAXJNHAJ33G -m comment --comment "space22pbugsd/yibao-b:yibao-b" -j KUBE-SEP-G2V5AWNNIXO6IYNV
+```
+
+
+## 域名解析和DNS策略
+
+### kube-dns
+
+### CoreDNS
+
+### Pod's DNS Policy
+参见[Pod’s DNS Policy](https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/#pod-s-dns-policy)
 
 ## 对象名称和字符串格式检查
 参见[Object Names and IDs](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/)，Kubernetes中绝大多数对象名称需符合[RFC 1123](https://tools.ietf.org/html/rfc1123)要求，具体的：
@@ -3599,6 +3663,9 @@ tc qdisc add dev eth0 root netem loss 10% 50%
 > Of course, it is possible to recover a failed bootstrapped cluster like recovering a running cluster. However, it almost always
 > takes more time and resources to recover that cluster than bootstrapping a new one, since there is no data to recover.
 
+
+
+## AK/SK认证
 
 
 ## tcpdump
@@ -5080,6 +5147,11 @@ alias = image[idx:]                             # 截取字符串
 
 ## 正则表达式Regex
 
+实例
+```bash
+# 只能输入1~16位字母、数字、下划线，且只能以字母和数字开头
+^[A-Za-z0-9][A-Za-z0-9_]{0,15}$
+```
 
 
 
