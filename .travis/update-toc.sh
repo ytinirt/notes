@@ -14,6 +14,5 @@ git config --global user.name "ZHAO Yao"
 git add ./README.md
 git commit --message "Travis CI build: $TRAVIS_BUILD_NUMBER"
 
-echo ${GH_TRAVIS_CI_TOKEN}
 git remote add origin-ci https://${GH_TRAVIS_CI_TOKEN}@github.com/ytinirt/notes.git > /dev/null 2>&1
-git push --quiet origin-ci master
+git push --quiet --set-upstream origin-ci master
