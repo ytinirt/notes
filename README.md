@@ -1449,6 +1449,9 @@ openssl x509 -in ${cert} -noout -dates | grep notAfter | awk -F"=" '{print $2}'
 # certificate signing request (csr)
 openssl req -new -out server.csr -config server.conf
 
+# 检查证书链是否正确，其中ca.pem是启动server（例如这里rancher.yourdomain.com）指定的CA
+openssl s_client -CAfile ca.pem -connect rancher.yourdomain.com:443
+
 # print csr
 openssl req -in server.csr -noout -text
 
@@ -3100,6 +3103,8 @@ done
 * Hyphen (-)
 
 
+更详细的检查，请参见`https://github.com/kubernetes/kubernetes/blob/master/pkg/apis/core/validation/validation.go`。
+
 
 ## 操作实例
 
@@ -3366,6 +3371,37 @@ tar -zcf os-nfs-v1-$$(date +"%y%m%d%H%M")-M1.tar.gz os-nfs
 ```bash
 # 查看配置项信息
 cmake ../mysql-server-mysql-5.7.20/ -LH
+```
+
+
+## Calico
+```bash
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-static-ip
+  annotations:
+    "cni.projectcalico.org/ipAddrs": "[\"10.248.123.45\"]"
+  namespace: default
+  labels:
+    app: nginx-static-ip
+spec:
+  containers:
+  - image: nginx:1.15
+    imagePullPolicy: IfNotPresent
+    name: nginx-static-ip
+    ports:
+    - containerPort: 80
+      protocol: TCP
+    - containerPort: 443
+      protocol: TCP
+    volumeMounts:
+    - mountPath: /etc/localtime
+      name: time
+  volumes:
+  - hostPath:
+      path: /etc/localtime
+    name: time
 ```
 
 
