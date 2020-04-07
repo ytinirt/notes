@@ -11,6 +11,7 @@ git config --global user.name "Travis CI"
 
 ./tool/gh-md-toc --insert ./README.md
 
+git add ./README.md
 git commit --message "Travis build: $TRAVIS_BUILD_NUMBER"
 
 git remote add origin https://${GH_TRAVIS_CI_TOKEN}@github.com/ytinirt/notes.git > /dev/null 2>&1
