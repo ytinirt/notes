@@ -6,13 +6,14 @@ if [[ "${TRAVIS_BRANCH}" != "master" ]]; then
     exit 0
 fi
 
-git config --global user.email "travis@travis-ci.org"
-git config --global user.name "Travis CI"
+git config --global user.email "ytinirt@qq.com"
+git config --global user.name "ZHAO Yao"
 
 ./tool/gh-md-toc --insert ./README.md
 
 git add ./README.md
-git commit --message "Travis build: $TRAVIS_BUILD_NUMBER"
+git commit --message "Travis CI build: $TRAVIS_BUILD_NUMBER"
 
-git remote add origin https://${GH_TRAVIS_CI_TOKEN}@github.com/ytinirt/notes.git > /dev/null 2>&1
-git push --quiet --set-upstream origin master
+echo ${GH_TRAVIS_CI_TOKEN}
+git remote add origin-ci https://${GH_TRAVIS_CI_TOKEN}@github.com/ytinirt/notes.git > /dev/null 2>&1
+git push --quiet origin-ci master

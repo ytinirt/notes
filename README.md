@@ -1,5 +1,5 @@
 
-# Table of contentss
+# Table of contents
 
 <!--ts-->
    * [Table of contents](#table-of-contents)
