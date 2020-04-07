@@ -160,6 +160,14 @@
          * [docker使用代理](#docker使用代理)
          * [容器文件系统使用率统计](#容器文件系统使用率统计)
    * [Kubernetes](#kubernetes)
+      * [kube-proxy集群内负载均衡](#kube-proxy集群内负载均衡)
+         * [深入iptables模式的kube-proxy](#深入iptables模式的kube-proxy)
+            * [实现会话亲和性](#实现会话亲和性)
+      * [域名解析和DNS策略](#域名解析和dns策略)
+         * [kube-dns](#kube-dns)
+         * [CoreDNS](#coredns)
+         * [Pod's DNS Policy](#pods-dns-policy)
+      * [对象名称和字符串格式检查](#对象名称和字符串格式检查)
       * [操作实例](#操作实例)
          * [常见操作](#常见操作-1)
          * [客户端访问集群时context配置](#客户端访问集群时context配置)
@@ -178,6 +186,9 @@
       * [Makefile](#makefile)
          * [Makefile文件](#makefile文件)
          * [cmake](#cmake)
+      * [Calico](#calico)
+      * [CoreDNS](#coredns-1)
+         * [通过hosts方式手动增加A记录](#通过hosts方式手动增加a记录)
       * [Etcd](#etcd)
          * [v3常见操作](#v3常见操作)
          * [v2 API](#v2-api)
@@ -186,6 +197,7 @@
          * [v2全量备份](#v2全量备份)
          * [调优](#调优)
          * [错误类型说明](#错误类型说明)
+      * [AK/SK认证](#aksk认证)
       * [tcpdump](#tcpdump)
          * [tcpdump和libpcap常用规则](#tcpdump和libpcap常用规则)
       * [Openstack](#openstack)
@@ -292,7 +304,7 @@
          * [常用操作](#常用操作-12)
       * [奇技淫巧](#奇技淫巧)
 
-<!-- Added by: zy, at: Sun Feb 16 12:55:14 CST 2020 -->
+<!-- Added by: travis, at: Tue Apr  7 17:02:53 UTC 2020 -->
 
 <!--te-->
 
