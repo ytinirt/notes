@@ -1,5 +1,6 @@
 #!/bin/bash
 
+set -x
 echo "TRAVIS_BRANCH=${TRAVIS_BRANCH}"
 if [[ "${TRAVIS_BRANCH}" != "master" ]]; then
     echo "give up updating TOC @ branch ${TRAVIS_BRANCH}"
@@ -14,5 +15,5 @@ git config --global user.name "ZHAO Yao"
 git add ./README.md
 git commit --message "Travis CI build: $TRAVIS_BUILD_NUMBER"
 
-git remote add origin-ci https://${GH_TRAVIS_CI_TOKEN}@github.com/ytinirt/notes.git > /dev/null 2>&1
-git push --quiet --set-upstream origin-ci master
+git remote add origin-ci https://${GH_TRAVIS_CI_TOKEN}@github.com/ytinirt/notes.git
+git push --set-upstream origin-ci master
