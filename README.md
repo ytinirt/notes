@@ -445,6 +445,38 @@ swapon /swapfile
 /swapfile    none    swap   sw   0   0
 ```
 
+##### 运行过程中增加节点swap分区
+参考资料[https://www.linux.com/news/all-about-linux-swap-space](https://www.linux.com/news/all-about-linux-swap-space)
+**警告**，操作有风险，请确认每条指令带来的后果。
+
+设置Swap分区使用偏好（可选操作）
+```bash
+# echo 'vm.swappiness = 1' >> /etc/sysctl.conf
+# sysctl -p
+```
+
+制作swapfile（以新增16GB的swap空间为例，注意先确保/swapfile这个文件不存在，否则将被覆盖）
+```bash
+# dd if=/dev/zero of=/swapfile bs=1G count=16
+# mkswap /swapfile
+# chmod 0600 /swapfile
+```
+
+挂载并使用swap文件
+```bash
+# swapon /swapfile
+```
+
+固化配置，保证节点重启后仍然生效
+```bash
+# echo '/swapfile none swap sw 0 0' >> /etc/fstab
+```
+
+**注意**：
+* 操作过程中确保命令和参数不要输错，特别是dd和mkswap，否则带来不可挽回的损失。
+* swap文件路径可根据需要进行调整，上述例子中是/swapfile。
+* 集群环境，需要在每个节点上进行操作。
+* 增大swap分区仅为规避问题，正确做法是找到内存、swap分区使用过多的服务，然后优化配置或升级。
 
 
 #### pagecache页缓存
@@ -692,6 +724,32 @@ brctl                                   # 属于bridge-utils包
 
 
 
+### veth-pair
+TODO
+
+
+#### veth接口的hairpin模式
+查看veth的`hairpin`模式
+```bash
+cat /sys/devices/virtual/net/veth*/brport/hairpin_mode
+```
+在[该issue](https://github.com/kubernetes/kubernetes/issues/45790)中，由于容器的veth接口`hairpin`模式未使能，导致该容器内无法通过其Service访问自己。
+
+
+#### 如何找到容器对应的veth接口
+veth pair中两个veth接口互相记录着彼此的ifindex，根据这一特性进入关心的容器：
+```bash
+[root@m2 ~]# docker exec -it 72c3c4000e1e bash
+bash-4.4# cat /sys/devices/virtual/net/eth0/iflink
+205
+bash-4.4# exit
+```
+找到容器中eth0接口连接的对端接口ifindex为205，在宿主机上执行如下操作
+```bash
+[root@m2 ~]# grep -l 205 /sys/devices/virtual/net/veth*/ifindex
+/sys/devices/virtual/net/veth88a3f539/ifindex
+```
+找到对应的接口为veth88a3f539。
 
 ### iptables
 
@@ -804,6 +862,113 @@ tcpdump -i ens160 "host 172.25.18.91 and port 35357" -nnl | grep "\[S"
 
 
 
+### 配置网卡聚合NIC bonding
+**注意**，本示例在CentOS7上操作。
+参考[configure-nic-bonding-in-centos-7-rhel-7](https://www.linuxtechi.com/configure-nic-bonding-in-centos-7-rhel-7/)。
+
+加载`bonding`内核模块
+```bash
+[root@node ~]# modprobe bonding
+[root@node ~]# modinfo bonding
+...
+name:           bonding
+...
+parm:           miimon:Link check interval in milliseconds (int)
+parm:           mode:Mode of operation; 0 for balance-rr, 1 for active-backup, 2 for balance-xor, 3 for broadcast, 4 for 802.3ad, 5 for balance-tlb, 6 for balance-alb (charp)
+...
+```
+
+创建bond网卡配置文件，在/etc/sysconfig/network-scripts/目录下创建bond网卡配置文件
+```bash
+[root@node network-scripts]# realpath ifcfg-bond0
+/etc/sysconfig/network-scripts/ifcfg-bond0
+[root@node network-scripts]# cat ifcfg-bond0
+DEVICE=bond0
+TYPE=Bond
+NAME=bond0
+BONDING_MASTER=yes
+BOOTPROTO=none
+ONBOOT=yes
+IPADDR=172.25.18.233
+PREFIX=22
+GATEWAY=172.25.16.1
+BONDING_OPTS="mode=1 miimon=100"
+```
+注意其中`mode`和`miimon`参数配置。
+
+修改物理网卡配置文件，参与bond的物理网卡都需要修改配置，内容大同小异
+```bash
+[root@node network-scripts]# cat ifcfg-eth0
+TYPE=Ethernet
+BOOTPROTO=none
+DEVICE=eth0
+ONBOOT=yes
+UUID=3e0da80f-351b-4d81-b3c6-4a5190bc1cc7
+MASTER=bond0
+SLAVE=yes
+[root@node network-scripts]# cat ifcfg-eth1
+TYPE=Ethernet
+BOOTPROTO=none
+DEVICE=eth1
+ONBOOT=yes
+HWADDR="0c:da:41:1d:a5:xx"
+MASTER=bond0
+SLAVE=yes
+```
+
+重启网络服务使配置生效
+```bash
+[root@node network-scripts]# systemctl restart network
+```
+
+验证配置生效
+```bash
+[root@node network-scripts]# ifconfig eth0
+eth0: flags=6211<UP,BROADCAST,RUNNING,SLAVE,MULTICAST>  mtu 1500
+        ether 0c:da:41:1d:81:9b  txqueuelen 1000  (Ethernet)
+        RX packets 15830932  bytes 11949420784 (11.1 GiB)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 7868537  bytes 5853249586 (5.4 GiB)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+[root@node network-scripts]# ifconfig eth1
+eth1: flags=6211<UP,BROADCAST,RUNNING,SLAVE,MULTICAST>  mtu 1500
+        ether 0c:da:41:1d:81:9b  txqueuelen 1000  (Ethernet)
+        RX packets 8117986  bytes 586911004 (559.7 MiB)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 369  bytes 33883 (33.0 KiB)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+[root@node network-scripts]# ifconfig bond0
+bond0: flags=5187<UP,BROADCAST,RUNNING,MASTER,MULTICAST>  mtu 1500
+        inet 172.25.18.233  netmask 255.255.252.0  broadcast 172.25.19.255
+        ether 0c:da:41:1d:81:9b  txqueuelen 1000  (Ethernet)
+        RX packets 21599684  bytes 12365916057 (11.5 GiB)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 7859419  bytes 5853028905 (5.4 GiB)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+[root@node network-scripts]# cat /proc/net/bonding/bond0
+Ethernet Channel Bonding Driver: v3.7.1 (April 27, 2011)
+Bonding Mode: fault-tolerance (active-backup)
+Primary Slave: None
+Currently Active Slave: eth0
+MII Status: up
+MII Polling Interval (ms): 100
+Up Delay (ms): 0
+Down Delay (ms): 0
+Slave Interface: eth0
+MII Status: up
+Speed: Unknown
+Duplex: Unknown
+Link Failure Count: 0
+Permanent HW addr: 0c:da:41:1d:81:9b
+Slave queue ID: 0
+Slave Interface: eth1
+MII Status: up
+Speed: Unknown
+Duplex: Unknown
+Link Failure Count: 0
+Permanent HW addr: 0c:da:41:1d:a5:f9
+Slave queue ID: 0
+```
 
 
 ### 组播
@@ -1821,6 +1986,98 @@ startx
 ```
 
 
+#### 构建自定义的CentOS内核
+参考[https://wiki.centos.org/HowTos/Custom_Kernel](https://wiki.centos.org/HowTos/Custom_Kernel)
+
+安装构建依赖包
+```bash
+[root@workstation ~]# yum groupinstall "Development Tools"
+[root@workstation ~]# yum install rpm-build redhat-rpm-config asciidoc hmaccalc perl-ExtUtils-Embed pesign xmlto -y
+[root@workstation ~]# yum install audit-libs-devel binutils-devel elfutils-devel elfutils-libelf-devel java-devel ncurses-devel -y
+[root@workstation ~]# yum install newt-devel numactl-devel pciutils-devel python-devel zlib-devel openssl-devel bc -y
+```
+
+获取内核源码
+**警告**，必须以非root用户执行
+```bash
+[zy@workstation ~]$ mkdir -p ~/rpmbuild/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
+[zy@workstation ~]$ echo '%_topdir %(echo $HOME)/rpmbuild' > ~/.rpmmacros
+[zy@workstation ~]$ rpm -i http://vault.centos.org/7.5.1804/updates/Source/SPackages/kernel-3.10.0-862.9.1.el7.src.rpm 2>&1 | grep -v exist
+[zy@workstation SPECS]$ cd ~/rpmbuild/SPECS
+[zy@workstation SPECS]$ rpmbuild -bp --target=$(uname -m) kernel.spec
+```
+操作完成后，内核源码在`~/rpmbuild/BUILD/kernel*/linux*/`路径下。
+需要说明的是第3行中`http://vault.centos.org/7.5.1804/updates/Source/SPackages/kernel-3.10.0-862.9.1.el7.src.rpm`是内核源码包的网络地址，当无法直接访问互联网时可准备好内核源码包后指定本地文件路径，例如：
+```bash
+[zy@workstation ~]$ ...
+[zy@workstation ~]$ ...
+[zy@workstation ~]$ rpm -i ~/download/kernel-3.10.0-693.21.1.el7.src.rpm 2>&1 | grep -v exist
+```
+同时，也请根据需要选择内核源码包版本，建议与当前系统的内核版本保持一致。
+
+配置内核
+**警告**，必须以非root用户执行
+```bash
+[zy@workstation ~]$ cd ~/rpmbuild/BUILD/kernel*/linux*/
+[zy@workstation linux-3.10.0-862.9.1.el7.ctt.x86_64]$ cp /boot/config-$(uname -r) .config
+[zy@workstation linux-3.10.0-862.9.1.el7.ctt.x86_64]$ make oldconfig
+[zy@workstation linux-3.10.0-862.9.1.el7.ctt.x86_64]$ make menuconfig
+[zy@workstation linux-3.10.0-862.9.1.el7.ctt.x86_64]$ vim .config # 将'# x86_64'添加到.config头部
+[zy@workstation linux-3.10.0-862.9.1.el7.ctt.x86_64]$ cp .config configs/kernel-3.10.0-$(uname -m).config
+[zy@workstation linux-3.10.0-862.9.1.el7.ctt.x86_64]$ cp configs/* ~/rpmbuild/SOURCES
+```
+需要说明的：
+* 第2和第3行操作，将系统当前运行内核的配置拷贝到内核源码路径下，保证新构建出来的内核同当前运行内核配置一致。
+* 第4行操作进行内核配置，完成后记得Save保存配置。
+* 第5行操作，在.config头部添加注释行表明系统架构，系统架构信息为$(uname -m)。
+
+Kernel ABI一致性检查
+在后面的rpmbuild构建内核包时，增加`--without kabichk`能避免ABI一致性检查，绕过ABI兼容性错误。详细信息请见文末参考文档。
+目前看，取消`kernel memory accounting`配置后，必须关闭ABI一致性检查，才能编译内核。
+
+修改内核SPEC文件
+**警告**，必须以非root用户(non-root)执行
+```bash
+[zy@workstation ~]$ cd ~/rpmbuild/SPECS/
+[zy@workstation SPECS]$ cp kernel.spec kernel.spec.distro
+[zy@workstation SPECS]$ vim kernel.spec
+```
+第3行编辑kernel.spec文件时，需自定义内核buildid，做到新构建的内核不能与已安装的同名。
+具体做法是去掉buildid定义前的'#'，并设置自己的id，注意%与define间不能有空格。
+
+有任何patch补丁文件，请放到`~/rpmbuild/SOURCES/`目录下。
+需要打补丁时：
+1. 找到kernel.spec的'# empty final patch to facilitate testing of kernel patches'位置，在其下以40000开头声明patch
+2. 找到kernel.spec的'ApplyOptionalPatch linux-kernel-test.patch'，在其前面加入patch
+
+附打patch的方法
+```bash
+[zy@workstation ~]$ diff -Naur orig_src_root_dir my_src_root_dir > my-custom-kernel.patch
+```
+
+构建新内核
+**警告**，必须以非root用户(non-root)执行。
+终于，我们来到了编译和打包内核的阶段。常用的命令如下
+```bash
+[zy@workstation SPECS]$ rpmbuild -bb --target=$(uname -m) kernel.spec 2> build-err.log | tee build-out.log
+```
+一切顺利的话，构建好的内核在~/rpmbuild/RPMS/$(uname -m)/目录下。
+需要说明的是：上述命令构建的内核包含debug信息、size很大；另一方面，由于修改内核配置，很可能遇到KABI检查失败的情况。因此推荐使用如下命令构建：
+```bash
+[zy@workstation SPECS]$ rpmbuild -bb --with baseonly --without debug --without debuginfo --without kabichk --target=$(uname -m) kernel.spec 2> build-err.log | tee build-out.log
+```
+
+安装新内核
+将构建好的内核rpm包，全部拷贝到待更新内核的节点上，进入内核rpm包目录，执行
+```bash
+[root@workstation x86_64]# yum localinstall kernel-*.rpm
+```
+或者
+```bash
+[root@workstation x86_64]# rpm -ivh kernel-*.rpm   # 当涉及降级时，增加--oldpackage选项
+```
+注意，构建新内核时可能会产出其它不以'kernel-'开头的包（例如perf-3.10.0-327.22.2.el7.ctt.x86_64.rpm），上述安装步骤将会略过这些包，得根据自己需要判断是否安装这些rpm包。
+
 
 #### 关闭coredump
 
@@ -2011,6 +2268,154 @@ netstat -anp    #查看所有连接及其pid
 ```
 
 
+### free和meminfo内存信息解读
+Linux中内存信息错综复杂，统计值相互可能对不上，其原因在于统计标准和目的不同。
+借助参考资料，这里较详细的解读各内存统计信息，希望有助于系统内存使用分析。
+参考资料：
+- [http://linuxperf.com/](http://linuxperf.com/)：强烈推荐，本内容绝大部分引用参考自该blog
+- [https://linux-mm.org/LinuxMM](https://linux-mm.org/LinuxMM)
+- [https://www.kernel.org/doc/Documentation/vm/overcommit-accounting](https://www.kernel.org/doc/Documentation/vm/overcommit-accounting)
+- [https://www.kernel.org/doc/Documentation/sysctl/vm.txt](https://www.kernel.org/doc/Documentation/sysctl/vm.txt)
+- [http://www.win.tue.nl/~aeb/linux/lk/lk-9.html](http://www.win.tue.nl/~aeb/linux/lk/lk-9.html)
+
+#### free信息解读
+```bash
+[root@dbtest-r2-m0 ~]# free -k
+              total        used        free      shared  buff/cache   available
+Mem:       98822688    17584108    62921084     4338580    18317496    75918884
+Swap:      16777212       30036    16747176
+```
+
+|字段|含义|
+|----|----|
+|total	|系统可支配使用的所有内存 |
+|used	|系统当前已使用的内存，主要由所有进程的【Pss】构成，还包括kernel动态分配的内存等 |
+|free	|尚未被系统涉足（不等同于使用）的内存 |
+|shared	|包括tmpfs占用的pagecache |
+|buff/cache	|由meminfo中【Buffers】+【Cached】得来 |
+|available	|同meminfo中MemAvailable，表示当前系统可用内存数量的统计值 |
+
+#### smaps信息解读
+```bash
+[root@dbtest-r2-m0 ~]# cat /proc/76737/smaps
+00400000-01a6a000 r-xp 00000000 fd:21 10487597                           /usr/sbin/mysqld
+Size:              22952 kB
+Rss:                8820 kB
+Pss:                8820 kB
+Shared_Clean:          0 kB
+Shared_Dirty:          0 kB
+Private_Clean:      8820 kB
+Private_Dirty:         0 kB
+Referenced:         8820 kB
+Anonymous:             0 kB
+AnonHugePages:         0 kB
+Swap:                  0 kB
+KernelPageSize:        4 kB
+MMUPageSize:           4 kB
+Locked:                0 kB
+VmFlags: rd ex mr mw me dw sd
+...
+```
+
+|字段|含义|
+|----|----|
+| Rss	| 当前进程使用的常驻内存大小（resident set size），其中也包含当前进程使用的共享内存，例如.so库。<br>通过累加"ps -ef"中所有进程的RSS来统计系统物理内存（常驻内存）使用情况是不准确的，这种方法重复累加计算了共享内存，因此得到的结果偏大。|
+| Pss	| Proportional Set Size，同Rss类似，但其将共享内存的Rss进行平均分摊，例如100MB的内存被10个进程共享使用，那么每个进程就分摊10MB。因此，通过累加所有进程的Pss，就能得到系统物理内存使用的正确值。<br>命令为 $ grep Pss /proc/[1-9]*/smaps \| awk '{total+=$2};END{print total}' |
+| Shared_Clean<br>Shared_Dirty<br>Private_Clean<br>Private_Dirty | clean pages指mapped但未被修改过的内存，主要包括代码段text sections。<br>shared pages指被其它进程共享的内存。<br>dirty pages指mapped但已被修改过的内存。<br>private pages指只有当前进程使用的内存。<br>综上，Shared_Clean主要指动态链接库上的代码段。<br>注意，当动态链接库mapped到内存，且仅被一个进程使用时，其计入该进程的Private_XXX中。一旦有其它进程也共享这些mapped的内存，这些内存将计入Shared_XXX中。 |
+| AnonHugePages | 当前进程使用的AnonHugePages，详细描述见meminfo中AnonHugePages。 |
+
+#### meminfo信息解读
+```bash
+[root@dbtest-r2-m0 ~]# cat /proc/meminfo
+MemTotal:       98822688 kB
+MemFree:        62931212 kB
+MemAvailable:   75954120 kB
+Buffers:          279104 kB
+Cached:         17102704 kB
+SwapCached:        20128 kB
+Active:         25256640 kB
+Inactive:        8508220 kB
+Active(anon):   18231312 kB
+Inactive(anon):  2494152 kB
+Active(file):    7025328 kB
+Inactive(file):  6014068 kB
+Unevictable:       13780 kB
+Mlocked:           13780 kB
+SwapTotal:      16777212 kB
+SwapFree:       16747176 kB
+Dirty:               456 kB
+Writeback:             0 kB
+AnonPages:      16389068 kB
+Mapped:           582396 kB
+Shmem:           4338576 kB
+Slab:             961284 kB
+SReclaimable:     644916 kB
+SUnreclaim:       316368 kB
+KernelStack:       78848 kB
+PageTables:        84464 kB
+NFS_Unstable:          0 kB
+Bounce:                0 kB
+WritebackTmp:          0 kB
+CommitLimit:    66188556 kB
+Committed_AS:   56842952 kB
+VmallocTotal:   34359738367 kB
+VmallocUsed:      466620 kB
+VmallocChunk:   34359085056 kB
+HardwareCorrupted:     0 kB
+AnonHugePages:  12058624 kB
+HugePages_Total:       0
+HugePages_Free:        0
+HugePages_Rsvd:        0
+HugePages_Surp:        0
+Hugepagesize:       2048 kB
+DirectMap4k:      395132 kB
+DirectMap2M:    100268032 kB
+```
+
+|字段|含义|
+|----|----|
+|MemTotal	|系统可支配使用的所有内存，不包括用以记录page frame管理信息的mem_map的内存。|
+|MemFree	|尚未被系统涉足（不等同于使用）的内存。|
+|MemAvailable	|记录当前系统可用内存数量的统计值，buff/cache和slab中潜藏着很多可以回收的内存，使用MemFree显然不妥。|
+|Buffers	|表示块设备（block device）所占用的缓存页，包括：直接读写块设备、文件系统metadata（SuperBlock等）所使用的缓存页。注意与Cached区别。<br>Buffers占用的内存也计入LRU链，被统计在Active(file)和Inactive(file)中。|
+| Cached | pagecache内存大小，用于缓存文件里的数据、提升性能，通过echo 1 > /proc/sys/vm/drop_caches回收。<br>Cached是Mapped的超集，不仅包含mapped，也包含unmapped页面。当一个文件不再与进程关联后，其pagecache页面不会立即回收，仍然保留在LRU中，但Mapped统计值会减少。<br>POSIX/SysV shared memory和shared anonymous mmap基于tmpfs实现（等同于file-backed pages），都计入Cached。<br>Cached和SwapCached没有重叠，所以shared memory、shared anonymous mmap和tmpfs在不发生swap out时属于Cached，而在swap out/in过程中会被加入SwapCached、不再属于Cached。 |
+| SwapCached | anonymous pages要用到交换分区。shared memory、shared anonymous mmap和tmpfs虽然未计入AnonPages，但它们不是file-backed pages，所以也要用到交换分区。<br>交换分区可以包括一个或多个设备，每个交换分区设备对应有自己的swap cache，可以把swap cache理解为交换分区设备的“pagecache”：pagecache对应一个个文件，在打开文件时对应关系就确定了；swapcache对应一个个交换分区设备，一个匿名页只有即将被swap out时，对应关系才能被确定。<br>匿名页只有在如下两种情形时才存在于swapcache中： <br>a. 匿名页即将被swap out时先放进swap cache，直到swap out操作完成后就从swap cache中删除，该过程持续时间很短暂。<br>b. 曾经被swap out，再被swap in的匿名页会位于swap cache中，直到页面中内容发生变化或者原来的交换分区被回收为止。<br>综上，SwapCached记录：系统中曾经被swap out，现在又被swap in并且之后页面内容一直没发生变化的。 |
+| Active | 等于【Active(anon)】+【Active(file)】|
+| Inactive | 等于【Inactive(anon)】+【Inactive(file)】|
+| Active(anon) | 即LRU_ACTIVE_ANON<br>LRU是内核的页面回收（Page Frame Reclaiming）算法使用的数据结构，pagecache和所有用户进程的内存（kernel stack和huge pages除外）都挂在LRU链上。LRU包含Cached和AnonPages，不包含HugePages_*。<br>Inactive链上是长时间未被访问的内存页，Active链上是最近被访问过的内存页。LRU算法利用Inactive和Active链判断哪些内存页被优先回收。<br>用户进程的内存分两种：file表示与文件对应的页file-backed pages；anon表示匿名页anonymous pages。<br>file页包括进程代码、映射文件等。anon页包括进程的堆、栈等未与文件对应的。<br>内存不足时，file页直接写回disk中对应文件（称为page out）而无需用到swap分区，anon页只能写到disk上swap分区里（称为swap out）。<br>Unevictable链上是不能page out和swap out的内存页，包括VM_LOCKED内存页、SHM_LOCK共享内存页（又被计入"Mlocked"）和ramfs。 |
+| Inactive(anon) | 即LRU_INACTIVE_ANON |
+| Active(file) | 即LRU_ACTIVE_FILE |
+| Inactive(file) | 即LRU_INACTIVE_FILE |
+| Unevictable | 即LRU_UNEVICTABLE |
+| Mlocked | 统计被mlock()锁定的内存，这些内存不能page/swap out，会从Active/Inactive LRU链移动到UnevictableLRU链。Mlocked的统计和Unevictable、AnonPages、Shmem和Mapped有重叠。 |
+| SwapTotal | Swap分区大小 |
+| SwapFree | Swap分区空闲值 |
+| Dirty | 其值并未包括系统中所有脏页dirty pages，还需另外加上NFS_Unstable和Writeback。<br>即系统中所有脏页dirty pages = 【Dirty】+【NFS_Unstable】+【Writeback】。 <br>anonymous pages不属于dirty pages。  |
+| Writeback | 统计正准备回写硬盘的缓存页。 |
+| AnonPages | 统计用户进程的匿名页anonymous pages。<br>所有pagecache页（Cached）都是文件对应的页file-backed pages，不是匿名页anonymous pages，"Cached"和"AnonPages"间没有重叠。<br>shared memory基于tmpfs（文件系统），计入"Cached"。<br>private anonymous mmap计入"AnonPages"，而shared anonymous mmap计入"Cached"。<br>AnonHugePages计入AnonPages。<br>anonymous pages与用户进程共存，一旦用户进程退出，anonymous pages被释放。<br>pagecache与用户进程不强相关，即使文件与进程不关联了，pagecache仍可能保留。 |
+| Mapped | Mapped是Cached的子集，仅统计正被用户进程关联使用的文件，例如shared libraries、可执行文件、mmap文件等。因为shared memory和tmpfs被计入pagecache（Cached），所以attached shared memory和tmpfs上被map的文件计入Mapped。<br>用户进程的内存分两种：file表示与文件对应的页file-backed pages；anon表示匿名页anonymous pages。<br>因此，【所有进程PSS之和】=【Mapped】+【AnonPages】。 |
+| Shmem | 包含shared memory（shmget、shm_open、shared anonymous mmap）和tmpfs。<br>内核中shared memory都是基于tmpfs实现的，详见Documentation/filesystems/tmpfs.txt。<br>既然基于文件系统（fs），就不算anon页，所以未计入AnonPages，而被计入Cached（例如pagecache）和Mapped（当shmem被attached时）。<br>但tmpfs背后并不存在对应的disk文件，一旦内存不足时只能swap out，所以在LRU中其被计入anon链，注意与AnonPages处理的区别。<br>当shmget、shm_open和mmap创建共享内存时，只有真正访问时才分配物理内存，Shmem统计的是已分配大小。 |
+| Slab | 内核通过slab分配管理的内存总数。 |
+| SReclaimable | 内核通过slab分配的可回收的内存（例如dentry），通过echo 2 > /proc/sys/vm/drop_caches回收。 |
+| SUnreclaim | 内核通过slab分配的不可回收的内存。 |
+| KernelStack | 所有线程的内核栈（kernel stack）消耗总和，即等于（线程数 x Page大小）。 |
+| PageTables | 其统计Page Table所用内存大小（注：page table将内存的虚拟地址翻译成物理地址）。 |
+| NFS_Unstable | 其统计发给NFS server但尚未写入硬盘的缓存页，这些内存由Slab管理，因此也计入Slab。 |
+| Bounce | 内核在低地址（16MB以下）位置分配的临时buffer，用于对高地址（16MB以上）进行I/O操作的适配。 |
+| WritebackTmp | Memory used by FUSE for temporary writeback buffers。 |
+| CommitLimit | 基于vm.overcommit_ratio，表示系统当前可以分配的内存总数。<br>由【(vm.overcommit_ratio * 物理内存) + Swap】计算得来。 |
+| Committed_AS | 系统当前已分配的内存总数，即所有processes分配的（即使未使用）内存总和。例如某进程malloc()了1GB内存，但只使用300MB，仍然计入1GB至Committed_AS中。<br>当采用strict overcommit时（vm.overcommit_memory为2），Committed_AS值不能大于CommitLimit，否则应用会申请内存失败。 |
+| VmallocTotal | 可分配的虚拟内存总数。 |
+| VmallocUsed | 内核通过vmalloc分配的内存总数，注意区分VM_IOREMAP/VM_MAP/VM_ALLOC，详见/proc/vmallocinfo。 |
+| VmallocChunk | largest contiguous block of vmalloc area which is free。 |
+| HardwareCorrupted | 遇到内存硬件故障的内存总数。 |
+| AnonHugePages | 用以统计TransparentHugePages (THP)，与HugePages没有任何关系。其计入AnonPages和各进程RSS/PSS。<br>THP也可用于shared memory和tmpfs，但缺省是禁止的，详见Documentation/vm/transhuge.txt。<br>当THP未用于shared memory和tmpfs时，进程间不共享AnonHugePages，因此其统计值等于所有进程smaps中AnonHugePages值之和。 |
+| HugePages_Total | 对应内核参数vm.nr_hugepages，HugePages在内存中独立管理，不计入RSS/PSS、LRU Active/Inactive等。<br>HugePages一旦配置，无论是否使用都不再属于空闲内存。|
+| HugePages_Free | 空闲的HugePages |
+| HugePages_Rsvd | 用户申请HugePages后，HugePages_Rsvd立刻增加但HugePages_Free不会减少，直到用户读写后HugePages才被真正消耗，相应的HugePages_Rsvd减少、HugePages_Free也会检查。 |
+| HugePages_Surp | 统计surplus huge pages，即超过系统设定的常驻HugePages的内存数。 |
+| Hugepagesize | HugePage每页大小。 |
+| DirectMap4k<br>DirectMap2M<br>DirectMap1G | DirectMap不用于统计内存使用，而是反映TLB效率和负载（Load）的指标，它统计映射为4K、2M和1G页的内存大小。x86架构下，TLB管理更大的“page”，能够提升TLB的性能。 |
 
 
 
@@ -2767,6 +3172,71 @@ nsenter -t 7429 -n cat /proc/net/route
 >run program with some namespaces unshared from parent
 
 
+## 深入Docker
+
+### 容器环境下的swap使用
+为什么swap不适用于容器平台？我的理解：
+* 有swap在，接近limit时容器内的进程会使用swap“腾出”部分内存，容器limit的限制就得不到遵守，这块同cgroups相关
+* 容器环境下，虽然主机上内存资源充足，但是swap还是会使用，这与swap的设计初衷背道而驰的。
+* 使用swap会严重影响io性能。
+
+总结，swap是在容器崛起前的产物，当前出现的各类swap问题，归根到底需要swap（内存管理）和cgroup“协商”处理。
+
+查询占用swap分区Top20的Pods
+```bash
+#!/bin/bash
+
+for pid in $(top -b -n1 -o SWAP | head -n27 | sed '1,7d' | awk '{print $1}')
+do
+    p=${pid}
+    while true
+    do
+        if [ ${p} = 1 -o ${p} = 0 ]; then
+            break
+        fi
+
+        pp=$(ps -o ppid= ${p} | grep -Eo '[0-9]+')
+
+        if [ ${pp} = 1 -o ${pp} = 0 ]; then
+            break
+        fi
+
+        search=$(ps -ef | grep "\<${pp}\>" | grep 'docker-containerd-shim')
+        if [ "${search}" = "" ]; then
+            p=${pp}
+            continue
+        fi
+
+        cid=$(echo ${search} | sed 's/.*docker-containerd-shim//g' | awk '{print $1}')
+        cname=$(docker ps --no-trunc | grep ${cid} | awk '{print $NF}')
+        if [ "${cname}" = "" ]; then
+            break
+        fi
+
+        OLD_IFS="$IFS"
+        IFS="_"
+        infos=(${cname})
+        IFS="${OLD_IFS}"
+        echo "Pid:$(printf "%6d" ${pid})    $(grep VmSwap /proc/${pid}/status)    Pod: ${infos[2]}"
+        break
+    done
+done
+```
+
+### 深入docker stats命令
+~~~
+docker engine-api: func (cli *Client) ContainerStats
+-> dockerd  src/github.com/docker/docker/daemon/stats.go:135   daemon.containerd.Stats(c.ID)
+-> containerd   runtime/container.go   func (c *container) Stats() (*Stat, error)
+-> runtime (docker-runc events --stats container-id)        runc/libcontainer/cgroups/fs/memory.go   func (s *MemoryGroup) GetStats(path string, stats *cgroups.Stats) error
+-> cgroups (memory)
+
+docker-runc events --stats 9c8ad7d4885e2601a76bc3e1a4883a48a1c83e50ab4b7205176055a6fd6ec548 | jq .data.memory
+docker-runc events --stats 9c8ad7d4885e2601a76bc3e1a4883a48a1c83e50ab4b7205176055a6fd6ec548 | jq .data.memory.usage.usage
+的值直接取自：
+cat /sys/fs/cgroup/memory/kubepods/burstable/podaebd4ae8-8e1b-11e8-b174-3ca82ae95d28/9c8ad7d4885e2601a76bc3e1a4883a48a1c83e50ab4b7205176055a6fd6ec548/memory.usage_in_bytes
+~~~
+
 
 ## 容器安全
 
@@ -2846,10 +3316,31 @@ spec:
 
 ### seccomp
 
-Filter a process’s system calls. 相较linux capabilities，权限控制粒度更细。
+参考资料[seccomp](https://docs.docker.com/engine/security/seccomp)
+
+SECure COMPuting mode (简称seccomp)是Linux内核一种特性（Linux kernel feature）。能够过滤系统调用（Filter a process’s system calls）。
+相较linux capabilities，权限控制粒度更细。
+利用seccomp特性，Docker能够限制容器中能够访问的系统调用（system call），防止容器中的操作危害整个节点。
+
+通过如下操作，确认Linux和Docker支持seccomp：
+```bash
+[root@zy-super-load docker]# docker info
+...
+Security Options:
+ seccomp
+  WARNING: You're not using the default seccomp profile
+  Profile: /etc/docker/seccomp.json
+ selinux
+Kernel Version: 3.10.0-862.14.4.el7.x86_64
+...
+[root@zy-super-load docker]# grep 'CONFIG_SECCOMP=' /boot/config-$(uname -r)
+CONFIG_SECCOMP=y
+```
+
+从上述docker info中看到，docker的seccomp配置文件路径为`/etc/docker/seccomp.json`。
+该配置文件采用白名单模式，即容器内可访问seccomp.json列出的系统调用，除此之外的系统调用无法访问，默认（SCMP_ACT_ERRNO）返回Permission Denied。
 
 以设置系统时间为例：
-
 ~~~bash
 [root@zy-super-load ~]# strace date -s "15:22:00" 2>&1| grep -i time
 ...
@@ -2858,10 +3349,8 @@ clock_settime(CLOCK_REALTIME, {1575530520, 0}) = 0
 ~~~
 
 其用到了系统调用`clock_settime`。
-
 为Pod设置seccomp profile
-
-~~~yaml
+```yaml
 apiVersion: v1
 kind: ReplicationController
 ...
@@ -2880,13 +3369,49 @@ spec:
       - command:
         - /bin/bash
 ...
-~~~
-
+```
 当指定为`localhost`时，默认从`/var/lib/kubelet/seccomp/`中搜索profile文件，详见`kubelet`的`--seccomp-profile-root`参数。
+当`test-profile.json`中禁止系统调用`clock_settime`后，在pod中使用date设置系统时间失败。
+
 
 ### selinux
 
-~~~bash
+参考资料[HowTos/SELinux](https://wiki.centos.org/HowTos/SELinux)
+
+SELinux是对文件（file）和资源（例如process、device等）的访问权限控制，是对传统的discretionary access control (DAC) 的补充。
+SELinux参照最小权限模型（the model of least-privilege）设计，与之匹配的是严格策略（the strict policy），除非显式配置指定否则默认情况下所有访问均被拒绝（denied）。
+但strict policy过于严格、不便使用，为此CentOS定义并默认采用基于目标的策略（the targeted policy），只针对选取的系统进程进行限制，这些进程（例如 httpd, named, dhcpd, mysqld）涉及敏感信息和操作。其它系统进程和用户进程则处于未限制域（unconfined domain）中，不由SELinux控制和保护。
+
+targeted policy有四种形式的访问控制：
+| 类型 | 描述 |
+| --- | --- |
+| Type Enforcement (TE) | Type Enforcement is the primary mechanism of access control used in the targeted policy |
+| Role-Based Access Control (RBAC) | Based around SELinux users (not necessarily the same as the Linux user), but not used in the default configuration of the targeted policy |
+| Multi-Level Security (MLS) | Not commonly used and often hidden in the default targeted policy |
+| Multi-Category Security(MCS) | An extension of Multi-Level Security, used in the targeted policy to implement compartmentalization of virtual machines and containers through sVirt |
+
+所有进程和文件都含有SELinux安全啥下文（SELinux security context）信息
+```bash
+[root@op-master containers]# pwd
+/var/lib/docker/containers
+[root@op-master containers]# docker ps | grep nginx
+...
+6b312ef59368 nginx:1.14-alpine "nginx -g 'daemon ..."   4 days ago          Up 4 days           80/tcp, 0.0.0.0:8888->8888/tcp   apiserver-proxy
+[root@op-master containers]# cd 6b312ef59368/
+[root@op-master 6b312ef59368]# ls -Z config.v2.json
+-rw-r--r--. root root system_u:object_r:container_var_lib_t:s0 config.v2.json
+[root@op-master 6b312ef59368]#
+```
+其中，`system_u:object_r:container_var_lib_t:s0`就是在标准的DAC上增加的SELinux安全上下文信息。格式为`user:role:type:mls`，因此类型为`container_var_lib_t`。
+
+```bash
+[root@op-master ~]# ps -efZ | grep 6b312ef593
+system_u:system_r:container_runtime_t:s0 root 22190 18571  0 Apr12 ?   00:00:38 /usr/bin/docker-containerd-shim-current 6b312ef59368 /var/run/docker/libcontainerd/6b312ef59368 /usr/libexec/docker/docker-runc-current
+```
+可看到该容器的shim进程SELinux安全上下文，标识该进程类型为`container_runtime_t`，与上述config.v2.json文件的类型`container_var_lib_t`类似、均属于container_t域下，因此shim进程可以访问该文件。
+
+#### 常用操作
+```bash
 setenforce 0
 getenforce
 sestatus
@@ -2899,22 +3424,19 @@ chcon -Rv --type=httpd_sys_content_t /html
 restorecon -R /html
 ausearch -m avc --start recent
 setsebool -P virt_use_nfs 1
-~~~
+```
 
-为Pod/容器设置selinux label
 
-~~~yaml
+#### 为Pod/容器设置selinux label
+```yaml
 ...
 securityContext:
   seLinuxOptions:
     level: "s0:c123,c456"
 ...
-~~~
-
-其中seLinuxOptions施加到volume上。一般情况下，只需设置level，其为Pod及其volumes设置
-Multi-Category Security (MCS) label。
+```
+其中seLinuxOptions施加到volume上。一般情况下，只需设置level，其为Pod及其volumes设置Multi-Category Security (MCS) label。
 注意，一旦为Pod设置了MCS label，其它所有相同label的pod均可访问该Pod的volume。
-
 
 
 ## Docker操作
@@ -2946,6 +3468,77 @@ docker info -f '{{json .}}' | jq  #  格式化输出
 docker load --input images.tar.gz
 curl -v -X POST http://<ip>:2375/v1.26/images/load -T xxx.tar    #  调用docker接口load容器镜像
 ```
+
+
+### 使用docker-storage-setup初始化docker存储
+节点上安装docker，并使用docker-storage-setup初始化docker存储。
+docker-storage-setup仅依赖配置文件`/etc/sysconfig/docker-storage-setup`，会根据配置文件中的VG自动部署docker storage，包括：
+1. 创建lv
+2. 创建docker用的dm thin-pool
+3. 为docker的thin-pool配置自动扩展（auto extend）
+4. 为docker生成相应的存储配置（/etc/sysconfig/docker-storage）
+
+docker-storage-setup实则软链接到`/usr/bin/container-storage-setup`。
+`container-storage-setup`由RedHat开发，其目的为"This script sets up the storage for container runtimes"。
+`container-storage-setup`内容可直接阅读脚本。
+其配置文件路径为`/usr/share/container-storage-setup`，有效内容如下：
+```bash
+[root@zy-op-m224 ~]# cat /usr/share/container-storage-setup/container-storage-setup  | grep -v "^$\|^#"
+STORAGE_DRIVER=devicemapper
+DATA_SIZE=40%FREE
+MIN_DATA_SIZE=2G
+CHUNK_SIZE=512K
+GROWPART=false
+AUTO_EXTEND_POOL=yes
+POOL_AUTOEXTEND_THRESHOLD=60
+POOL_AUTOEXTEND_PERCENT=20
+DEVICE_WAIT_TIMEOUT=60
+WIPE_SIGNATURES=false
+CONTAINER_ROOT_LV_SIZE=40%FREE
+```
+
+
+### 构建Docker镜像最佳实践（Alpine）
+Dockerfile同Makefile类似，借助基础镜像和Dockerfile，能方便的制作出干净、内容可知的容器镜像，同`docker cp + commit`或`docker export`临时方法相比，采用Dockerfile更适合制作正式的、用于发布交付的镜像。
+
+镜像过大导致：
+1. 离线安装包过大；
+2. 过大的安装包和镜像，传输、复制时间过长，系统部署时间显著增加；
+3. 过大的镜像，还会消耗过多的容器存储资源。
+
+针对上述问题，以HAProxy的alpine版镜像为例，根据其官方Dockerfile，介绍如何使用“alpine基础镜像+Dockerfile”方式，制作干净、小巧且够用的Docker镜像，简单归纳如下：
+```Dockerfile
+# 【可选】
+# 设置环境变量，主要包括软件的版本信息和源码文件MD5校验数据
+ENV VERSION 1.6
+ENV MD5 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+# 【可选】
+# 安装alpine官方镜像没有，但后期需要使用的工具，以socat为例
+RUN apk add --no-cache socat
+
+# 【可选】
+# 安装构建、编译工具，注意，在最后需要删除这些工具
+RUN apk add --no-cache --virtual .build-deps gcc make binutils
+
+# 【可选】
+# 下载源码、编译、安装，并清除源码和中间文件
+RUN wget -O source-file.tar.gz "http://www.hehe.org/path/to/source-file-${VERSION}.tar.gz"
+RUN echo "$MD5 *source-file.tar.gz" | md5sum -c
+RUN xxx #解压源文件、编译、安装、并删除源文件和中间文件
+
+# 【可选】
+# 删除.build-deps组中所有package
+RUN apk del .build-deps
+
+
+# 设置Docker的ENTRYPOINT和CMD
+ENTRYPOINT ["/docker-entrypoint.sh"]
+CMD ["haproxy", "-f", "/usr/local/etc/haproxy/haproxy.cfg"]
+```
+
+
+
 
 ### 强制删除容器
 
@@ -3017,6 +3610,278 @@ done
 
 
 # Kubernetes
+
+## 集群控制面高可用方案
+TODO
+kubernetes的组件，例如apiserver、controller、scheduler、kube-dns在配置时，均能指定多个server，使用failover方式保证高可用。
+以apiserver为例，帮助信息中有：
+```bash
+--etcd-servers=[]: List of etcd servers to connect with (http://ip:port), comma separated.
+```
+通过--etcd-servers指定多个etcd服务器，apiserver能failover方式访问这些服务。
+
+## 多实例leader选举
+客户端代码路径：
+k8s.io/kubernetes/pkg/client/leaderelection/leaderelection.go
+
+
+## Pod健康和就绪检查遇到的坑
+
+### 问题描述
+Pod进行健康和就绪检查配置中，发现某些已有健康检查的服务，在增加就绪检查后Pod一直不就绪，且健康检查也出问题。如下健康检查为例
+```bash
+livenessProbe:
+  httpGet:
+    host: 127.0.0.1
+    path: /
+    port: 9311
+  initialDelaySeconds: 600
+  periodSeconds: 60
+  timeoutSeconds: 30
+```
+Pod正常工作。再增加就绪检查：
+```bash
+readinessProbe:
+  httpGet:
+    host: 127.0.0.1
+    path: /
+    port: 9311
+  initialDelaySeconds: 5
+  periodSeconds: 30
+  timeoutSeconds: 25
+```
+以后，Pod一直未能就绪，且因健康检查失败而反复重启。
+
+### 结论
+
+**检查方法httpGet在容器外执行，强烈建议不要指定host（除非知晓其中的风险）**
+httpGet检查在容器外执行，但其行为表现严重受到host影响：
+- 指定有host时，httpGet访问该host上的相应端口，若host指定为127.0.0.1，则访问节点本地的服务端口，外在表现为“容器外执行”
+- 未指定host时，httpGet默认访问该Pod（Pod IP）上相应端口，在容器网络（例如flannel、kube-proxy）中该请求直接转发到容器中，外在表现是访问容器内部端口、在“容器内执行”。
+
+**检查方法tcpSocket在容器外执行，但不支持指定host，请求直接转发到容器中**
+tcpSocket检查无法指定host，直接同该Pod（Pod IP）上相应端口建立连接，该连接直接转发到容器中，因此外在表现是访问容器内部端口、在“容器内执行”。
+
+**检查方法exec在容器内执行**
+exec检查指定的操作在容器内执行。
+
+
+### 分析
+
+参见代码`kubernetes/kubernetes/pkg/kubelet/prober/prober.go`。
+
+就着结论，我们来分析为什么会出现上述问题中的表现。
+
+仅配置健康检查时，指定host为127.0.0.1，其实访问节点本地的9311端口。目前，大多数服务将容器内部端口通过nodePort方式暴露到节点上，且nodePort端口同容器内部端口保持一致，健康检查能通过如下流程顺利执行httpGet操作
+> kubelet的Probe模块（容器外）发起HTTP请求 -> kube-proxy的nodePort -> 容器内targetPort ->容器内服务。
+
+当加入就绪检查后情况发生变化。就绪检查中指定host为127.0.0.1，由于Pod还未就绪、Service没有可用的Endpoint，访问节点本地9311端口时失败，pod则一直不就绪。相应的，其健康检查也无法访问节点本地9311端口，导致健康检查失败、Pod反复重启。
+
+解决办法在于去掉健康和就绪检查中的host配置，使httpGet请求发送到Pod内，不再依赖节点上nodePort暴露的服务。
+
+
+### 其它
+某些服务配置了host过滤，仅支持访问指定host，在健康和就绪检查的httpGet中增加如下配置即可：
+```bash
+httpGet:
+  httpHeaders:
+  - name: Host
+    value: ${ALLOWED_HOST}
+  path: /
+  port: 9311
+  scheme: HTTP
+```
+健康和就绪检查中增加HTTP扩展头部`Host: ${ALLOWED_HOST}`，其中`${ALLOWED_HOST}`是服务中配置的host过滤中允许访问的host。
+
+
+## Kubernetes高级调度特性
+为Pending状态的Pod选取一个 **合适** 的Node去运行，是Kubernetes调度的唯一目的。该目的简单、明确，但最重要也是最麻烦的在于 **“合适”** 两字。
+除了默认调度器（`default kubernetes scheduler`），Kubernetes高级调度特性(`Advanced Scheduling`)引入了更加灵活的策略，以应对复杂多样的业务需求。
+
+### 亲和性
+设想有一个Pending状态等待调度的Pod，尝试用Kubernetes高级调度特性-亲和性，找到最优解时，需要考虑如下几方面的内容：
+| 亲和对象 | 亲和类型 | 策略 | 运算符 |
+| --- | --- | --- | --- |
+| Node<br>Pod | 亲和(affinity)<br>反亲和(anti-affinity) | requiredDuringSchedulingIgnoredDuringExecution<br>requiredDuringSchedulingRequiredDuringExecution<br>preferredDuringSchedulingIgnoredDuringExecution | In/NotIn<br>Exists/DoesNotExists<br>Gt/Lt |
+
+
+### 自定义调度器
+custom scheduler，通过Bash脚本实现自定义调度器示例
+```bash
+#!/bin/bash
+KUBECTL='xxx'
+SERVER='xxx'
+MYSQL_POD_NAME='mysql-node'
+
+function find_mysql_master_node()
+{
+    MYSQL_PODS=$($KUBECTL --server $SERVER get pod -o wide | grep $MYSQL_POD_NAME | grep Running | awk '{print $6,$7}')
+    IFS=' ' read -r -a MYSQL_PODS <<< $MYSQL_PODS
+    for ((i=0;i<${#MYSQL_PODS[@]};i+=2));
+    do
+        podip=${MYSQL_PODS[i]}
+        nodeip=${MYSQL_PODS[i+1]}
+        result=$(mysql -uroot -pcloudos -h${podip} --connect-timeout=5 -e 'show slave hosts;')
+        if [ -n "$result" ]; then
+            echo $nodeip
+            return
+        fi
+    done
+    echo null
+    return
+}
+function find_k8s_master_node()
+{
+    NODES=$($KUBECTL --server $SERVER get node | grep -v NAME | awk '{print $1}')
+    for i in ${NODES};
+    do
+        result=$(ssh root@${i} ps -ef | grep kube-controller | grep -v grep)
+        if [ -n "$result" ]; then
+            echo ${i}
+            return
+        fi
+    done
+    echo null
+    return
+}
+while true;
+do
+    for POD in $($KUBECTL --server $SERVER get pod -o json | jq '.items[] | select(.spec.schedulerName == "smart-scheduler") |
+            select(.spec.nodeName == null) | select(.status.phase == "Pending") | .metadata.name' | tr -d '"');
+    do
+        NODES=$($KUBECTL --server $SERVER get node | grep Ready | awk '{print $1}')
+        MYSQL_MNODE=$(find_mysql_master_node)
+        K8S_MNODE=$(find_k8s_master_node)
+        for NODE in ${NODES};
+        do
+            if [ ${NODE} != ${MYSQL_MNODE} ]; then
+                if [ ${NODE} != ${K8S_MNODE} ]; then
+                    curl --header "Content-Type:application/json" \
+                         --request POST \
+                         --data '{"apiVersion":"v1", "kind": "Binding", "metadata": {"name": "'$POD'"},
+                                  "target": {"apiVersion": "v1", "kind": "Node", "name": "'$NODE'"}}' \
+                         http://$SERVER/api/v1/namespaces/default/pods/$POD/binding/ #1>/dev/null 2>&1
+                    echo "Assigned ${POD} to ${NODE}, bypass mysql master ${MYSQL_MNODE} and k8s master ${K8S_MNODE}"
+                fi
+            fi
+        done
+    done
+    #echo mysql $(find_mysql_master_node)
+    #echo k8s $(find_k8s_master_node)
+    sleep 2
+done
+```
+
+要使用上述自定义调度器，工作负载配置`schedulerName: smart-scheduler`。
+自定义调度器就是一个“controller”，不停的“reconcile”。
+
+
+## Pod调度如何感知volume的topology
+环境中有三个节点，类型为Controller：
+```bash
+[root@zy-m224 hehe]# kubectl get node -l nodeType=controller
+NAME      STATUS    ROLES                  AGE       VERSION
+zy-m224   Ready     compute,infra,master   1d        v1.11.0+d4cacc0
+zy-s222   Ready     compute,infra,master   1d        v1.11.0+d4cacc0
+zy-s223   Ready     compute,infra,master   1d        v1.11.0+d4cacc0
+```
+
+创建`storageclass`为ha-low的pvc，其存在两个副本：
+```bash
+[root@zy-m224 hehe]# kubectl get sc ha-low -o yaml --export
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  annotations:
+    storage.alpha.openshift.io/access-mode: ReadWriteOnce
+  creationTimestamp: null
+  name: ha-low
+  selfLink: /apis/storage.k8s.io/v1/storageclasses/ha-low
+parameters:
+  fstype: ext4
+  replicas: "2"
+  selector: beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,nodeType=controller
+provisioner: ctriple.cn/drbd
+reclaimPolicy: Retain
+volumeBindingMode: Immediate
+```
+
+自动部署的pv和底层存储被调度到`zy-m224`和`zy-s222`节点：
+```bash
+[root@zy-m224 hehe]# kubectl get pvc test-pvc
+NAME       STATUS    VOLUME    CAPACITY   ACCESS MODES   STORAGECLASS   AGE
+test-pvc   Bound     r0005     1Gi        RWO            ha-low         46m
+[root@zy-m224 hehe]# kubectl get pv r0005
+NAME      CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS    CLAIM              STORAGECLASS   REASON    AGE
+r0005     1Gi        RWO            Retain           Bound     default/test-pvc   ha-low                   46m
+[root@zy-m224 hehe]# ansible controller -m shell -a "lvs | grep r0005"
+zy-s223 | FAILED | rc=1 >>
+non-zero return code
+
+zy-m224 | SUCCESS | rc=0 >>
+  r0005       centos -wi-ao----   1.00g
+
+zy-s222 | SUCCESS | rc=0 >>
+  r0005       centos -wi-ao----   1.00g
+```
+
+让pod，使用该pvc后，反复删除、重启pod，发现该pod只会调度到`zy-m224`和`zy-s222`节点：
+```bash
+[root@zy-m224 hehe]# pod | grep wechat
+default        wechat-874jj       1/1       Running     0  8m    10.242.0.142   zy-m224
+```
+
+修改rc/wechat，将其绑定到错误的节点`zy-s223`:
+```bash
+...
+      hostname: wechat
+      nodeSelector:
+        node: node3
+        nodeType: controller
+...
+```
+
+删除pod后重新调度，一直处于`Pending`状态，并报`volume node affinity conflict`：
+```bash
+[root@zy-m224 scripts]# kubectl describe pod wechat-82z6q
+...
+Events:
+  Type     Reason            Age               From               Message
+  ----     ------            ----              ----               -------
+  Warning  FailedScheduling  3m (x25 over 3m)  default-scheduler  0/4 nodes are available: 1 node(s) had volume node affinity conflict, 3 node(s) didn't match node selector.
+```
+
+来龙去脉大致如下：kube-scheduler调度pod时，检查其绑定的volume，顺着pvc->pv，发现pv有配置`nodeAffinity`：
+```bash
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+...
+spec:
+...
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - zy-m224
+          - zy-s222
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ha-low
+status:
+  phase: Bound
+```
+
+阅读更多：
+- [VOLUME TOPOLOGY-AWARE SCHEDULING](https://stupefied-goodall-e282f7.netlify.com/contributors/design-proposals/storage/volume-topology-scheduling/)
+
+
+## CPU资源高级管理
+TODO
+- https://docs.openshift.com/container-platform/3.11/scaling_performance/using_cpu_manager.html
+- https://kubernetes.io/docs/tasks/administer-cluster/cpu-management-policies/
 
 ## kube-proxy集群内负载均衡
 作为K8s集群内默认负载均衡解决方案，kube-proxy支持模式方式：
@@ -3387,6 +4252,23 @@ cmake ../mysql-server-mysql-5.7.20/ -LH
 
 
 ## Calico
+
+
+### 使用Calico实现容器网络流量限制
+cni/calico是支持网络限速的，其底层依赖tc实现，详见[https://github.com/projectcalico/calico/issues/797](https://github.com/projectcalico/calico/issues/797)。
+通过配置tc也能达到同样目的（TODO TC介绍）
+
+参见链接：
+- https://kubernetes.io/docs/concepts/extend-kubernetes/compute-storage-net/
+- https://stackoverflow.com/questions/54253622/kubernetes-how-to-implement-a-network-resourcequota
+- https://www.gitmemory.com/issue/projectcalico/calico/797/493210584
+- https://github.com/kubernetes/kubernetes/blob/v1.8.4/pkg/util/bandwidth/utils.go#L38
+- https://docs.projectcalico.org/v3.8/security/advanced-policy
+- https://docs.projectcalico.org/v3.8/security/calico-network-policy
+
+
+### Calico容器网络中固定Pod IP地址
+为Pod指定IP地址：
 ```bash
 apiVersion: v1
 kind: Pod
@@ -3399,22 +4281,15 @@ metadata:
     app: nginx-static-ip
 spec:
   containers:
-  - image: nginx:1.15
+  - image: nginx
     imagePullPolicy: IfNotPresent
     name: nginx-static-ip
     ports:
     - containerPort: 80
       protocol: TCP
-    - containerPort: 443
-      protocol: TCP
-    volumeMounts:
-    - mountPath: /etc/localtime
-      name: time
-  volumes:
-  - hostPath:
-      path: /etc/localtime
-    name: time
 ```
+其中通过`cni.projectcalico.org/ipAddrs`注解配置IP地址。
+**注意**，固定IP地址应在容器网络IP地址池内，获取IP地址池的方法为查看节点上配置文件`/etc/cni/net.d/10-calico.conflist`中ipam段的`ipv4_pools`。
 
 
 
@@ -3877,7 +4752,111 @@ EOF
 ```
 
 
+### OpenShift 3.x DNS介绍
+代码 `origin/pkg/dns/serviceresolver.go <Records><ReverseRecord>` 中实现skydns后端接口，用于域名（svc）到IP（clusterIP）的转换。
 
+宿主机上运行的dnsmasq服务配置见 `/etc/dnsmasq.d/origin-dns.conf` ：
+1. controller（master）节点上运行master-api，监听`0.0.0.0:8053`端口，数据来自apiserver。
+2. node节点上运行skydns（同master类似，直接built-in skydns），监听`127.0.0.1:53`端口，数据同样来自apiserver，`pkg/cmd/server/start/start_allinone.go:250`
+3. node节点宿主机上运行dnsmasq，监听除lo口外所有接口的:53端口。后端信息来自2。
+
+宿主机上，对dns解析请求抓包：
+```bash
+tcpdump -i lo port 53 -nnl
+```
+虽然`/etc/resolve.conf`中nameserver配置为集群网卡IP地址，但tcpdump指定抓取集群网卡时并不能抓到dns解析的报文。
+
+
+
+### 深入OpenShift SDN网络
+参考资料[理解OpenShift（3）：网络之 SDN](https://www.cnblogs.com/sammyliu/p/10064450.html)
+
+参考资料中，流程图各步骤说明：
+1. cri，docker_sandbox，dockershim，执行实体origin-node
+2. docker直接创建容器
+3. cni pluginmanager调用openshift-sdn插件，执行实体origin-node，可执行文件openshift-sdn在/opt/cni/bin目录下
+4. 请求发往cni-server，执行实体openshift-sdn pod
+5. 调用ipam插件host-local（详见pkg/network/node/pod.go:497），获取ip地址和路由信息，并将这些信息直接返回给openshift-sdn插件，然后转第8步
+6. 详见pkg/network/node/pod.go:497，调用m.ovs.SetUpPod(req.SandboxID, req.HostVeth, podIP, vnid)
+7. 详见pkg/network/node/ovscontroller.go:267
+8. openshift-sdn插件调用ip.SetHWAddrByIP和ipam.ConfigureIface设置ip地址和路由信息
+
+各节点subnet信息（类似flanneld在etcd中保存的信息/coreos.com/network）在：
+```bash
+[root@op-m ~]# etcdctl3 get /openshift.io/registry --prefix --keys-only
+/openshift.io/registry/sdnnetworks/default
+/openshift.io/registry/sdnsubnets/op-m
+/openshift.io/registry/sdnsubnets/op-s1
+/openshift.io/registry/sdnsubnets/op-s2
+
+[root@op-m ~]# etcdctl3 get /openshift.io/registry/sdnnetworks/default | strings
+/openshift.io/registry/sdnnetworks/default
+network.openshift.io/v1
+ClusterNetwork
+default
+*$bc235484-08f0-11e9-9f1d-0cda411d819b2
+10.101.0.0/16
+10.100.0.0/16*
+redhat/openshift-ovs-subnet2
+10.101.0.0/16
+[root@op-m ~]# etcdctl3 get /openshift.io/registry/sdnsubnets/op-m | strings
+/openshift.io/registry/sdnsubnets/op-m
+network.openshift.io/v1
+HostSubnet
+op-m
+*$bca6bebb-08f0-11e9-9f1d-0cda411d819b2
+!pod.network.openshift.io/node-uid
+$b787a6f2-08f0-11e9-9f1d-0cda411d819bz
+op-m
+172.25.18.233"
+10.101.2.0/23
+```
+openshift SDN根据上述信息配置各node的subnet。
+openshift SDN cni-server的运行目录：/run/openshift-sdn
+
+node上kubelet服务配置`/usr/bin/hyperkube kubelet --network-plugin=cni`
+```bash
+[root@slim-m-18-233 ~]# cat /etc/cni/net.d/80-openshift-network.conf
+{
+"cniVersion": "0.2.0",
+"name": "openshift-sdn",
+"type": "openshift-sdn"
+}
+[root@slim-m-18-233 bin]# pwd
+/opt/cni/bin
+[root@slim-m-18-233 bin]# ls
+host-local loopback openshift-sdn
+```
+
+openshift-sdn插件：
+1. 通过IPAM获取IP地址并根据subnet地址生成默认添加的路由
+2. 设置OVS（ovs-vsctl将infra容器主机端虚拟网卡加入br0，ovs-ofctl设置流表规则）
+
+本节点网络信息位置`/var/lib/cni/networks/openshift-sdn`，例如
+```bash
+[root@xu openshift-sdn]# cat 10.101.2.92
+1cc6a193e9ea4320e0f6282d4eaa6701e12fa21ff361d720c03f6e1fe9d1b324
+```
+
+进入openshift-sdn命名空间任一pod，使用如下命令查看信息：
+```bash
+ovs-ofctl -O OpenFlow13 dump-flows br0
+ovs-vsctl show
+ovs-ofctl -O OpenFlow13 show br0
+nsenter -t <容器的PID> -n ip link
+iptables -t nat -s
+```
+
+为Pod设置默认路由的地方：
+```golang
+// pkg/network/node/pod.go:112
+
+// Generates a CNI IPAM config from a given node cluster and local subnet that
+// CNI 'host-local' IPAM plugin will use to create an IP address lease for the
+// container
+func getIPAMConfig(clusterNetworks []common.ClusterNetwork, localSubnet string) ([]byte, error)
+
+```
 
 
 ## Harbor
@@ -5238,8 +6217,9 @@ Ctrl + F
 
 ## 奇技淫巧
 
-在Office Word中打钩：
+Azure镜像源`mirror.azure.cn`
 
+在Office Word中打钩：
 ```
 alt + 9745
 ```
