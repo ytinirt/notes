@@ -2719,6 +2719,17 @@ strace -fc -e trace=access curl -s 'https://10.100.0.1/' > /dev/null
 strace -eopen pip 2>&1|grep pip.conf
 ```
 
+#### ftrace查看系统调用耗时
+安装`trace-cmd`
+
+#### perf查看系统调用性能
+安装`perf`
+
+```bash
+perf record cat /sys/fs/cgroup/memory/memory.stat
+perf report
+```
+
 #### pstack分析CPU异常高时堆栈信息
 
 ```bash
@@ -3120,6 +3131,16 @@ cgroup实现本质上是给系统进程挂上hooks，当task运行过程中涉�
 
 ```bash
 mount -t cgroup -o cpuset cpuset /sys/fs/cgroup/cpuset
+```
+
+### 判断是否为cgroupv2
+```bash
+mkdir /tmp/hehe
+# 看能否挂载成功
+mount -t cgroup2 none /tmp/hehe
+
+# 另一种方法，看能否搜索到 cgroup2
+grep cgroup /proc/filesystems
 ```
 
 ### 常用操作
