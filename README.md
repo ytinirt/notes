@@ -698,9 +698,15 @@ cat /proc/net/route && cat /proc/net/ipv6_route   # 当没有ip和route命令时
 ip address add 172.25.50.32/20 dev eth0 # 设置（secondary）地址
 arp -s 172.25.50.31 fa:16:3e:b7:2a:8e # 添加静态ARP表项
 arp -d 172.25.50.31     # 删除ARP表项
+cat /sys/class/net/<interface>/speed    # 查看接口速率
 ```
 
 
+### 虚拟网络中的Linux接口
+https://developers.redhat.com/blog/2018/10/22/introduction-to-linux-interfaces-for-virtual-networking/
+https://developers.redhat.com/blog/2019/05/17/an-introduction-to-linux-virtual-interfaces-tunnels/
+https://www.kernel.org/doc/Documentation/networking/vxlan.txt
+https://vincent.bernat.ch/en/blog/2017-vxlan-linux
 
 ### OpenvSwitch
 
@@ -725,7 +731,28 @@ brctl                                   # 属于bridge-utils包
 
 
 ### veth-pair
-TODO
+源码`https://github.com/torvalds/linux/blob/master/drivers/net/veth.c`。
+以module方式安装：
+```bash
+[root@aaa-d5dc9 ~]# lsmod | grep veth
+veth                   16384  0
+[root@aaa-d5dc9 ~]# modinfo veth
+filename:       /lib/modules/4.14.0-115.7.1.el7a.x86_64/kernel/drivers/net/veth.ko.xz
+alias:          rtnl-link-veth
+license:        GPL v2
+description:    Virtual Ethernet Tunnel
+rhelversion:    7.6
+srcversion:     699C066ED915679A9525580
+depends:
+intree:         Y
+name:           veth
+vermagic:       4.14.0-115.7.1.el7a.x86_64 SMP mod_unload modversions
+```
+
+#### veth接口速率speed
+- https://mailman.stanford.edu/pipermail/mininet-discuss/2015-January/005633.html
+
+目前看kernel中veth的speed是hard-coded为10G。
 
 
 #### veth接口的hairpin模式
@@ -750,6 +777,12 @@ bash-4.4# exit
 /sys/devices/virtual/net/veth88a3f539/ifindex
 ```
 找到对应的接口为veth88a3f539。
+
+
+
+### 容器网络
+- https://unix.stackexchange.com/questions/283854/what-is-the-network-connection-speed-between-two-containers-communicating-via-a
+
 
 ### iptables
 
@@ -1571,6 +1604,7 @@ TODO
 groupadd                # 创建新的组
 useradd -U zy           # 创建新的用户
 passwd zy               # 创建（修改）用户密码
+usermod -aG wheel zy    # 将新建的用户加入wheel组，成为sudoer
 su - zy                 # 切换用户，推荐带上'--login'（缩写'-'），以确保像是一次真正的login
 su [-] nova
 usermod -s /bin/bash nova
@@ -2052,6 +2086,7 @@ Kernel ABI一致性检查
 
 附打patch的方法
 ```bash
+# TODO: diff -Nurp a/drivers/block/nbd.c b/drivers/block/nbd.c
 [zy@workstation ~]$ diff -Naur orig_src_root_dir my_src_root_dir > my-custom-kernel.patch
 ```
 
