@@ -2,7 +2,7 @@
 # Table of contents
 
 <!--ts-->
-   * [Table of contentss](#table-of-contentss)
+   * [Table of contents](#table-of-contents)
    * [Linux and OS](#linux-and-os)
       * [Kernel](#kernel)
          * [进程调度](#进程调度)
@@ -343,7 +343,7 @@
          * [常用操作](#常用操作-13)
       * [奇技淫巧](#奇技淫巧)
 
-<!-- Added by: travis, at: Sun May 17 15:12:00 UTC 2020 -->
+<!-- Added by: travis, at: Sun May 17 15:16:56 UTC 2020 -->
 
 <!--te-->
 
