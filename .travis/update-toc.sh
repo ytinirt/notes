@@ -2,6 +2,7 @@
 
 set -x
 echo "TRAVIS_BRANCH=${TRAVIS_BRANCH}"
+echo "TRAVIS_COMMIT_MESSAGE=${TRAVIS_COMMIT_MESSAGE}"
 if [[ "${TRAVIS_BRANCH}" != "master" ]]; then
     echo "give up updating TOC @ branch ${TRAVIS_BRANCH}"
     exit 0
