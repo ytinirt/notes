@@ -2113,6 +2113,11 @@ Kernel ABI一致性检查
 ```
 注意，构建新内核时可能会产出其它不以'kernel-'开头的包（例如perf-3.10.0-327.22.2.el7.ctt.x86_64.rpm），上述安装步骤将会略过这些包，得根据自己需要判断是否安装这些rpm包。
 
+附通过内核符号，判断对内核的修改生效
+```bash
+# 读取 /proc/kallsyms 文件，查看是否有修改/新增的内核符号
+[root@zy-super-load proc]# less /proc/kallsyms
+```
 
 #### 关闭coredump
 
@@ -2148,6 +2153,27 @@ Storage=none
 ProcessSizeMax=0
 ~~~
 
+
+
+### defunct进程
+在Linux中`defunct`和`zombie`进程是一回事儿，从`man ps`可知：
+> Processes marked `<defunct>` are dead processes (so-called "zombies") that remain because their parent has not destroyed them properly. These processes will be destroyed by init(8) if the parent process exits.
+
+```bash
+PROCESS STATE CODES
+    Here are the different values that the s, stat and state output specifiers (header "STAT" or "S") will display to describe the state of a process:
+    D    uninterruptible sleep (usually IO)
+    R    running or runnable (on run queue)
+    S    interruptible sleep (waiting for an event to complete)
+    T    stopped by job control signal
+    t    stopped by debugger during the tracing
+    W    paging (not valid since the 2.6.xx kernel)
+    X    dead (should never be seen)
+    Z    defunct ("zombie") process, terminated but not reaped by its parent
+```
+`defunct`进程已异常退出，但其`parent`进程未能正常处理/确认其退出。当这类进程的`parent`进程退出后，`init(8)`进程会彻底销毁它们。因此，只要`kill`掉`defunct`进程的`parent`即可。
+
+另一方面，当遇到`defunct`进程的父进程为`init(8)`时，目前唯一简便且可行的是重启节点。导致出现这类进程的原因多是IO或者系统调用（syscall）异常，可通过`lsof -p <pid of the zombie>`获取debug信息。
 
 
 ### 主机资源监控
@@ -3292,6 +3318,13 @@ docker-runc events --stats 9c8ad7d4885e2601a76bc3e1a4883a48a1c83e50ab4b720517605
 的值直接取自：
 cat /sys/fs/cgroup/memory/kubepods/burstable/podaebd4ae8-8e1b-11e8-b174-3ca82ae95d28/9c8ad7d4885e2601a76bc3e1a4883a48a1c83e50ab4b7205176055a6fd6ec548/memory.usage_in_bytes
 ~~~
+
+
+## containerd
+### 常用操作
+```bash
+docker-ctr-current --address unix:///var/run/docker/libcontainerd/docker-containerd.sock   # 使用containerd客户端
+```
 
 
 ## 容器安全
@@ -5410,7 +5443,7 @@ select password from mysqlauth_users where user='u' and ( 'dddd' = host or 'dddd
 
 ## RabbitMQ
 
-常用操作
+### 常用操作
 
 ```bash
 rabbitmqctl help
@@ -5444,6 +5477,20 @@ curl -s -u openstack:password http://$(kubectl get svc cell002-rabbit1 -o jsonpa
 ```
 
 
+### rabbitmq节点重新加入集群
+1. 停止rabbitmq某个实例，以`rabbit3`为例，并清空其数据目录，例如`/opt/h3cloud/rabbitmq/`
+2. 待集群剩下两个节点，例如`rabbit1`和`rabbit2`恢复正常后，在`rabbit1`上执行如下命令，将`rabbit3`从集群移除：
+```bash
+rabbitmqctl forget_cluster_node rabbit@rabbit3
+```
+3. 启动`rabbit3`节点
+4. 执行如下命令，`rabbit3`重新加入集群：
+```bash
+rabbitmqctl stop_app
+rabbitmqctl join_cluster rabbit@rabbit1
+rabbitmqctl start_app
+```
+
 
 ## influxdb
 
@@ -5473,8 +5520,14 @@ SELECT mean("value") FROM "memory/usage" WHERE "type" = 'pod_container' AND time
 ## Prometheus
 
 
+### promtool工具
+实例：
+```bash
+promtool debug all http://127.0.0.1:9090/
+```
 
-RESTful接口查询示例
+
+### RESTful接口查询示例
 
 ```bash
 # node-exporter:  rate(node_network_receive_bytes_total[1m])
