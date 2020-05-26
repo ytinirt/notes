@@ -3599,6 +3599,7 @@ docker exec d8c875f38278 bash -c "echo '1.2.3.4 hehe' >> /etc/hosts"   # 进入�
 docker inspect -f "{{json .Mounts}}" b2aed79fec98
 docker inspect ${container} --format '{{.State.Pid}}'    # 获取容器的entrypoint进程pid
 docker stats --format "{{.Name}} {{.MemPerc}}"
+docker images --format "{{.Repository}}:{{.Tag}}"
 docker info -f '{{json .}}' | jq  #  格式化输出
 docker load --input images.tar.gz
 curl -v -X POST http://<ip>:2375/v1.26/images/load -T xxx.tar    #  调用docker接口load容器镜像
@@ -3631,6 +3632,12 @@ DEVICE_WAIT_TIMEOUT=60
 WIPE_SIGNATURES=false
 CONTAINER_ROOT_LV_SIZE=40%FREE
 ```
+
+
+### 切换docker存储
+以devicemapper换overlay2为例。
+
+#### TODO
 
 
 ### 构建Docker镜像最佳实践（Alpine）
@@ -4781,6 +4788,53 @@ nova hypervisor-list
 nova hypervisor-show <uuid>
 openstack compute service set --disable <host>
 ```
+
+### K8s中openstack-cloud-provider获取实例元数据
+参见源码`k8s.io/kubernetes/pkg/cloudprovider/providers/openstack/metadata.go`中`getMetadata`。
+
+有两种方式获取元数据:
+* getMetadataFromConfigDrive
+* getMetadataFromMetadataService
+
+在`kubelet`启动时，依次尝试采用上述方式获取元数据，只有当`FromConfigDrive`失败时才会尝试`FromMetadataService`。
+
+#### 通过ConfigDrive方式
+在实例上查找设备`/dev/disk/by-label/config-2`，若不存在则采用如下方式
+```bash
+blkid -l -t LABEL=config-2 -o device
+```
+
+找到上述设备后，挂载该设备：
+```bash
+mount /dev/disk/by-label/config-2 /mnt -t iso9660 -o ro
+# 或
+mount /dev/disk/by-label/config-2 /mnt -t vfat -o ro
+```
+然后`/mnt`目录下就有实例的元数据了，例如：
+```bash
+[root@ccc-444ed mnt]# cat openstack/2012-08-10/meta_data.json | jq
+{
+  "admin_pass": "1",
+  "name": "ccc-444ed",
+  "availability_zone": "cas228",
+  "hostname": "ccc-444ed.novalocal",
+  "launch_index": 0,
+  "meta": {
+    "vifType": "fbdda380-31ba-4630-b712-bf0871f53e29:vmxnet3",
+    "zone_uuid": "ae56d86f-e423-4727-be0b-8dd78031c7ba",
+    "enableAdminPass": "1",
+    "h3c_extend_api": "true"
+  },
+  "network_config": {
+    "content_path": "/content/0000",
+    "name": "network_config"
+  },
+  "uuid": "aea2c2fb-2b80-4e9d-ab1f-67c887d3f9a8"
+}
+```
+
+#### 通过MetadataService方式
+元数据服务方式，会固定的访问地址`http://169.254.169.254/openstack/2012-08-10/meta_data.json`。
 
 ### nova compute健康状态检查
 
