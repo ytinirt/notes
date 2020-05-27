@@ -4507,6 +4507,38 @@ etcdctl 2>/dev/null -o extended get /coreos.com/network/subnets/10.101.13.0-24
 /debug/vars
 ```
 
+### kube-apiserver的etcd-quorum-read调查
+目前从一致性考虑，`kube-apiserver`已强制开启`etcd-quorum-read`选项。
+
+从代码看:
+```golang
+// k8s.io/apiserver/pkg/storage/etcd3/store.go:99
+func newStore(c *clientv3.Client, quorumRead, pagingEnabled bool, codec runtime.Codec, prefix string, transformer value.Transformer) *store {
+	versioner := etcd.APIObjectVersioner{}
+	result := &store{
+		client:        c,
+		codec:         codec,
+		versioner:     versioner,
+		transformer:   transformer,
+		pagingEnabled: pagingEnabled,
+		// for compatibility with etcd2 impl.
+		// no-op for default prefix of '/registry'.
+		// keeps compatibility with etcd2 impl for custom prefixes that don't start with '/'
+		pathPrefix:   path.Join("/", prefix),
+		watcher:      newWatcher(c, codec, versioner, transformer),
+		leaseManager: newDefaultLeaseManager(c),
+	}
+	if !quorumRead {
+		// In case of non-quorum reads, we can set WithSerializable()
+		// options for all Get operations.
+		result.getOps = append(result.getOps, clientv3.WithSerializable())
+	}
+	return result
+}
+```
+开启`etcd-quorum-read`后，客户端采用`linearizable read`，不再`serialized read`，确保一致性。
+
+深入[阅读资料](https://github.com/etcd-io/etcd/blob/master/Documentation/learning/api_guarantees.md)。
 
 
 ### v3常见操作
