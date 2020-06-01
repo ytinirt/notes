@@ -3606,6 +3606,30 @@ curl -v -X POST http://<ip>:2375/v1.26/images/load -T xxx.tar    #  调用docker
 ```
 
 
+### 修改容器的ulimit默认配置
+在`/etc/docker/daemon.json`中增加`default-ulimits`，修改容器ulimit默认配置
+```bash
+# cat /etc/docker/daemon.json
+{
+  "default-ulimits": {
+    "core": {
+      "Name": "core",
+      "Hard": 0,
+      "Soft": 0
+    }
+  }
+}
+```
+此后容器内不再输出`coredump`文件，进入容器后确认：
+```bash
+bash-4.4# cat /proc/$$/limits
+Limit                     Soft Limit           Hard Limit           Units
+...
+Max core file size        0                    0                    bytes
+...
+```
+
+
 ### 使用docker-storage-setup初始化docker存储
 节点上安装docker，并使用docker-storage-setup初始化docker存储。
 docker-storage-setup仅依赖配置文件`/etc/sysconfig/docker-storage-setup`，会根据配置文件中的VG自动部署docker storage，包括：
@@ -4511,7 +4535,7 @@ etcdctl 2>/dev/null -o extended get /coreos.com/network/subnets/10.101.13.0-24
 目前从一致性考虑，`kube-apiserver`已强制开启`etcd-quorum-read`选项。
 
 从代码看:
-```golang
+```go
 // k8s.io/apiserver/pkg/storage/etcd3/store.go:99
 func newStore(c *clientv3.Client, quorumRead, pagingEnabled bool, codec runtime.Codec, prefix string, transformer value.Transformer) *store {
 	versioner := etcd.APIObjectVersioner{}
@@ -4537,9 +4561,15 @@ func newStore(c *clientv3.Client, quorumRead, pagingEnabled bool, codec runtime.
 }
 ```
 开启`etcd-quorum-read`后，客户端采用`linearizable read`，不再`serialized read`，确保一致性。
+深入阅读:
+- [etcd api guarantees](https://github.com/etcd-io/etcd/blob/master/Documentation/learning/api_guarantees.md)
+- [etcd issue 741](https://github.com/etcd-io/etcd/issues/741)
+- [增加linearizability read的PR](https://github.com/etcd-io/etcd/pull/866)
+- [Strong consistency models](https://aphyr.com/posts/313-strong-consistency-models)
 
-深入[阅读资料](https://github.com/etcd-io/etcd/blob/master/Documentation/learning/api_guarantees.md)。
-
+关于客户端请求是否会到`leader`，在etcd的FAQ里有如下描述：
+> Do clients have to send requests to the etcd leader?
+> Raft is leader-based; the leader handles all client requests which need cluster consensus. However, the client does not need to know which node is the leader. Any request that requires consensus sent to a follower is automatically forwarded to the leader. Requests that do not require consensus (e.g., serialized reads) can be processed by any cluster member.
 
 ### v3常见操作
 
