@@ -1086,6 +1086,21 @@ ACTION=="add", SUBSYSTEM=="net", DRIVERS=="?*", ATTR{address}=="0c:da:41:1d:e3:4
 ```
 其中`ATTR{address}==`后跟该网卡的MAC地址，`NAME=`为欲固定的网卡名称。
 
+
+### InfiniBand
+[参考资料](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/networking_guide/ch-configure_infiniband_and_rdma_networks)
+
+
+### RDMA
+
+
+### DPDK
+
+
+### SR-IOV
+
+
+
 ## Storage
 
 
