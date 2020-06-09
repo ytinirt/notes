@@ -177,7 +177,10 @@
             * [为Pod/容器设置selinux label](#为pod容器设置selinux-label)
       * [Docker操作](#docker操作)
          * [常用操作](#常用操作-7)
+         * [修改容器的ulimit默认配置](#修改容器的ulimit默认配置)
          * [使用docker-storage-setup初始化docker存储](#使用docker-storage-setup初始化docker存储)
+         * [切换docker存储](#切换docker存储)
+            * [TODO](#todo)
          * [构建Docker镜像最佳实践（Alpine）](#构建docker镜像最佳实践alpine)
          * [强制删除容器](#强制删除容器)
          * [找到容器使用的dm-xx设备](#找到容器使用的dm-xx设备)
@@ -230,6 +233,7 @@
       * [CoreDNS](#coredns-1)
          * [通过hosts方式手动增加A记录](#通过hosts方式手动增加a记录)
       * [Etcd](#etcd)
+         * [kube-apiserver的etcd-quorum-read调查](#kube-apiserver的etcd-quorum-read调查)
          * [v3常见操作](#v3常见操作)
          * [v2 API](#v2-api)
          * [修复故障节点](#修复故障节点)
@@ -242,6 +246,9 @@
          * [tcpdump和libpcap常用规则](#tcpdump和libpcap常用规则)
       * [Openstack](#openstack)
          * [常用操作](#常用操作-10)
+         * [K8s中openstack-cloud-provider获取实例元数据](#k8s中openstack-cloud-provider获取实例元数据)
+            * [通过ConfigDrive方式](#通过configdrive方式)
+            * [通过MetadataService方式](#通过metadataservice方式)
          * [nova compute健康状态检查](#nova-compute健康状态检查)
          * [rally测试中TCP端口耗尽问题解决](#rally测试中tcp端口耗尽问题解决)
       * [OpenShift and OKD](#openshift-and-okd)
@@ -350,7 +357,7 @@
          * [常用操作](#常用操作-15)
       * [奇技淫巧](#奇技淫巧)
 
-<!-- Added by: travis, at: Mon May 18 09:14:51 UTC 2020 -->
+<!-- Added by: travis, at: Mon Jun  1 10:35:11 UTC 2020 -->
 
 <!--te-->
 
