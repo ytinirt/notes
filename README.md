@@ -1102,6 +1102,7 @@ ACTION=="add", SUBSYSTEM=="net", DRIVERS=="?*", ATTR{address}=="0c:da:41:1d:e3:4
 
 
 ### DPDK
+[参考资料](https://doc.dpdk.org/guides-18.08/nics/intel_vf.html)
 
 
 ### SR-IOV
@@ -5764,6 +5765,16 @@ curl -s os-weavescope-svc.default.svc/api/topology
 
 ## Ceph
 
+### 常用命令
+```bash
+# Attach块设备，使用lsblk确认是否挂载成功，此后就可以格式化卷或者挂载文件系统了
+rbd map <pool>/<volume>
+# 或者nbd方式时（通过nbd.ko判断）
+rbd-nbd map <pool>/<volume>
+
+# 查看卷是否正在被使用，记得先把之前的nbd attach取消了
+rbd status <pool>/<volume>
+```
 
 
 ## KVM
