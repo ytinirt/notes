@@ -265,6 +265,10 @@
       * [Rancher](#rancher)
          * [通过API访问Rancher](#通过api访问rancher)
          * [在Air Gap环境中以HA方式部署Rancher](#在air-gap环境中以ha方式部署rancher)
+      * [kubespray和kubeadm部署K8s集群](#kubespray和kubeadm部署k8s集群)
+         * [为apiserver新增SAN](#为apiserver新增san)
+            * [方法一，通过kubespray](#方法一通过kubespray)
+            * [方法二，通过kubeadm](#方法二通过kubeadm)
       * [nginx](#nginx)
       * [haproxy](#haproxy)
          * [使用socat操作UNIX domain套接字](#使用socat操作unix-domain套接字)
@@ -304,6 +308,7 @@
       * [Weavescope](#weavescope)
       * [Ceph](#ceph)
          * [常用命令](#常用命令-2)
+         * [OneStor](#onestor)
       * [KVM](#kvm)
          * [virsh操作](#virsh操作)
       * [drbd](#drbd)
@@ -362,7 +367,7 @@
          * [常用操作](#常用操作-15)
       * [奇技淫巧](#奇技淫巧)
 
-<!-- Added by: travis, at: Thu Jun 18 01:17:48 UTC 2020 -->
+<!-- Added by: travis, at: Tue Jun 23 06:05:19 UTC 2020 -->
 
 <!--te-->
 
