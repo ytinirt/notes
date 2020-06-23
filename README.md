@@ -5265,6 +5265,44 @@ oc adm policy add-scc-to-user privileged -z exporter-node-cluster-monitoring -n 
 oc adm policy add-scc-to-user anyuid -z exporter-kube-state-cluster-monitoring -n cattle-prometheus
 ```
 
+
+## kubespray和kubeadm部署K8s集群
+
+### 为apiserver新增SAN
+#### 方法一，通过kubespray
+参考 https://github.com/kubernetes-sigs/kubespray/issues/2164
+通过kubespray解决，大致步骤为：
+1. 删除KaaS集群控制节点 `/etc/kubernetes/ssl` 中`apiserver.crt`和`apiserver.key`
+2. 配置`supplementary_addresses_in_ssl_keys`，将新增的域名或地址添加到其中
+3. 重新跑一次`cluster.yml`
+
+#### 方法二，通过kubeadm
+参考 https://github.com/kubernetes/kubeadm/issues/1447
+kubespray底层使用kubeadm部署，因此可直接使用kubeadm解决，大致步骤为：
+```bash
+# 保存配置
+kubeadm config view > /root/kubeadmconf.yml
+# 修改配置文件，修改/增加certSANs
+vi /root/kubeadmconf.yml
+# 重新上传配置文件
+kubeadm config upload from-file --config /root/kubeadmconf.yml
+# 检查和备份证书
+cd /etc/kubernetes/ssl
+openssl x509 -in apiserver.crt -text -noout
+mv apiserver.* /root/certBackup/
+# 重新生成apiserver证书
+kubeadm init phase certs apiserver --config=/root/kubeadmconf.yml
+# 再次检查证书
+openssl x509 -in apiserver.crt -text -noout
+# 重启kubelet服务
+systemctl daemon-reload
+systemctl restart kubelet
+# 重启apiserver
+docker ps | grep apiserver
+docker restart <apiserver_id>
+```
+
+
 ## nginx
 
 Nginx请求日志分析，查看哪个IP的访问量大
@@ -5776,6 +5814,11 @@ rbd-nbd map <pool>/<volume>
 rbd status <pool>/<volume>
 ```
 
+### OneStor
+```bash
+# 比ceph-common需要多指定 --data-pool
+rbd create hehe-images2 -p .diskpool.rbd --data-pool test01 --size 100M
+```
 
 ## KVM
 
