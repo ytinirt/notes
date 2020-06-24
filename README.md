@@ -209,8 +209,6 @@
          * [深入iptables模式的kube-proxy](#深入iptables模式的kube-proxy)
             * [实现会话亲和性](#实现会话亲和性)
       * [域名解析和DNS策略](#域名解析和dns策略)
-         * [kube-dns](#kube-dns)
-         * [CoreDNS](#coredns)
          * [Pod's DNS Policy](#pods-dns-policy)
       * [对象名称和字符串格式检查](#对象名称和字符串格式检查)
       * [操作实例](#操作实例)
@@ -4135,10 +4133,6 @@ TODO
 
 ## 域名解析和DNS策略
 
-### kube-dns
-
-### CoreDNS
-
 ### Pod's DNS Policy
 参见[Pod’s DNS Policy](https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/#pod-s-dns-policy)
 
@@ -4489,11 +4483,32 @@ spec:
 
 ## CoreDNS
 
-常见操作
-
-```bash
-
+### 通过rewrite plugin修改待解析的域名
+修改CoreDNS配置文件`kubectl edit cm coredns -n kube-system`：
+```yaml
+apiVersion: v1
+data:
+  Corefile: |
+    .:53 {
+        errors
+        ...
+        kubernetes wushan.thx in-addr.arpa ip6.arpa {
+          pods insecure
+          fallthrough in-addr.arpa ip6.arpa
+        }
+        prometheus :9153
+        rewrite name substring svc.cluster.local svc
+        forward . /etc/resolv.conf {
+          prefer_udp
+        }
+        ...
+    }
+kind: ConfigMap
 ```
+其中增加例如`rewrite name substring svc.cluster.local svc`，重启CoreDNS Pod使其生效。
+
+针对采用主机网络的Pod（即`hostNetwork: true`），需要相应的设置DNS策略`dnsPolicy`为`ClusterFirstWithHostNet`，否则该容器中无法解析集群内的服务。
+
 
 ### 通过hosts方式手动增加A记录
 编辑cm/coredns，在Corefile中增加hosts插件配置，并增加hosts文件：
