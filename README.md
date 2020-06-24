@@ -232,7 +232,8 @@
       * [Calico](#calico)
          * [使用Calico实现容器网络流量限制](#使用calico实现容器网络流量限制)
          * [Calico容器网络中固定Pod IP地址](#calico容器网络中固定pod-ip地址)
-      * [CoreDNS](#coredns-1)
+      * [CoreDNS](#coredns)
+         * [通过rewrite plugin修改待解析的域名](#通过rewrite-plugin修改待解析的域名)
          * [通过hosts方式手动增加A记录](#通过hosts方式手动增加a记录)
       * [Etcd](#etcd)
          * [kube-apiserver的etcd-quorum-read调查](#kube-apiserver的etcd-quorum-read调查)
@@ -365,7 +366,7 @@
          * [常用操作](#常用操作-15)
       * [奇技淫巧](#奇技淫巧)
 
-<!-- Added by: travis, at: Tue Jun 23 06:05:19 UTC 2020 -->
+<!-- Added by: travis, at: Wed Jun 24 15:12:46 UTC 2020 -->
 
 <!--te-->
 
