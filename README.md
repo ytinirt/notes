@@ -31,6 +31,7 @@
             * [inotify-tools](#inotify-tools)
          * [sysctl和系统配置](#sysctl和系统配置)
             * [典型操作](#典型操作)
+            * [内核参数调优](#内核参数调优)
          * [D-Bus](#d-bus)
       * [Systemd](#systemd)
       * [Networks](#networks)
@@ -223,6 +224,7 @@
          * [FC存储多路径的PV配置](#fc存储多路径的pv配置)
    * [Golang](#golang)
       * [常用操作](#常用操作-8)
+      * [通过goproxy代理解决package下载问题](#通过goproxy代理解决package下载问题)
    * [Special column](#special-column)
       * [Git](#git)
          * [常用操作](#常用操作-9)
@@ -366,7 +368,7 @@
          * [常用操作](#常用操作-15)
       * [奇技淫巧](#奇技淫巧)
 
-<!-- Added by: travis, at: Wed Jun 24 15:12:46 UTC 2020 -->
+<!-- Added by: travis, at: Mon Jun 29 16:01:11 UTC 2020 -->
 
 <!--te-->
 
