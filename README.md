@@ -3157,7 +3157,7 @@ nohup ./*.sh  >/dev/null 2>&1 &
 忽略命令执行时的输出
 
 ```bash
-curl http://192.168.11.131/cloud/login.xhtml 1>/dev/null 2>&1
+curl http://192.168.11.131/login.xhtml 1>/dev/null 2>&1
 ```
 
 使用`readlink`获取文件链接信息：
@@ -3948,7 +3948,7 @@ function find_mysql_master_node()
     do
         podip=${MYSQL_PODS[i]}
         nodeip=${MYSQL_PODS[i+1]}
-        result=$(mysql -uroot -pcloudos -h${podip} --connect-timeout=5 -e 'show slave hosts;')
+        result=$(mysql -uroot -ppassword -h${podip} --connect-timeout=5 -e 'show slave hosts;')
         if [ -n "$result" ]; then
             echo $nodeip
             return
@@ -4404,11 +4404,18 @@ CGO_ENABLED=0 go build -o harbor_ui github.com/vmware/harbor/src/ui
 go build -mod vendor ./pkg/agent
 ```
 
+## 通过goproxy代理解决package下载问题
+```bash
+go env -w GO111MODULE=on
+go env -w GOPROXY=https://goproxy.io,direct
 
+# 设置不走 proxy 的私有仓库，多个用逗号相隔（可选）
+go env -w GOPRIVATE=*.corp.example.com
 
-
-
-
+# 设置不走 proxy 的私有组织（可选）
+go env -w GOPRIVATE=example.com/org_name
+```
+参见[goproxy官网](https://goproxy.io/zh/)
 
 # Special column
 
@@ -4564,7 +4571,7 @@ data:
 ...
     }
   hosts: |
-    10.125.31.214  kcm.paas.cloudos
+    10.125.31.214  kcm.demo.cluster.local
 kind: ConfigMap
 ...
 ```
@@ -5655,7 +5662,7 @@ show global variables like 'max_heap_table_size';
 ### SQL语句实例
 
 ```mysql
-UPDATE cloudce_module_zone SET `uuid`= LEFT(`uuid`,7) WHERE LENGTH(uuid)>7; # 截取7位字符
+UPDATE xxx_module_zone SET `uuid`= LEFT(`uuid`,7) WHERE LENGTH(uuid)>7; # 截取7位字符
 ```
 
 
@@ -5756,7 +5763,7 @@ curl -s -u openstack:password http://$(kubectl get svc cell002-rabbit1 -o jsonpa
 
 
 ### rabbitmq节点重新加入集群
-1. 停止rabbitmq某个实例，以`rabbit3`为例，并清空其数据目录，例如`/opt/h3cloud/rabbitmq/`
+1. 停止rabbitmq某个实例，以`rabbit3`为例，并清空其数据目录，例如`/opt/rabbitmq/`
 2. 待集群剩下两个节点，例如`rabbit1`和`rabbit2`恢复正常后，在`rabbit1`上执行如下命令，将`rabbit3`从集群移除：
 ```bash
 rabbitmqctl forget_cluster_node rabbit@rabbit3
