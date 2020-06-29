@@ -711,6 +711,35 @@ net.ipv4.ip_local_reserved_ports = 35357,12345
 /proc/sys/fs/file-max
 ```
 
+#### 内核参数调优
+
+| 类型 | 参数 | 默认值 | 优化 | 说明 |
+| --- | ---  |  ---- | ---- | ---- |
+| sysctl | net.ipv4.tcp_syncookies  |  ---- | ---- | 开启SYN Cookies，当出现SYN等待队列溢出时，启用cookies来处理 |
+| sysctl | net.ipv4.tcp_tw_reuse  |  ---- | ---- | 开启重用，允许将TIME-WAIT sockets重新用于新的TCP连接 |
+| sysctl | net.ipv4.tcp_tw_recycle<br>net.ipv4.tcp_timestamps  |  ---- | ---- | 开启TCP连接中TIME-WAIT sockets的快速回收，已被net.ipv4.tcp_tw_reuse取代 |
+| sysctl | net.ipv4.tcp_fin_timeout  |  ---- | ---- | xxx超时时间 |
+| sysctl | net.ipv4.tcp_keepalive_time  |  ---- | ---- | 优化keepalive 起用的时候，TCP 发送keepalive 消息的频度 |
+| sysctl | net.ipv4.tcp_keepalive_intvl  |  ---- | ---- | 优化keepalive 起用的时候，探测时发探测包的时间间隔值 |
+| sysctl | net.ipv4.tcp_keepalive_probes  |  ---- | ---- | 优化keepalive 起用的时候，探测重试的次数值. 全部超时则认定连接失效 |
+| sysctl | net.ipv4.tcp_max_tw_buckets  |  ---- | ---- | 优化系统同时保持TIME_WAIT的最大数量 |
+| sysctl | net.ipv4.tcp_max_syn_backlog  |  ---- | ---- | 增大socket监听backlog上限 |
+| sysctl | net.core.netdev_max_backlog  |  ---- | ---- | 每个网络接口接收数据包的速率比内核处理这些包的速率快时，允许送到队列的数据包的最大数目 |
+| sysctl | net.core.optmem_max<br>net.core.rmem_default<br>net.core.rmem_max<br>net.core.wmem_default<br>net.core.wmem_max  |  ---- | ---- | socket读写buffer值 |
+| sysctl | net.ipv4.tcp_mem<br>net.ipv4.tcp_rmem<br>net.ipv4.tcp_wmem  |  ---- | ---- | tcp读写buffer值 |
+| sysctl | net.netfilter.nf_conntrack_max  |  ---- | ---- | ---- |
+| sysctl | net.nf_conntrack_max  |  ---- | ---- | ---- |
+| sysctl | kernel.sysrq  |  ---- | ---- | ---- |
+| sysctl | kernel.core_uses_pid  |  ---- | ---- | ---- |
+| sysctl | net.bridge.bridge-nf-call-ip6tables<br>net.bridge.bridge-nf-call-iptables<br>net.bridge.bridge-nf-call-arptables  |  ---- | ---- | ---- |
+| sysctl | kernel.msgmnb<br>kernel.msgmax  |  ---- | ---- | ---- |
+| sysctl | kernel.shmmax<br>kernel.shmall  |  ---- | ---- | ---- |
+| sysctl | net.ipv4.ip_local_port_range<br>net.ipv4.ip_local_reserved_ports  |  ---- | ---- | ---- |
+| sysctl | fs.file-max  |  ---- | ---- | ---- |
+| sysctl | fs.inotify.max_user_instances  |  ---- | ---- | ---- |
+| sysctl | vm.swappiness  |  ---- | ---- | ---- |
+| sysctl | net.core.somaxconn  |  ---- | ---- | ---- |
+| sysctl | net.netfilter.nf_conntrack_tcp_be_liberal  |  ---- | ---- | ---- |
 
 
 ### D-Bus
