@@ -227,6 +227,7 @@
       * [通过goproxy代理解决package下载问题](#通过goproxy代理解决package下载问题)
    * [Special column](#special-column)
       * [Git](#git)
+         * [git命令补全](#git命令补全)
          * [常用操作](#常用操作-9)
       * [Makefile](#makefile)
          * [Makefile文件](#makefile文件)
@@ -236,6 +237,7 @@
          * [Calico容器网络中固定Pod IP地址](#calico容器网络中固定pod-ip地址)
       * [CoreDNS](#coredns)
          * [通过rewrite plugin修改待解析的域名](#通过rewrite-plugin修改待解析的域名)
+         * [通过NodeLocalDns指定外部域名解析服务器](#通过nodelocaldns指定外部域名解析服务器)
          * [通过hosts方式手动增加A记录](#通过hosts方式手动增加a记录)
       * [Etcd](#etcd)
          * [kube-apiserver的etcd-quorum-read调查](#kube-apiserver的etcd-quorum-read调查)
@@ -368,7 +370,7 @@
          * [常用操作](#常用操作-15)
       * [奇技淫巧](#奇技淫巧)
 
-<!-- Added by: travis, at: Tue Jul 14 11:42:52 UTC 2020 -->
+<!-- Added by: travis, at: Tue Jul 14 16:38:34 UTC 2020 -->
 
 <!--te-->
 
