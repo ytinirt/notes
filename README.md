@@ -726,6 +726,10 @@ net.ipv4.ip_local_reserved_ports = 35357,12345
 | sysctl | net.ipv4.tcp_keepalive_probes  |  ---- | ---- | 优化keepalive 起用的时候，探测重试的次数值. 全部超时则认定连接失效 |
 | sysctl | net.ipv4.tcp_max_tw_buckets  |  ---- | ---- | 优化系统同时保持TIME_WAIT的最大数量 |
 | sysctl | net.ipv4.tcp_max_syn_backlog  |  ---- | ---- | 增大socket监听backlog上限 |
+| sysctl | net.ipv4.tcp_synack_retries  |  ---- | ---- | ---- |
+| sysctl | net.ipv4.neigh.default.gc_stale_time  |  ---- | ---- | ---- |
+| sysctl | net.ipv4.conf.all.rp_filter  |  ---- | ---- | ---- |
+| sysctl | net.ipv4.conf.all.arp_announce  |  ---- | ---- | ---- |
 | sysctl | net.core.netdev_max_backlog  |  ---- | ---- | 每个网络接口接收数据包的速率比内核处理这些包的速率快时，允许送到队列的数据包的最大数目 |
 | sysctl | net.core.optmem_max<br>net.core.rmem_default<br>net.core.rmem_max<br>net.core.wmem_default<br>net.core.wmem_max  |  ---- | ---- | socket读写buffer值 |
 | sysctl | net.ipv4.tcp_mem<br>net.ipv4.tcp_rmem<br>net.ipv4.tcp_wmem  |  ---- | ---- | tcp读写buffer值 |
@@ -740,8 +744,10 @@ net.ipv4.ip_local_reserved_ports = 35357,12345
 | sysctl | fs.file-max  |  ---- | ---- | ---- |
 | sysctl | fs.inotify.max_user_instances  |  ---- | ---- | ---- |
 | sysctl | vm.swappiness  |  ---- | ---- | ---- |
+| sysctl | vm.overcommit_memory  |  ---- | ---- | ---- |
 | sysctl | net.core.somaxconn  |  ---- | ---- | ---- |
 | sysctl | net.netfilter.nf_conntrack_tcp_be_liberal  |  ---- | ---- | ---- |
+| limits | nofile  |  ---- | ---- | ---- |
 
 
 ### D-Bus
@@ -2714,6 +2720,9 @@ rpminfo
 rpmls
 rpm -ivh package.rpm
 rpm -q kernel
+rpm -qa | grep kernel
+# 查看安装脚本
+rpm -qi --scripts kmod-nvidia-latest-dkms-440.95.01-1.el7.x86_64
 ```
 
 
