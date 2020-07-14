@@ -3245,6 +3245,18 @@ find ${volume_dir} -maxdepth 1 -mindepth 1 -type d
 /etc/DIR_COLORS
 ```
 
+为`history`带上时间戳:
+```bash
+echo 'export HISTTIMEFORMAT="%F %T "' >> ~/.bash_profile
+```
+
+修改`history`最大保存记录数，具体的在`.bashrc`中增加如下配置：
+```bash
+HISTSIZE=100000
+HISTFILESIZE=200000
+```
+注意，上述两个参数为`bash`内置，不需要`export`。
+
 使用mktemp创建临时文件。
 
 其它小点：
@@ -4436,7 +4448,17 @@ go env -w GOPRIVATE=example.com/org_name
 
 ## Git
 
+### git命令补全
+在git安装完成后，一般会将补全配置文件自动安装到`/etc/bash_completion.d/git`或者
+`/usr/share/bash-completion/completions/git`。
 
+为此，只需要`source`上述配置文件即可，例如在`.bashrc`中：
+```bash
+[root@zy-super-load ~]# cat ~/.bashrc
+# .bashrc
+...
+source /etc/bash_completion.d/git
+```
 
 ### 常用操作
 
@@ -4539,6 +4561,8 @@ spec:
 ## CoreDNS
 
 ### 通过rewrite plugin修改待解析的域名
+有K8s集群域名被配置为`wushan.thx`，但有域名解析请求被硬编码为`*.cluster.local`结尾，可通过rewrite规避解决，大致思路将`.cluster.local`替换为`wushan.thx`。
+
 修改CoreDNS配置文件`kubectl edit cm coredns -n kube-system`：
 ```yaml
 apiVersion: v1
@@ -4547,12 +4571,12 @@ data:
     .:53 {
         errors
         ...
+        rewrite name substring cluster.local wushan.thx
         kubernetes wushan.thx in-addr.arpa ip6.arpa {
           pods insecure
           fallthrough in-addr.arpa ip6.arpa
         }
         prometheus :9153
-        rewrite name substring svc.cluster.local svc
         forward . /etc/resolv.conf {
           prefer_udp
         }
@@ -4560,9 +4584,44 @@ data:
     }
 kind: ConfigMap
 ```
-其中增加例如`rewrite name substring svc.cluster.local svc`，重启CoreDNS Pod使其生效。
+其中增加例如`rewrite name substring cluster.local <集群域名>`，重启CoreDNS Pod使其生效。
 
-针对采用主机网络的Pod（即`hostNetwork: true`），需要相应的设置DNS策略`dnsPolicy`为`ClusterFirstWithHostNet`，否则该容器中无法解析集群内的服务。
+修改NodeLocalDNS配置文件`kubectl edit cm nodelocaldns -n kube-system`，增加处理`*.cluster.local`域名的配置：
+```
+cluster.local:53 {
+    log
+    errors
+    cache {
+        success 9984 30
+        denial 9984 5
+    }
+    reload
+    loop
+    bind 169.254.25.10
+    forward . 10.100.0.3 {
+        force_tcp
+    }
+    prometheus :9253
+}
+```
+重启NodeLocalDns Pod，使配置生效。
+
+**注意**，针对采用主机网络的Pod（即`hostNetwork: true`），需要相应的设置DNS策略`dnsPolicy`为`ClusterFirstWithHostNet`，否则该容器中无法解析集群内的服务。
+
+
+### 通过NodeLocalDns指定外部域名解析服务器
+编辑NodeLocalDns配置`kubectl edit cm -n kube-system nodelocaldns`，在默认的域名解析规则中增加`forward`配置
+```
+.:53 {
+    errors
+    cache 30
+    reload
+    loop
+    bind 169.254.25.10
+    forward . 10.255.35.230
+    prometheus :9253
+}
+```
 
 
 ### 通过hosts方式手动增加A记录
