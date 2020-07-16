@@ -49,6 +49,7 @@
             * [table类型](#table类型)
             * [常用操作](#常用操作-1)
             * [实例](#实例)
+            * [绕过kube-proxy的nodePort直接做DNAT](#绕过kube-proxy的nodeport直接做dnat)
             * [iptables-extensions](#iptables-extensions)
          * [conntrack](#conntrack)
             * [常用操作](#常用操作-2)
@@ -106,6 +107,7 @@
             * [添加仓库](#添加仓库)
          * [CentOS](#centos)
             * [常用操作](#常用操作-3)
+            * [获取RPM包的源码](#获取rpm包的源码)
             * [构建自定义的CentOS内核](#构建自定义的centos内核)
             * [关闭coredump](#关闭coredump)
          * [defunct进程](#defunct进程)
@@ -180,6 +182,8 @@
          * [selinux](#selinux)
             * [常用操作](#常用操作-6)
             * [为Pod/容器设置selinux label](#为pod容器设置selinux-label)
+      * [Docker问题定位](#docker问题定位)
+         * [Docker卡死hang住](#docker卡死hang住)
       * [Docker操作](#docker操作)
          * [常用操作](#常用操作-7)
          * [修改容器的ulimit默认配置](#修改容器的ulimit默认配置)
@@ -189,7 +193,6 @@
          * [构建Docker镜像最佳实践（Alpine）](#构建docker镜像最佳实践alpine)
          * [强制删除容器](#强制删除容器)
          * [找到容器使用的dm-xx设备](#找到容器使用的dm-xx设备)
-         * [Debug](#debug)
          * [docker pull加速](#docker-pull加速)
          * [docker使用代理](#docker使用代理)
          * [容器文件系统使用率统计](#容器文件系统使用率统计)
@@ -370,7 +373,7 @@
          * [常用操作](#常用操作-15)
       * [奇技淫巧](#奇技淫巧)
 
-<!-- Added by: travis, at: Tue Jul 14 16:38:34 UTC 2020 -->
+<!-- Added by: travis, at: Thu Jul 16 15:15:22 UTC 2020 -->
 
 <!--te-->
 
