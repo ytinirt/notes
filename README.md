@@ -964,6 +964,18 @@ iptables -X DEMOINPUT
 ```
 
 
+#### 绕过kube-proxy的nodePort直接做DNAT
+有一个容器的IP地址192.168.7.4，服务端口8080。现在需要在其宿主机上暴露服务，监听IP地址192.0.2.1，监听端口80。
+配置如下：
+```bash
+iptables -t nat -N expose-ports
+iptables -t nat -A OUTPUT -j expose-ports
+iptables -t nat -A PREROUTING -j expose-ports
+
+iptables -t nat -A expose-ports -p tcp --destination 192.0.2.1 --dport 80 -j DNAT --to 192.168.7.4:8080
+```
+参见[How can I enable NAT for incoming traffic to containers with private IP addresses?](https://docs.projectcalico.org/reference/faq#how-can-i-enable-nat-for-incoming-traffic-to-containers-with-private-ip-addresses)
+
 
 #### iptables-extensions
 
@@ -2134,6 +2146,22 @@ echo "exec gnome-session" >> ~/.xinitrc
 startx
 ```
 
+
+#### 获取RPM包的源码
+以yum源上docker为例，docker属于CentOS-extras仓库，获取其相关信息：
+```bash
+# To search everything 'docker' related
+yum search docker
+# Once found interresting package..
+yum infos docker
+```
+其中能获知docker在`extras`仓库，然后下载源码：
+```bash
+# Disable all repos, enable the one we have eyes on, set 'source only' and download
+yumdownloader --disablerepo=\* --enablerepo=extras --source docker
+```
+
+详见[where-can-i-find-the-souce-code-of-docker-rpm-in-centos](https://stackoverflow.com/questions/57144507/where-can-i-find-the-souce-code-of-docker-rpm-in-centos)
 
 #### 构建自定义的CentOS内核
 参考[https://wiki.centos.org/HowTos/Custom_Kernel](https://wiki.centos.org/HowTos/Custom_Kernel)
@@ -3658,6 +3686,16 @@ securityContext:
 注意，一旦为Pod设置了MCS label，其它所有相同label的pod均可访问该Pod的volume。
 
 
+## Docker问题定位
+
+### Docker卡死hang住
+```bash
+curl --unix-socket /var/run/docker.sock http://v1.26/containers/json?all=1  # 检查dockerd是否响应服务请求
+kill -USR1 <docker-daemon-pid>   # 线程调用栈输出至/var/run/docker文件夹
+kill -SIGUSR1 <containerd-pid>   # containerd调用栈输出至messages
+```
+
+
 ## Docker操作
 
 ### 常用操作
@@ -3801,14 +3839,6 @@ cat config.json | jq .root.path -r
 /var/lib/docker/devicemapper/mnt/9a7cc2bf60a1b4b9cfc96212b24528c03f7d74b1eabaf640341348e82e61fd15/rootfs
 ```
 其中`9a7cc2xxx`就是`devicemapper`设备的id，可通过`dmsetup info`查找到具体的`dm-xx`信息
-
-### Debug
-
-```bash
-kill -USR1 <docker-daemon-pid>   # 线程调用栈输出至/var/run/docker文件夹
-kill -SIGUSR1 <containerd-pid>   # containerd调用栈输出至messages
-```
-
 
 
 ### docker pull加速
