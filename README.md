@@ -186,10 +186,9 @@
          * [Docker卡死hang住](#docker卡死hang住)
       * [Docker操作](#docker操作)
          * [常用操作](#常用操作-7)
+         * [关闭docker0](#关闭docker0)
          * [修改容器的ulimit默认配置](#修改容器的ulimit默认配置)
          * [使用docker-storage-setup初始化docker存储](#使用docker-storage-setup初始化docker存储)
-         * [切换docker存储](#切换docker存储)
-            * [TODO](#todo)
          * [构建Docker镜像最佳实践（Alpine）](#构建docker镜像最佳实践alpine)
          * [强制删除容器](#强制删除容器)
          * [找到容器使用的dm-xx设备](#找到容器使用的dm-xx设备)
@@ -373,7 +372,7 @@
          * [常用操作](#常用操作-15)
       * [奇技淫巧](#奇技淫巧)
 
-<!-- Added by: travis, at: Thu Jul 16 15:15:22 UTC 2020 -->
+<!-- Added by: travis, at: Tue Jul 21 08:29:23 UTC 2020 -->
 
 <!--te-->
 
