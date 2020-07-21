@@ -3730,6 +3730,16 @@ curl -v -X POST http://<ip>:2375/v1.26/images/load -T xxx.tar    #  调用docker
 ```
 
 
+### 关闭docker0
+K8s集群网络插件打通容器网络，大多未使用`docker0`，另一方面`docker0`默认占用`172.17.0.1/16`网段，IP地址存在冲突可能，为此考虑关闭`docker0`。
+注意，要让网络配置修改生效，必须先把容器全部停掉，具体操作如下：
+1. `systemctl stop kubelet` 让kubelet停掉，不然它又会拉起容器
+2. `docker stop $(docker ps -q)` 停止所有docker容器
+3. 修改 `/etc/docker/daemon.json`，在其中增加`"bridge": "none"`将docker0网桥干掉
+4. `systemctl restart docker` 重启docker服务
+5. `systemctl start kubelet` 启动kubelet服务
+
+
 ### 修改容器的ulimit默认配置
 在`/etc/docker/daemon.json`中增加`default-ulimits`，修改容器ulimit默认配置
 ```bash
@@ -3780,12 +3790,6 @@ DEVICE_WAIT_TIMEOUT=60
 WIPE_SIGNATURES=false
 CONTAINER_ROOT_LV_SIZE=40%FREE
 ```
-
-
-### 切换docker存储
-以devicemapper换overlay2为例。
-
-#### TODO
 
 
 ### 构建Docker镜像最佳实践（Alpine）
