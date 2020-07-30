@@ -250,6 +250,9 @@
          * [v2全量备份](#v2全量备份)
          * [调优](#调优)
          * [错误类型说明](#错误类型说明)
+      * [Helm](#helm)
+         * [背后的思路](#背后的思路)
+         * [常用命令](#常用命令-2)
       * [AK/SK认证](#aksk认证)
       * [tcpdump](#tcpdump)
          * [tcpdump和libpcap常用规则](#tcpdump和libpcap常用规则)
@@ -312,7 +315,7 @@
          * [RESTful接口查询示例](#restful接口查询示例)
       * [Weavescope](#weavescope)
       * [Ceph](#ceph)
-         * [常用命令](#常用命令-2)
+         * [常用命令](#常用命令-3)
          * [ONEStor](#onestor)
       * [KVM](#kvm)
          * [virsh操作](#virsh操作)
@@ -372,7 +375,7 @@
          * [常用操作](#常用操作-15)
       * [奇技淫巧](#奇技淫巧)
 
-<!-- Added by: travis, at: Tue Jul 21 08:29:23 UTC 2020 -->
+<!-- Added by: travis, at: Thu Jul 30 11:30:44 UTC 2020 -->
 
 <!--te-->
 
