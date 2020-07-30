@@ -313,7 +313,7 @@
       * [Weavescope](#weavescope)
       * [Ceph](#ceph)
          * [常用命令](#常用命令-2)
-         * [OneStor](#onestor)
+         * [ONEStor](#onestor)
       * [KVM](#kvm)
          * [virsh操作](#virsh操作)
       * [drbd](#drbd)
@@ -4291,6 +4291,7 @@ kubelet --help 2>&1 | less
 # node状态为Ready,SchedulingDisabled时，手工开启调度：/opt/bin/kubectl -s 127.0.0.1:8888 uncordon 172.25.18.13
 kubectl logs -p -c ruby web-1  # 查看Pod web-1中前一个ruby容器的日志
 kubectl get svc mysql-node1 -o jsonpath='{.spec.clusterIP}' # 支持json格式解析
+kubectl get pods -n default -l app=foo -o=jsonpath='{range .items[*]}{.metadata.name} {end}'
 kubectl get namespaces -o jsonpath='{.items[*].metadata.name}'
 /opt/bin/kubectl -s 127.0.0.1:8888 delete -f /opt/bin/confFile-cluster/openstack-new-rc.yaml
 kubectl get pod | grep -v NAME | awk '{print $1}'      # 查看所有Pod
@@ -4986,6 +4987,32 @@ tc qdisc add dev eth0 root netem loss 10% 50%
 > Of course, it is possible to recover a failed bootstrapped cluster like recovering a running cluster. However, it almost always
 > takes more time and resources to recover that cluster than bootstrapping a new one, since there is no data to recover.
 
+
+## Helm
+
+入门参考 [How to make a Helm chart in 10 minutes](https://opensource.com/article/20/5/helm-charts)
+
+### 背后的思路
+参见 [How to use infrastructure as code](https://opensource.com/article/19/7/infrastructure-code)
+
+### 常用命令
+```bash
+# helm 默认从 ~/.kube/config 获取K8s配置文件，可通过环境变量 $KUBECONFIG 或 --kubeconfig 标志指定配置文件。
+helm list               # 查看chart的版本
+
+helm create demo-chart     # 创建一个chart
+helm install -n rel-name --namespace default ./demo-chart
+helm status rel-name    # 查看release状态
+helm inspect ./demo-chart/
+
+# 添加的repo，配置信息默认保存在 /root/.config/helm/repositories.yaml
+helm repo add rancher-stable https://releases.rancher.com/server-charts/stable
+helm repo list                      # 查看repo列表
+helm fetch rancher-stable/rancher   # 获取helm chart包(.tgz)
+helm template ./rancher-<VERSION>.tgz --output-dir . \  # 实例化helm chart
+    --name rancher \
+    --set ingress.tls.source=secret
+```
 
 
 ## AK/SK认证
@@ -5971,23 +5998,21 @@ curl -s os-weavescope-svc.default.svc/api/topology
 ```
 
 
-
-
-
 ## Ceph
 
 ### 常用命令
 ```bash
-# Attach块设备，使用lsblk确认是否挂载成功，此后就可以格式化卷或者挂载文件系统了
-rbd map <pool>/<volume>
-# 或者nbd方式时（通过nbd.ko判断）
-rbd-nbd map <pool>/<volume>
+rbd map <pool>/<volume>     # Attach块设备，使用lsblk确认是否挂载成功，此后就可以格式化卷或者挂载文件系统了
+rbd-nbd map <pool>/<volume> # 或者nbd方式时（通过nbd.ko判断）
+rbd list -p .diskpool.rbd   # 查看pool下的image
+rbd snap ls .diskpool.rbd/csi-vol-xxxx-xxxx-xxxx    # 查看快照
+rbd status <pool>/<volume>  # 查看卷是否正在被使用，记得先把之前的nbd attach取消了
 
-# 查看卷是否正在被使用，记得先把之前的nbd attach取消了
-rbd status <pool>/<volume>
+ceph status                 # 获取cluster id
+ceph mon_status             # 获取monitor ip
 ```
 
-### OneStor
+### ONEStor
 ```bash
 # 比ceph-common需要多指定 --data-pool
 rbd create hehe-images2 -p .diskpool.rbd --data-pool test01 --size 100M
