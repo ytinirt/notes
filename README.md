@@ -16,7 +16,7 @@
                * [运行过程中增加节点swap分区](#运行过程中增加节点swap分区)
             * [pagecache页缓存](#pagecache页缓存)
             * [drop_caches清理缓存](#drop_caches清理缓存)
-            * [更加积极的缓存刷新](#更加积极的缓存刷新)
+            * [更加积极的脏页缓存刷新](#更加积极的脏页缓存刷新)
          * [大页内存hugepages](#大页内存hugepages)
             * [预分配大页内存](#预分配大页内存)
                * [系统启动时分配大页内存](#系统启动时分配大页内存)
@@ -85,6 +85,7 @@
          * [webdav](#webdav)
       * [Operation &amp; Management](#operation--management)
          * [用户管理](#用户管理)
+         * [HTPasswd认证](#htpasswd认证)
          * [系统资源限制](#系统资源限制)
             * [limits.conf资源限制](#limitsconf资源限制)
             * [systemd资源限制](#systemd资源限制)
@@ -375,7 +376,7 @@
          * [常用操作](#常用操作-15)
       * [奇技淫巧](#奇技淫巧)
 
-<!-- Added by: travis, at: Thu Jul 30 11:30:44 UTC 2020 -->
+<!-- Added by: travis, at: Thu Aug 13 05:44:42 UTC 2020 -->
 
 <!--te-->
 
