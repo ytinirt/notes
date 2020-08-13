@@ -570,20 +570,24 @@ swapon /swapfile
 
 
 
-#### 更加积极的缓存刷新
+#### 更加积极的脏页缓存刷新
 
 ```bash
-# 默认值
+### 默认值
 [root@zy-m224 scripts]# sysctl -a 2>/dev/null | grep vm.dirty
 vm.dirty_background_bytes = 0
+# 允许“脏数据”占内存比例，超过该比例后“脏数据”会被后台进程（例如kdmflush）清理并写入磁盘。默认值10。
 vm.dirty_background_ratio = 10
 vm.dirty_bytes = 0
+# “脏数据”在内存中过期时间，过期后“脏数据”会被写入磁盘，防止其在内存中待得过久。默认值3000，即30秒。
 vm.dirty_expire_centisecs = 3000
+# “脏数据”的绝对限制，内存里的“脏数据”不能超过该值，否则新的IO请求将被阻塞，直到“脏数据”被写入磁盘。IO卡顿时应关注是否由于“脏数据”达到该阈值所致。默认值30。
 vm.dirty_ratio = 30
+# 负责将“脏数据”写入磁盘的后台进程（例如kdmflush）的执行周期，默认值500，即5秒
 vm.dirty_writeback_centisecs = 500
 vm.dirtytime_expire_seconds = 43200
 
-# 优化值
+### 优化值
 vm.dirty_background_ratio = 1
 vm.dirty_ratio = 1
 vm.dirty_expire_centisecs = 10
@@ -1745,6 +1749,16 @@ usermod -s /bin/bash nova
 ```
 
 
+### HTPasswd认证
+在RHEL/CentOS上，htpasswd来自httpd-tools包。
+```bash
+# 创建flat文件，并新增一个用户user1
+htpasswd -c -B -b /path/to/users.htpasswd user1 MyPassword!
+
+# 新增一个用户user2
+htpasswd -B -b /path/to/users.htpasswd user2 MyPassword@
+```
+
 
 ### 系统资源限制
 
@@ -2003,6 +2017,7 @@ sshd -T | grep kex    # 获取sshd服务端支持的加密算法
 ssh root@172.25.19.117 ps -ef | grep kube-controller | grep -v grep     # 远程到某节点执行命令，然后直接在本地返回执行结果
 ssh -o StrictHostKeyChecking=no op-s1 ls        # 初次连接，跳过恼人的主机host fingerprint检查
 ssh -Q kex    # 获取ssh客户端支持的加密算法
+ssh $node -C "/bin/bash" < local-scripts.sh     # 远程到节点上执行本地的脚本
 ```
 
 
@@ -2710,6 +2725,11 @@ fio --filename=/tmp/1G -iodepth=64 -ioengine=libaio --direct=1 --rw=randwrite --
 ```
 
 
+参见[文章](https://www.ibm.com/cloud/blog/using-fio-to-tell-whether-your-storage-is-fast-enough-for-etcd)，测试方法如下：
+```bash
+fio --rw=write --ioengine=sync --fdatasync=1 --directory=test-data --size=22m --bs=2300 --name=mytest
+```
+TODO
 
 
 
@@ -2929,8 +2949,12 @@ pmap -XX pid    # 查看kernel提供的所有信息
 ```bash
 strace -f -e trace=access curl 'https://10.100.0.1/'
 strace -fc -e trace=access curl -s 'https://10.100.0.1/' > /dev/null
+
 # 找配置文件的奇技淫巧
 strace -eopen pip 2>&1|grep pip.conf
+
+# 获取etcd每次写操作字节数，借此评估fio测试块大小  TODO
+strace -p $(pidof etcd) 2>&1 | grep -e  "\(write\|fdatasync\)\((12\|(18\)"
 ```
 
 #### ftrace查看系统调用耗时
@@ -3143,6 +3167,13 @@ journalctl -b -u docker # 自某次引导后的信息
 
 
 ### 其它技巧
+
+通过tput获取终端的宽度和高度：
+```bash
+tput cols
+tput lines
+```
+
 
 通过文件锁，确保系统中只有一个脚本在执行：
 ```bash
@@ -3872,6 +3903,7 @@ cat <<EOF >/etc/systemd/system/docker.service.d/http-proxy.conf
 [Service]
 Environment="HTTP_PROXY=http://127.0.0.1:30000/"
 Environment="HTTPS_PROXY=http://127.0.0.1:30000/"
+Environment="NO_PROXY=*.foo.bar,10.0.0.0/8,192.168.*.*"
 EOF
 systemctl daemon-reload
 # 检查环境变量已配置
@@ -4329,6 +4361,9 @@ curl --cacert /root/openssl/ca.crt --cert /root/openssl/client.crt --key /root/o
 curl --cacert /root/openssl/ca.crt --cert /root/openssl/client.crt --key /root/openssl/client.key https://openshift-m2:8443/api/
 NSS_SDB_USE_CACHE=yes curl --cacert /etc/origin/master/ca.crt --cert /etc/origin/master/admin.crt --key /etc/origin/master/admin.key  https://vip.cluster.local:8443/api/
 NSS_SDB_USE_CACHE=yes curl --cacert /etc/origin/master/ca.crt --cert /etc/origin/master/admin.crt --key /etc/origin/master/admin.key  https://$(hostname):8443/apis/metrics.k8s.io/v1beta1?timeout=32s
+
+# 通过文件创建secret，其中指定secret中的键/文件名为htpasswd
+kubectl create secret generic htpass-secret --from-file=htpasswd=</path/to/users.htpasswd> -n kube-system
 
 # 通过token直接访问apiserver
 kubectl get sa default -o yaml  # 找到 default sa的携带token信息的secrets
@@ -6323,6 +6358,7 @@ ${KUBECTL} get node -o json|jq -r .items|jq -r length
 cat xxx | jq .mysql[0].node -r # -r去掉""
 jq -c
 kubectl get pod milk-rc-fc9m7 -o json | jq -r '.metadata.labels | to_entries[] | select(.key != "role") | .key + "=" + .value'
+curl -s http://localhost:9090/api/v1/rules | jq '[.data.groups[].rules[] | select(.type=="alerting")]'  # 输出list
 ```
 
 将 `{ "app": "rabbitmq-cluster", "node": "rabbit3" }` 格式转换为 `app=rabbitmq-cluster,node=rabbit3`
