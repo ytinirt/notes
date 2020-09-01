@@ -216,6 +216,7 @@
          * [Pod's DNS Policy](#pods-dns-policy)
       * [对象名称和字符串格式检查](#对象名称和字符串格式检查)
       * [操作实例](#操作实例)
+         * [debug和问题解决](#debug和问题解决)
          * [常见操作](#常见操作-1)
          * [客户端访问集群时context配置](#客户端访问集群时context配置)
          * [ConfigMap使用](#configmap使用)
@@ -376,7 +377,7 @@
          * [常用操作](#常用操作-15)
       * [奇技淫巧](#奇技淫巧)
 
-<!-- Added by: travis, at: Thu Aug 13 05:44:42 UTC 2020 -->
+<!-- Added by: travis, at: Tue Sep  1 12:54:22 UTC 2020 -->
 
 <!--te-->
 
