@@ -3440,6 +3440,7 @@ nsenter -t 12472 -m -p umount /var/lib/origin/openshift.local.volumes/pods/<uid>
 nsenter -t 19714 -m -p ps -ef
 nsenter -t ${pid} -m cat /sys/devices/virtual/net/eth0/iflink 2>/dev/null
 nsenter -t 7429 -n cat /proc/net/route
+nsenter -t 12345 -n tcpdump -i eth0 -nnl  # 关联容器的网络命名空间，直接在宿主机上抓容器里eth0接口的报文
 ```
 
 
@@ -4304,6 +4305,11 @@ TODO
 
 
 ## 操作实例
+
+### debug和问题解决
+```bash
+kill -s SIGQUIT <pid-of-kubelet> # 停止kubelet进程，并打印堆栈，特别有助于定位hang住的问题
+```
 
 ### 常见操作
 
