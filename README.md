@@ -2979,12 +2979,6 @@ pstack <tid>        #查看该线程的调用栈
 pstack是gstack的链接，gstack是脚本，属于gdb这个package。
 ```
 
-#### ldd查看可执行文件依赖库
-
-```bash
-ldd
-```
-
 #### abrtd自动报告bug
 
 abrtd是Redhat的Automatic bug reporting tool，相关的工具和命令包括：`abrt-auto-reporting`和`abrt-cli`。
@@ -3020,6 +3014,13 @@ sys     0m0.000s
 cat /proc/sys/kernel/core_pattern
 ```
 
+
+### 动态链接库管理
+
+```bash
+ldd         # 查看可执行文件依赖库
+ldconfig    # TODO
+```
 
 
 ### 文本、字节流编辑
