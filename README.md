@@ -149,11 +149,11 @@
             * [ftrace查看系统调用耗时](#ftrace查看系统调用耗时)
             * [perf查看系统调用性能](#perf查看系统调用性能)
             * [pstack分析CPU异常高时堆栈信息](#pstack分析cpu异常高时堆栈信息)
-            * [ldd查看可执行文件依赖库](#ldd查看可执行文件依赖库)
             * [abrtd自动报告bug](#abrtd自动报告bug)
             * [scanelf获取运行时依赖（动态链接库）](#scanelf获取运行时依赖动态链接库)
             * [time查看执行时间](#time查看执行时间)
             * [coredump分析](#coredump分析)
+         * [动态链接库管理](#动态链接库管理)
          * [文本、字节流编辑](#文本字节流编辑)
          * [L2TP without IPsec配置](#l2tp-without-ipsec配置)
          * [日志](#日志)
@@ -377,7 +377,7 @@
          * [常用操作](#常用操作-15)
       * [奇技淫巧](#奇技淫巧)
 
-<!-- Added by: travis, at: Tue Sep  1 12:54:22 UTC 2020 -->
+<!-- Added by: travis, at: Wed Sep  2 11:42:59 UTC 2020 -->
 
 <!--te-->
 
