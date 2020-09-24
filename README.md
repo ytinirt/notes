@@ -4577,6 +4577,8 @@ git checkout -b systemd-mac-assignment bed5b7ef6c
 # 为git设置代理
 git config --global https.proxy 'http://a.b.c:8080'
 git config --global http.proxy 'http://a.b.c:8080'
+# 不需要代理的地址/域名，可配置环境变量
+export no_proxy=.ytinirt.cn
 ```
 
 
