@@ -6023,6 +6023,17 @@ curl -s "os-prometheus.prometheus-monitoring.svc:9090/api/v1/query?query=(sum(ra
 curl -s "os-prometheus.prometheus-monitoring.svc:9090/api/v1/query?query=sum(rate(container_network_transmit_bytes_total%7Bnode%3D%22platform-172%22%7D%5B1m%5D))" | jq
 ```
 
+### Alertmanager
+```bash
+# 直接调用Alertmanager接口发送Alert
+# 注意Alert是否展示同'endsAt'和'startsAt'有关
+curl -H "Content-type: application/json" -X POST -d '[{"annotations":{"anno1":"hehe","anno2":"haha","message":"我是测试数据"},"endsAt":"2020-10-10T06:40:39.031Z","startsAt":"2020-10-09T14:03:39.031Z","labels":{"_from":"gocronitor","_level":"轻微","_name":"CHOUPI","alertname":"CHOUPI"}}]' http://10.100.229.115:9093/api/v2/alerts
+
+# 最简方式，发送Alert
+curl -H "Content-type: application/json" -X POST -d '[{"annotations":{"anno1":"hehe","anno2":"haha","message":"我是测试数据333"},"labels":{"_from":"gocronitor","_level":"轻微","_name":"CHOUPI","alertname":"CHOUPI"}}]' http://10.100.229.115:9093/api/v2/alerts
+# 告知Alert已解除
+curl -H "Content-type: application/json" -X POST -d '[{"annotations":{"anno1":"hehe","anno2":"haha","message":"我是测试数据333"},"endsAt":"2020-10-10T06:45:39.031Z","labels":{"_from":"gocronitor","_level":"轻微","_name":"CHOUPI","alertname":"CHOUPI"}}]' http://10.100.229.115:9093/api/v2/alerts
+```
 
 
 ## Weavescope
