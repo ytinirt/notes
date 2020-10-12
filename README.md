@@ -2740,6 +2740,16 @@ TODO
 TODO
 
 
+##### 判断SSD还是HDD
+最准确的办法是查看服务器控制台中硬件信息。当不便于查看服务器控制台时，可考虑如下方法：
+```bash
+# 1 for hard disks
+# 0 for SSD
+cat /sys/block/sda/queue/rotational
+```
+注意，存在RAID控制器或者VM上，判断可能不准。
+参见[how-to-know-if-a-disk-is-an-ssd-or-an-hdd](https://unix.stackexchange.com/questions/65595/how-to-know-if-a-disk-is-an-ssd-or-an-hdd)。
+
 
 ### 文件系统修复
 
