@@ -130,6 +130,7 @@
                * [ionice修改io优先级](#ionice修改io优先级)
                * [fio性能测试](#fio性能测试)
                * [iozone](#iozone)
+               * [判断SSD还是HDD](#判断ssd还是hdd)
          * [文件系统修复](#文件系统修复)
          * [软件包管理](#软件包管理)
             * [rpm](#rpm)
@@ -378,7 +379,7 @@
          * [常用操作](#常用操作-15)
       * [奇技淫巧](#奇技淫巧)
 
-<!-- Added by: travis, at: Sat Oct 10 07:07:10 UTC 2020 -->
+<!-- Added by: travis, at: Mon Oct 12 02:54:31 UTC 2020 -->
 
 <!--te-->
 
