@@ -315,6 +315,7 @@
       * [Prometheus](#prometheus)
          * [promtool工具](#promtool工具)
          * [RESTful接口查询示例](#restful接口查询示例)
+         * [Alertmanager](#alertmanager)
       * [Weavescope](#weavescope)
       * [Ceph](#ceph)
          * [常用命令](#常用命令-3)
@@ -377,7 +378,7 @@
          * [常用操作](#常用操作-15)
       * [奇技淫巧](#奇技淫巧)
 
-<!-- Added by: travis, at: Thu Sep 24 02:30:35 UTC 2020 -->
+<!-- Added by: travis, at: Sat Oct 10 07:07:10 UTC 2020 -->
 
 <!--te-->
 
