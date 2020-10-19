@@ -2753,6 +2753,13 @@ cat /sys/block/sda/queue/rotational
 参见[how-to-know-if-a-disk-is-an-ssd-or-an-hdd](https://unix.stackexchange.com/questions/65595/how-to-know-if-a-disk-is-an-ssd-or-an-hdd)。
 
 
+#### 使用stress进行压力测试
+TODO
+```bash
+docker run -d -m 100M --rm polinux/stress stress  --vm 1 --vm-bytes 128M --vm-keep --timeout 3600s
+```
+
+
 ### 文件系统修复
 
 常用操作：
@@ -2799,6 +2806,7 @@ rpm -qi --scripts kmod-nvidia-latest-dkms-440.95.01-1.el7.x86_64
 #### yum
 
 ```bash
+yum install yum-utils   # 安装yum工具
 yum install man-pages   # 安装系统帮助文档manual
 yum install man-db      # 安装系统帮助文档manual
 yum localinstall *.rpm
@@ -2811,6 +2819,9 @@ yum history # 查看操作历史
 createrepo /opt/repo/openshift  # 创建yum repo
 yum deplist httpd-tools         # 获取httpd-tools依赖的packages
 yum resolvedep httpd-tools      # 获取谁依赖httpd-tools
+
+yum install yum-changelog
+yum changelog docker            # 查看docker包的changelog，注意需要安装changelog插件
 ```
 
 
@@ -3025,6 +3036,18 @@ sys     0m0.000s
 ```bash
 cat /proc/sys/kernel/core_pattern
 ```
+
+#### /proc/<pid>/目录下文件说明
+TODO
+
+| 文件名称 | 说明 |
+| ------- | ---- |
+| cmdline | |
+| exe | |
+| stack | |
+| root | |
+| syscall | |
+
 
 
 ### 动态链接库管理
@@ -3339,6 +3362,14 @@ HISTFILESIZE=200000
 注意，上述两个参数为`bash`内置，不需要`export`。
 
 使用mktemp创建临时文件。
+
+
+CentOS上解压*.7z文件
+```bash
+yum install p7zip
+7za e messages.7z
+```
+
 
 其它小点：
 
@@ -3928,6 +3959,12 @@ systemctl show --property Environment docker
 systemctl restart docker
 ```
 
+**注意**，在终端中设置代理时，采用小写，例如：
+```
+export https_proxy=http://10.0.0.1:8080/
+export http_proxy=http://10.0.0.1:8080/
+```
+
 
 
 ### 容器文件系统使用率统计
@@ -3946,6 +3983,14 @@ do
 done
 ```
 
+
+### 强制重启Docker服务
+**未经验证**：
+```bash
+systemctl stop docker
+killall dockerd
+systemctl start docker
+```
 
 
 # Kubernetes
@@ -4526,6 +4571,54 @@ CGO_ENABLED=0 go build -o harbor_ui github.com/vmware/harbor/src/ui
 # 使用vendor
 go build -mod vendor ./pkg/agent
 ```
+
+## 如何Debug Golang程序
+
+### 打印堆栈
+在最佳实践中，Golang程序会监听signal，一旦接收的对应的信号就打印堆栈信息，用于debug。
+如下示例摘取自`docker/containerd`：
+```go
+import (
+    "runtime"
+)
+
+// DumpStacks dumps the runtime stack.
+func dumpStacks() {
+	var (
+		buf       []byte
+		stackSize int
+	)
+	bufferLen := 16384
+	for stackSize == len(buf) {
+		buf = make([]byte, bufferLen)
+		stackSize = runtime.Stack(buf, true)
+		bufferLen *= 2
+	}
+	buf = buf[:stackSize]
+	logrus.Infof("=== BEGIN goroutine stack dump ===\n%s\n=== END goroutine stack dump ===", buf)
+}
+
+func setupDumpStacksTrap() {
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, syscall.SIGUSR1)
+	go func() {
+		for range c {
+			dumpStacks()
+		}
+	}()
+}
+
+func main() {
+    ...
+    setupDumpStacksTrap()
+    ...
+}
+```
+
+### 使用devle调试Go程序
+参见 [项目地址](https://github.com/go-delve/delve)。
+
+
 
 ## 通过goproxy代理解决package下载问题
 ```bash
