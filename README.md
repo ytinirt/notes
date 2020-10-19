@@ -131,6 +131,7 @@
                * [fio性能测试](#fio性能测试)
                * [iozone](#iozone)
                * [判断SSD还是HDD](#判断ssd还是hdd)
+            * [使用stress进行压力测试](#使用stress进行压力测试)
          * [文件系统修复](#文件系统修复)
          * [软件包管理](#软件包管理)
             * [rpm](#rpm)
@@ -154,6 +155,7 @@
             * [scanelf获取运行时依赖（动态链接库）](#scanelf获取运行时依赖动态链接库)
             * [time查看执行时间](#time查看执行时间)
             * [coredump分析](#coredump分析)
+            * [/proc//目录下文件说明](#proc目录下文件说明)
          * [动态链接库管理](#动态链接库管理)
          * [文本、字节流编辑](#文本字节流编辑)
          * [L2TP without IPsec配置](#l2tp-without-ipsec配置)
@@ -197,6 +199,7 @@
          * [docker pull加速](#docker-pull加速)
          * [docker使用代理](#docker使用代理)
          * [容器文件系统使用率统计](#容器文件系统使用率统计)
+         * [强制重启Docker服务](#强制重启docker服务)
    * [Kubernetes](#kubernetes)
       * [集群控制面高可用方案](#集群控制面高可用方案)
       * [多实例leader选举](#多实例leader选举)
@@ -229,6 +232,9 @@
          * [FC存储多路径的PV配置](#fc存储多路径的pv配置)
    * [Golang](#golang)
       * [常用操作](#常用操作-8)
+      * [如何Debug Golang程序](#如何debug-golang程序)
+         * [打印堆栈](#打印堆栈)
+         * [使用devle调试Go程序](#使用devle调试go程序)
       * [通过goproxy代理解决package下载问题](#通过goproxy代理解决package下载问题)
    * [Special column](#special-column)
       * [Git](#git)
@@ -379,7 +385,7 @@
          * [常用操作](#常用操作-15)
       * [奇技淫巧](#奇技淫巧)
 
-<!-- Added by: travis, at: Mon Oct 12 02:54:31 UTC 2020 -->
+<!-- Added by: travis, at: Mon Oct 19 07:04:58 UTC 2020 -->
 
 <!--te-->
 
