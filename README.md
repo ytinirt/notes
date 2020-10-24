@@ -179,6 +179,8 @@
          * [深入docker stats命令](#深入docker-stats命令)
       * [containerd](#containerd)
          * [常用操作](#常用操作-5)
+      * [容器存储](#容器存储)
+         * [overlay2](#overlay2)
       * [容器安全](#容器安全)
          * [Discretionary Access Control](#discretionary-access-control)
          * [linux capabilities](#linux-capabilities)
@@ -385,7 +387,7 @@
          * [常用操作](#常用操作-15)
       * [奇技淫巧](#奇技淫巧)
 
-<!-- Added by: travis, at: Mon Oct 19 07:04:58 UTC 2020 -->
+<!-- Added by: travis, at: Sat Oct 24 09:07:31 UTC 2020 -->
 
 <!--te-->
 
