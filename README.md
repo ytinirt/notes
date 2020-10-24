@@ -1653,7 +1653,7 @@ tmpfs有如下特点：
 
 ### xfs文件系统
 
-将取代Ext4。
+常用命令 `xfs_info`。
 
 
 
@@ -3576,6 +3576,17 @@ docker-ctr-current --address unix:///var/run/docker/libcontainerd/docker-contain
 ```
 
 
+## 容器存储
+
+### overlay2
+参见[storage-driver-options](https://docs.docker.com/engine/reference/commandline/dockerd/#storage-driver-options)。即使采用overlay2存储驱动，也可以借助xfs的pquota特性，为容器rw层做限制。
+> overlay2.size
+>
+> Sets the default max size of the container. It is supported only when the backing fs is xfs and mounted with pquota mount option. Under these conditions the user can pass any size less then the backing fs size.
+
+更进一步，通过`xfs`文件系统的`pquota`属性，可以实现文件夹级别的存储配额限制。
+
+
 ## 容器安全
 
 参考文档：
@@ -5268,7 +5279,7 @@ mount /dev/disk/by-label/config-2 /mnt -t vfat -o ro
     "vifType": "fbdda380-31ba-4630-b712-bf0871f53e29:vmxnet3",
     "zone_uuid": "ae56d86f-e423-4727-be0b-8dd78031c7ba",
     "enableAdminPass": "1",
-    "h3c_extend_api": "true"
+    "extend_api": "true"
   },
   "network_config": {
     "content_path": "/content/0000",
