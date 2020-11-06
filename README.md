@@ -4424,6 +4424,8 @@ kubectl label node 172.25.19.117 cellGrp-  # 删除节点的cellGrp标签
 kubectl exec -it <pod名称> [-c <pod中容器名称>] <sh | bash> # k8s直接进容器
 # https://kubernetes.io/docs/tasks/debug-application-cluster/get-shell-running-container/
 kubectl exec <pod> -- /node-cache -help  # 其中双横线--将k8s命令同希望容器里执行的命令分隔开
+# 示例，通过别名，方便的使用工具pod里的命令
+alias ceph='kubectl -n rook-ceph exec $(kubectl -n rook-ceph get pod -l "app=rook-ceph-tools" -o jsonpath='{.items[0].metadata.name}') -- ceph'
 kubectl edit clusterrole   # 查看/修改RBAC
 kubectl get events         # 查看事件
 kubectl get events --field-selector type=Warning # 过滤查看Warning类型的事件
