@@ -2827,6 +2827,7 @@ yum history # 查看操作历史
 createrepo /opt/repo/openshift  # 创建yum repo
 yum deplist httpd-tools         # 获取httpd-tools依赖的packages
 yum resolvedep httpd-tools      # 获取谁依赖httpd-tools
+yum list docker-ce --showduplicates # 当存在多个版本时，列出这些版本
 
 yum install yum-changelog
 yum changelog docker            # 查看docker包的changelog，注意需要安装changelog插件
@@ -2969,6 +2970,13 @@ ntpq -p   # 查看当前从谁那里同步时间
 
 
 ### 如何Debug程序和进程
+
+#### 分析softlockup
+打开`softlockup panic`，当遇到`softlockup`时直接打印堆栈并异常：
+```
+echo 1 > /proc/sys/kernel/softlockup_panic
+```
+配合上`kdump`服务，在panic时生成`vmcore`文件，用于定位。
 
 #### pmap分析内存使用
 
@@ -3494,6 +3502,7 @@ nsenter -t 19714 -m -p ps -ef
 nsenter -t ${pid} -m cat /sys/devices/virtual/net/eth0/iflink 2>/dev/null
 nsenter -t 7429 -n cat /proc/net/route
 nsenter -t 12345 -n tcpdump -i eth0 -nnl  # 关联容器的网络命名空间，直接在宿主机上抓容器里eth0接口的报文
+nsenter -t 14756 -n ip link set eth0 address ee:ee:ee:ee:ee:ee # 修改容器 MAC 地址
 ```
 
 
