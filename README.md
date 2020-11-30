@@ -146,6 +146,7 @@
                * [常用命令和工具](#常用命令和工具)
             * [chronyd](#chronyd)
          * [如何Debug程序和进程](#如何debug程序和进程)
+            * [分析softlockup](#分析softlockup)
             * [pmap分析内存使用](#pmap分析内存使用)
             * [strace查看进程调用链](#strace查看进程调用链)
             * [ftrace查看系统调用耗时](#ftrace查看系统调用耗时)
@@ -387,7 +388,7 @@
          * [常用操作](#常用操作-15)
       * [奇技淫巧](#奇技淫巧)
 
-<!-- Added by: travis, at: Sat Oct 24 09:07:31 UTC 2020 -->
+<!-- Added by: travis, at: Mon Nov 30 09:19:12 UTC 2020 -->
 
 <!--te-->
 
