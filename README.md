@@ -2979,6 +2979,8 @@ echo 1 > /proc/sys/kernel/softlockup_panic
 ```
 配合上`kdump`服务，在panic时生成`vmcore`文件，用于定位。
 
+通过`virsh dump`也可直接获取虚机的`core dump`文件。
+
 #### pmap分析内存使用
 
 ```bash
