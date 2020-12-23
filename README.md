@@ -836,6 +836,47 @@ https://vincent.bernat.ch/en/blog/2017-vxlan-linux
 常用命令：
 
 ```bash
+# 数据库相关命令
+ovsdb-client list-dbs  # 查看数据库列表
+ovsdb-client get-schema  | jq   # 查看schema
+ovsdb-client list-tables # 查看表
+    Table
+    -------------------------
+    Controller
+    Bridge
+    Queue
+    IPFIX
+    NetFlow
+    Open_vSwitch
+    QoS
+    Port
+    sFlow
+    SSL
+    Flow_Sample_Collector_Set
+    Mirror
+    Flow_Table
+    Interface
+    AutoAttach
+    Manager
+ovsdb-client list-columns # 查看表结构信息
+ovsdb-client dump # 输出所有信息
+
+
+# Switch相关命令
+ovs-vsctl list Bridge # 查询Bridge信息，来自 ovsdb-client list-tables 获取的Bridge表
+ovs-vsctl list Open_vSwitch # 查询ovs信息
+ovs-vsctl -- --columns=name,ofport list Interface   # 查看端口名和端口ID关系
+ovs-vsctl -- --columns=name,ofport,external_ids list Interface # 查看端口ID信息
+ovs-vsctl -- --columns=name,tag list Port           # 查看端口的vlan tag信息
+ovs-vsctl get port dpdk1 tag  # 查看某个端口的vlan tag
+
+
+# OpenFlow流表信息
+ovs-ofctl -O OpenFlow13 dump-flows br0  # 查看流表
+ovs-appctl bridge/dump-flows br0   # 支持查看所有流表，包括隐藏的流表
+
+
+# 其它命令
 ovs_dbg_listports
 ```
 
@@ -6922,9 +6963,10 @@ alias = image[idx:]                             # 截取字符串
 ```bash
 # 只能输入1~16位字母、数字、下划线，且只能以字母和数字开头
 ^[A-Za-z0-9][A-Za-z0-9_]{0,15}$
+
+# 格式检查，pvc的value
+^([1-9][0-9]*Gi)?$
 ```
-
-
 
 
 # Memo and Skills
