@@ -117,7 +117,8 @@
             * [lsof查看打开文件](#lsof查看打开文件)
             * [fuser查找资源使用](#fuser查找资源使用)
             * [netstat查看网络资源](#netstat查看网络资源)
-         * [free和meminfo内存信息解读](#free和meminfo内存信息解读)
+         * [内存信息解读](#内存信息解读)
+            * [top内存信息解读](#top内存信息解读)
             * [free信息解读](#free信息解读)
             * [smaps信息解读](#smaps信息解读)
             * [meminfo信息解读](#meminfo信息解读)
@@ -180,6 +181,9 @@
          * [深入docker stats命令](#深入docker-stats命令)
       * [containerd](#containerd)
          * [常用操作](#常用操作-5)
+      * [容器镜像](#容器镜像)
+         * [采用合并打包实现缩容](#采用合并打包实现缩容)
+         * [移除基础镜像层实现缩容](#移除基础镜像层实现缩容)
       * [容器存储](#容器存储)
          * [overlay2](#overlay2)
       * [容器安全](#容器安全)
@@ -388,7 +392,7 @@
          * [常用操作](#常用操作-15)
       * [奇技淫巧](#奇技淫巧)
 
-<!-- Added by: travis, at: Wed Dec 23 06:26:57 UTC 2020 -->
+<!-- Added by: travis, at: Mon Dec 28 13:39:12 UTC 2020 -->
 
 <!--te-->
 
