@@ -2548,7 +2548,7 @@ netstat -anp    #查看所有连接及其pid
 ```
 
 
-### free和meminfo内存信息解读
+### 内存信息解读
 Linux中内存信息错综复杂，统计值相互可能对不上，其原因在于统计标准和目的不同。
 借助参考资料，这里较详细的解读各内存统计信息，希望有助于系统内存使用分析。
 参考资料：
@@ -2557,6 +2557,42 @@ Linux中内存信息错综复杂，统计值相互可能对不上，其原因在
 - [https://www.kernel.org/doc/Documentation/vm/overcommit-accounting](https://www.kernel.org/doc/Documentation/vm/overcommit-accounting)
 - [https://www.kernel.org/doc/Documentation/sysctl/vm.txt](https://www.kernel.org/doc/Documentation/sysctl/vm.txt)
 - [http://www.win.tue.nl/~aeb/linux/lk/lk-9.html](http://www.win.tue.nl/~aeb/linux/lk/lk-9.html)
+
+#### top内存信息解读
+top典型携带的内存信息如下：
+```bash
+top - 17:33:31 up 16 days, 22:03, 32 users,  load average: 8.00, 8.82, 8.66
+Tasks: 1178 total,   3 running, 806 sleeping,  54 stopped,   6 zombie
+%Cpu(s): 15.3 us, 10.4 sy,  0.0 ni, 72.3 id,  0.0 wa,  0.0 hi,  1.8 si,  0.1 st
+KiB Mem : 13174008+total, 57517092 free, 39725944 used, 34497052 buff/cache
+KiB Swap:        0 total,        0 free,        0 used. 90331216 avail Mem
+
+   PID USER        VIRT    RES    SHR %MEM COMMAND SWAP   CODE    DATA nMaj nMin nDRT   USED
+ 85849 100      2168724 855196   5540  0.6 app001     0   3824 1111484    0 323m    0 855196
+ 98319 root     4516952 794164 157236  0.6 app002     0  36076 1413992    3 1.0m    0 794164
+ 87364 698      1339200  74436   8920  0.1 app003     0     44  242728   11  16m    0  74436
+119788 1000180+ 5657132   1.5g  83648  1.2 app004     0  20312 2043068   12  14m    0   1.5g
+ 88738 700        24.7g   5.8g  19340  4.6 app005     0  23420   13.5g    0 1.7m    0   5.8g
+```
+
+|字段|含义|
+|----|----|
+|VIRT	|虚拟内存，包括进程使用的物理内存、swap内存、映射到内存空间的文件等，可理解为进程的内存地址空间（address space）用量，并非实际消耗使用的物理内存。<br>进程总是直接申请、访问和释放虚拟内存，而虚拟内存到物理内存的映射（通过page fault触发）由操作系统完成。<br>The total amount of virtual memory used by the task.  It includes all code, data and shared libraries plus pages that have been swapped out and pages that have been mapped but not used. |
+|RES	|物理内存，即进程当前消耗的RAM存储量。 |
+|SHR	|共享内存<br>Indicates how much of the VIRT size is actually sharable (memory or libraries). In the case of libraries, it does not necessarily mean that the entire library is resident. For example, if a program only uses a few functions in a library, the whole library is mapped and will be counted in VIRT and SHR, but only the parts of the library file containing the functions being used will actually be loaded in and be counted under RES. |
+|%MEM	|进程消耗的物理内存（RES）占系统内存百分比 |
+|SWAP	|交换分区（swap）内存用量 |
+|CODE	|进程可执行文件消耗的内存。<br>The amount of physical memory devoted to executable code, also known as the Text Resident Set size or TRS. |
+|DATA	|进程数据段和堆栈段内存。<br>The amount of physical memory devoted to other than executable code, also known as the Data Resident Set size or DRS. DATA is the amount of virtual memory used that isn't shared and that isn't code-text. I.e., it is the virtual stack and heap of the process. |
+|nMaj	|Major Page Fault Count.<br>A page fault occurs when a process attempts to read from or write to a virtual page that is not currently present in its address space.  A **major** page fault is when *auxiliary storage* access is involved in making that page available. |
+|nMin	|Minor Page Fault Count.<br>A **minor** page fault does not involve auxiliary storage access in making that page available. |
+|nDRT	|脏页数量。<br>Dirty Pages Count.The number of pages that have been modified since they were last written to auxiliary storage.  Dirty pages must be written to auxiliary storage before the corresponding physical memory location can be used for some other virtual page. |
+|USED	|等于RES+SWAP |
+参考资料：
+- [what-does-virtual-memory-size-in-top-mean](https://serverfault.com/questions/138427/what-does-virtual-memory-size-in-top-mean)
+- [man top](https://linux.die.net/man/1/top)
+- [res-code-data-in-the-output-information-of-the-top-command-why](https://stackoverflow.com/questions/7594548/res-code-data-in-the-output-information-of-the-top-command-why)
+
 
 #### free信息解读
 ```bash
@@ -3629,6 +3665,16 @@ cat /sys/fs/cgroup/memory/kubepods/burstable/podaebd4ae8-8e1b-11e8-b174-3ca82ae9
 ```bash
 docker-ctr-current --address unix:///var/run/docker/libcontainerd/docker-containerd.sock   # 使用containerd客户端
 ```
+
+## 容器镜像
+### 采用合并打包实现缩容
+TODO
+
+### 移除基础镜像层实现缩容
+在无法合并打包时，可采用移除基础镜像层的方式实现应用镜像的缩容。
+
+大致原理为，确保目的地容器存储中已存在基础镜像，可将应用镜像中包含于基础镜像的layer删除并重新打包应用镜像，实现应用镜像缩容的目的。
+传输到目的地，加载镜像时，虽然应用镜像tar包中没有基础镜像layer，但目的地容器存储中已存在对应的基础layer，因此应用镜像也能加载成功。
 
 
 ## 容器存储
@@ -5540,6 +5586,11 @@ openshift-sdn插件：
 1cc6a193e9ea4320e0f6282d4eaa6701e12fa21ff361d720c03f6e1fe9d1b324
 ```
 
+附使用IPAM插件host-local分配IP地址的示例：
+```bash
+echo '{ "cniVersion": "0.3.1", "name": "examplenet", "ipam": { "type": "host-local", "ranges": [ [{"subnet": "203.0.113.0/24"}], [{"subnet": "2001:db8:1::/64"}]], "dataDir": "/tmp/cni-example"  } }' | CI_COMMAND=ADD CNI_CONTAINERID=example CNI_NETNS=/dev/null CNI_IFNAME=dummy0 CNI_PATH=. ./host-local
+```
+
 进入openshift-sdn命名空间任一pod，使用如下命令查看信息：
 ```bash
 ovs-ofctl -O OpenFlow13 dump-flows br0
@@ -6183,6 +6234,8 @@ promtool debug all http://127.0.0.1:9090/
 ```bash
 # node-exporter:  rate(node_network_receive_bytes_total[1m])
 #                 rate(node_network_transmit_bytes_total[1m])
+#                 node_vmstat_pgmajfault
+#                 node_uname_info
 # cAdvisor:       rate(container_network_transmit_bytes_total[1m])
 #                 rate(container_network_receive_bytes_total[1m])
 
@@ -6246,6 +6299,11 @@ rbd-nbd map <pool>/<volume> # 或者nbd方式时（通过nbd.ko判断）
 rbd list -p .diskpool.rbd   # 查看pool下的image
 rbd snap ls .diskpool.rbd/csi-vol-xxxx-xxxx-xxxx    # 查看快照
 rbd status <pool>/<volume>  # 查看卷是否正在被使用，记得先把之前的nbd attach取消了
+
+rbd info .blockDisk.rbd/j19707-5103p01-d039-test                # 查看rbd的信息
+rados listwatchers -p .blockDisk.rbd rbd_header.9e157247efa259  # 查看是哪个客户端在使用rbd
+rbd nbd list                                                    # 查看rbd nbd列表
+rbd nbd unmap /dev/nbd3                                         # 解除nbd映射
 
 ceph status                 # 获取cluster id
 ceph mon_status             # 获取monitor ip
