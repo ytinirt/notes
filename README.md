@@ -34,6 +34,7 @@
             * [典型操作](#典型操作)
             * [内核参数调优](#内核参数调优)
          * [D-Bus](#d-bus)
+         * [PCI设备](#pci设备)
       * [Systemd](#systemd)
       * [Networks](#networks)
          * [常用操作](#常用操作)
@@ -393,7 +394,7 @@
          * [常用操作](#常用操作-15)
       * [奇技淫巧](#奇技淫巧)
 
-<!-- Added by: travis, at: Mon Dec 28 14:37:11 UTC 2020 -->
+<!-- Added by: travis, at: Fri Jan  8 08:27:11 UTC 2021 -->
 
 <!--te-->
 
