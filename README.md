@@ -787,6 +787,14 @@ busctl
 
 
 
+### PCI设备
+从如下位置获取pci设备（id）信息
+```
+/sys/bus/pci/devices/<device>/class
+/sys/bus/pci/devices/<device>/vendor
+```
+参见[node-feature-discovery如何获取PCI设备信息](https://github.com/kubernetes-sigs/node-feature-discovery/blob/master/source/pci/pci.go)
+
 
 
 ## Systemd
@@ -5309,6 +5317,9 @@ tcpdump -i lo 'tcp dst port 4194 and (((ip[2:2] - ((ip[0]&0xf)<<2)) - ((tcp[12]&
 tcpdump -i docker0 "dst 10.100.146.23 or dst 10.100.42.177 or dst 10.100.58.78" -nnq  | grep -v "length 0" | awk '{print $3}' | sed "s/\./ /g" | awk '{print $1"."$2"."$3"."$4}'
 tcpdump -i eth0 '(tcp dst port 5005 or tcp dst port 19000) and (((ip[2:2] - ((ip[0]&0xf)<<2)) - ((tcp[12]&0xf0)>>2)) != 0)' -A
 tcpdump -i eth0 'tcp and (ip src 10.101.13.21) and (((ip[2:2] - ((ip[0]&0xf)<<2)) - ((tcp[12]&0xf0)>>2)) != 0)' -A
+
+# arp who-has过滤
+tcpdump -i tun0 -nnl arp and host 10.241.127.9
 
 # TCP报文是 GET 请求
 tcpdump -i eth0 '(ip src 10.101.13.21) and (tcp[(tcp[12]>>2):4] = 0x47455420)'
