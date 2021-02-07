@@ -3941,6 +3941,7 @@ docker stats --format "{{.Name}} {{.MemPerc}}"
 docker images --format "{{.Repository}}:{{.Tag}}"
 docker info -f '{{json .}}' | jq  #  格式化输出
 docker load --input images.tar.gz
+docker save myimage:latest | gzip > myimage_latest.tar.gz
 curl -v -X POST http://<ip>:2375/v1.26/images/load -T xxx.tar    #  调用docker接口load容器镜像
 ```
 
@@ -4818,6 +4819,9 @@ git config --global https.proxy 'http://a.b.c:8080'
 git config --global http.proxy 'http://a.b.c:8080'
 # 不需要代理的地址/域名，可配置环境变量
 export no_proxy=.ytinirt.cn
+
+# 当提示ssl、证书问题时，可尝试如下解决办法， TODO 深入分析
+git config --global http.sslverify 'false'
 ```
 
 
