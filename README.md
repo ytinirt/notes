@@ -5308,6 +5308,27 @@ helm template ./rancher-<VERSION>.tgz --output-dir . \  # 实例化helm chart
 
 
 ## AK/SK认证
+自文章：[公有云API的认证方式：AK/SK 简介](https://blog.csdn.net/makenothing/article/details/81158481)
+
+公有云API常见认证方式：
+- Token认证
+- AK/SK认证
+- RSA非对称加密方式
+
+### AK/SK原理
+云主机需要通过使用Access Key Id / Secret Access Key加密的方法来验证某个请求的发送者身份。Access Key Id（AK）用于标示用户，Secret Access Key（SK）是用户用于加密认证字符串和云厂商用来验证认证字符串的密钥，其中SK必须保密。 AK/SK原理使用对称加解密。
+
+云主机接收到用户的请求后，系统将使用AK对应的相同的SK和同样的认证机制生成认证字符串，并与用户请求中包含的认证字符串进行比对。如果认证字符串相同，系统认为用户拥有指定的操作权限，并执行相关操作；如果认证字符串不同，系统将忽略该操作并返回错误码。
+
+### AK/SK流程
+服务端：
+1. 【客户端】构建http请求（包含 access key）。
+2. 【客户端】使用请求内容和 使用secret access key计算的签名(signature)。
+3. 【客户端】发送请求到服务端。
+4. 【服务端】判断用户请求中是否包含Authorization认证字符串。如果包含认证字符串，则执行下一步操作。
+5. 【服务端】根据发送的access key 查找数据库得到对应的secret-key。
+6. 【服务端】使用同样的算法将请求内容和 secret-key一起计算签名（signature），与客户端步骤2相同。
+7. 【服务端】使用服务器生成的Signature字符串与用户提供的字符串进行比对，如果内容不一致，则认为认证失败，拒绝该请求；如果内容一致，则表示认证成功，系统将按照用户的请求内容进行操作。
 
 
 ## tcpdump
