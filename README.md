@@ -760,6 +760,16 @@ net.ipv4.ip_local_reserved_ports = 35357,12345
 | sysctl | net.ipv4.tcp_max_syn_backlog  |  ---- | ---- | 增大socket监听backlog上限 |
 | sysctl | net.ipv4.tcp_synack_retries  |  ---- | ---- | ---- |
 | sysctl | net.ipv4.neigh.default.gc_stale_time  |  ---- | ---- | ---- |
+| sysctl | net.ipv4.neigh.default.gc_thresh1  |  ---- | ---- | ARP缓存 |
+| sysctl | net.ipv4.neigh.default.gc_thresh2  |  ---- | ---- | ---- |
+| sysctl | net.ipv4.neigh.default.gc_thresh3  |  ---- | ---- | ---- |
+| sysctl | net.ipv4.route.gc_thresh  |  ---- | ---- | ---- |
+| sysctl | net.ipv4.xfrm4_gc_thresh  |  ---- | ---- | ---- |
+| sysctl | net.ipv6.neigh.default.gc_thresh1  |  ---- | ---- | ---- |
+| sysctl | net.ipv6.neigh.default.gc_thresh2  |  ---- | ---- | ---- |
+| sysctl | net.ipv6.neigh.default.gc_thresh3  |  ---- | ---- | ---- |
+| sysctl | net.ipv6.route.gc_thresh  |  ---- | ---- | ---- |
+| sysctl | net.ipv6.xfrm6_gc_thresh  |  ---- | ---- | ---- |
 | sysctl | net.ipv4.conf.all.rp_filter  |  ---- | ---- | ---- |
 | sysctl | net.ipv4.conf.all.arp_announce  |  ---- | ---- | ---- |
 | sysctl | net.core.netdev_max_backlog  |  ---- | ---- | 每个网络接口接收数据包的速率比内核处理这些包的速率快时，允许送到队列的数据包的最大数目 |
