@@ -4508,6 +4508,37 @@ TODO
 更详细的检查，请参见`https://github.com/kubernetes/kubernetes/blob/master/pkg/apis/core/validation/validation.go`。
 
 
+## kubectl插件
+摘自 [kubectl overview](https://kubernetes.io/docs/reference/kubectl/overview/)
+
+只要在`PATH`路径下创建以`kubectl-`开头的可执行文件，即可被`kubectl`识别，并作为插件进行集成使用。如下以`kubectl whoami`为例说明。
+
+首先，创建`/usr/local/bin/kubectl-whoami`文件，其内容如下：
+```bash
+#!/bin/bash
+
+# this plugin makes use of the `kubectl config` command in order to output
+# information about the current user, based on the currently selected context
+kubectl config view --template='{{ range .contexts }}{{ if eq .name "'$(kubectl config current-context)'" }}Current user: {{ printf "%s\n" .context.user }}{{ end }}{{ end }}'
+```
+
+然后，将其设置为可执行：
+```bash
+# chmod a+x /usr/local/bin/kubectl-whoami
+```
+
+最后，检验：
+```bash
+[root@xxx ~]# kubectl plugin list
+The following compatible plugins are available:
+
+/usr/local/bin/kubectl-whoami
+[root@xxx ~]# kubectl whoami
+Current user: kubernetes-admin
+
+```
+
+
 ## 操作实例
 
 ### debug和问题解决
