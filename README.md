@@ -228,6 +228,7 @@
       * [域名解析和DNS策略](#域名解析和dns策略)
          * [Pod's DNS Policy](#pods-dns-policy)
       * [对象名称和字符串格式检查](#对象名称和字符串格式检查)
+      * [kubectl插件](#kubectl插件)
       * [操作实例](#操作实例)
          * [debug和问题解决](#debug和问题解决)
          * [常见操作](#常见操作-1)
@@ -396,7 +397,7 @@
          * [常用操作](#常用操作-15)
       * [奇技淫巧](#奇技淫巧)
 
-<!-- Added by: travis, at: Wed Mar  3 08:14:34 UTC 2021 -->
+<!-- Added by: travis, at: Sun Mar  7 14:59:31 UTC 2021 -->
 
 <!--te-->
 
