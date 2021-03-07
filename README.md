@@ -1931,6 +1931,8 @@ openssl req -x509 -new -nodes -key cacerts.key -sha256 -days 3650 -out cacerts.p
 openssl genrsa -out key.pem 2048
 # 生成csr
 openssl req -new -key key.pem -out csr.epm
+# 生成csr的另外一个例子，其对应的kubernetes客户端名称为jbeda，所属Group为app1和app2
+openssl req -new -key jbeda.pem -out jbeda-csr.pem -subj "/CN=jbeda/O=app1/O=app2"
 # TODO
 ```
 
@@ -4537,6 +4539,76 @@ The following compatible plugins are available:
 [root@xxx ~]# kubectl whoami
 Current user: kubernetes-admin
 
+```
+
+
+## 认证Authentication
+### Kubernetes用户
+#### 服务账号Service Account
+#### 证书用户User
+##### 如何创建一个证书用户
+参见 [certificate-signing-requests](https://kubernetes.io/docs/reference/access-authn-authz/certificate-signing-requests/#normal-user)
+
+创建私钥和csr文件：
+```bash
+openssl genrsa -out john.key 2048
+openssl req -new -key john.key -out john.csr
+```
+注意，在创建`john.csr`文件时会交互式的输入`CN`和`O`属性，其分别配置了用户名称user name和用户组group。
+
+创建K8s资源CertificateSigningRequest：
+```bash
+cat <<EOF | kubectl apply -f -
+apiVersion: certificates.k8s.io/v1
+kind: CertificateSigningRequest
+metadata:
+  name: john
+spec:
+  groups:
+  - system:authenticated
+  request: xxxxxx
+  signerName: kubernetes.io/kube-apiserver-client
+  usages:
+  - client auth
+EOF
+```
+注意，其中`usages`必须为`client auth`，而`request`为此前`john.csr`文件的base64编码，可以使用命令`cat john.csr | base64 | tr -d "\n"`获取。
+
+查看当前的csr资源并批准：
+```bash
+[root@xxx ~]# kubectl get csr
+NAME   AGE   REQUESTOR          CONDITION
+john   49s   kubernetes-admin   Pending
+[root@xxx ~]# kubectl certificate approve john
+certificatesigningrequest.certificates.k8s.io/john approved
+[root@xxx ~]# kubectl get csr
+NAME   AGE   REQUESTOR          CONDITION
+john   76s   kubernetes-admin   Approved,Issued
+```
+其中`REQUESTOR`表示谁创建了这个k8s csr请求。最终可看到证书请求获批。
+
+获取用户证书：
+```bash
+kubectl get csr/john -o yaml
+```
+其中`status.certificate`即用户证书的base64编码，解码后即可保存为`john.crt`。
+
+创建`Role`和`RoleBinding`为用户赋权：
+```bash
+kubectl create role developer --verb=create --verb=get --verb=list --verb=update --verb=delete --resource=pods
+kubectl create rolebinding developer-binding-john --role=developer --user=john
+```
+`ClusterRole`和`ClusterRoleBinding`操作类似。注意，证书用户`john`没有命名空间，同服务账号`ServiceAccount`不同。
+当然，也可为john所在的用户组赋权。
+
+将用户添加到`kubeconfig`中：
+```bash
+# 首先，设置用户（及其凭证）
+kubectl config set-credentials john --client-key=/path/to/john.key --client-certificate=/path/to/john.crt --embed-certs=true
+# 然后，设置上下文，绑定用户和集群关系
+kubectl config set-context john@k8s-cluster --cluster=k8s-cluster --user=john
+# 最后，切换到新设置的上下文，以用户john方式访问/操作集群k8s-cluster
+kubectl config use-context john
 ```
 
 
