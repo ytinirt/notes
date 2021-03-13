@@ -103,6 +103,7 @@
             * [服务端sshd](#服务端sshd)
             * [客户端ssh](#客户端ssh)
             * [ssh免密登录](#ssh免密登录)
+            * [ssh隧道](#ssh隧道)
          * [使用gost配置隧道](#使用gost配置隧道)
          * [Alpine](#alpine)
             * [使用镜像源](#使用镜像源)
@@ -342,6 +343,7 @@
          * [promtool工具](#promtool工具)
          * [RESTful接口查询示例](#restful接口查询示例)
          * [Alertmanager](#alertmanager)
+         * [prometheus-operator](#prometheus-operator)
       * [Weavescope](#weavescope)
       * [Ceph](#ceph)
          * [常用命令](#常用命令-3)
@@ -404,7 +406,7 @@
          * [常用操作](#常用操作-16)
       * [奇技淫巧](#奇技淫巧)
 
-<!-- Added by: travis, at: Tue Mar  9 09:39:02 UTC 2021 -->
+<!-- Added by: travis, at: Sat Mar 13 16:32:35 UTC 2021 -->
 
 <!--te-->
 
