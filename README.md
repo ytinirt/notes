@@ -2127,6 +2127,14 @@ journalctl -u sshd      # 查看服务端日志，必要情况下可增加'-d'�
 ```
 
 
+#### ssh隧道
+ssh隧道或称ssh端口转发，常用于解决跳板访问。
+
+有实例，在`10.254.7.2`节点上执行如下命令，把`10.254.7.2`的`48080`端口转发到`10.0.46.10`节点`8080`端口：
+```bash
+ssh -L 10.254.7.2:48080:10.0.46.10:8080 root@10.0.46.10
+```
+
 
 ### 使用gost配置隧道
 
@@ -6300,6 +6308,15 @@ sqlite3 dbusers.db
 select * from mysqlauth_users;
 select password from mysqlauth_users where user='u' and ( 'dddd' = host or 'dddd' like host ) and (anydb = '1' OR 'hehe' = '' OR 'hehe' LIKE db) limit 1;
 .quit
+
+sqlite3 grafana.db
+.databases
+.tables
+.schema user
+select * from user;
+select login,password from user;
+update user set password = 'xxx', salt = 'yyy' where login = 'admin';
+.exit
 ```
 
 
@@ -6433,6 +6450,32 @@ curl -H "Content-type: application/json" -X POST -d '[{"annotations":{"anno1":"h
 # 告知Alert已解除
 curl -H "Content-type: application/json" -X POST -d '[{"annotations":{"anno1":"hehe","anno2":"haha","message":"我是测试数据333"},"endsAt":"2020-10-10T06:45:39.031Z","labels":{"_from":"gocronitor","_level":"轻微","_name":"CHOUPI","alertname":"CHOUPI"}}]' http://10.100.229.115:9093/api/v2/alerts
 ```
+
+### prometheus-operator
+在使用`kube-prometheus`（版本0.3.0）部署`prometheus-operator`时，遇到`kube-controller-manager`和`kube-scheduler`两个服务无法监控的问题，具体表现为目标target没有up。
+
+从[kube-prometheus/issues/913](https://github.com/prometheus-operator/kube-prometheus/issues/913#issuecomment-503261782)看到可通过创建`kube-controller-mananger`和`kube-scheduler`两个服务规避解决。注意，仅创建服务不足以解决问题，还需要修改对应的ep，增加端点信息。以`kube-scheduler`的ep为例：
+```bash
+[root@m1 ~]# kc get ep -n kube-system kube-scheduler -o yaml
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: kube-scheduler
+  namespace: kube-system
+subsets:
+- addresses:
+  - ip: 172.26.151.234
+    targetRef:
+      kind: Node
+      name: m1.ytinirt.cn
+      uid: xxx
+  ports:
+  - name: http-metrics
+    port: 10251
+    protocol: TCP
+```
+
+TODO：根本原因
 
 
 ## Weavescope
