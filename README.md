@@ -1924,6 +1924,21 @@ openssl x509 -in server.crt -noout -text
 # 检查认证链（certificate chain）是否有效，设置SSL_CERT_DIR为dummy以防止使用系统安装的默认证书
 SSL_CERT_DIR=/dummy SSL_CERT_FILE=/dummy openssl verify -CAfile ca.crt server.crt
 SSL_CERT_DIR=/dummy SSL_CERT_FILE=/dummy openssl verify -CAfile ca.crt -untrusted server.crt
+
+
+# 创建K8s用户的key和csr文件
+openssl req -newkey rsa:4096 \
+           -keyout user.key \
+           -nodes \
+           -out user.csr \
+           -subj "/CN=user"
+# 使用K8s的CA去签发证书
+openssl x509 -req -in user.csr \
+                  -CA /etc/kubernetes/pki/ca.crt \
+                  -CAkey /etc/kubernetes/pki/ca.key \
+                  -CAcreateserial \
+                  -out user.crt \
+                  -days 365
 ~~~
 
 #### 生成根证书
