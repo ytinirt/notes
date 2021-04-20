@@ -905,11 +905,31 @@ ovs-vsctl -- --columns=name,ofport list Interface   # 查看端口名和端口ID
 ovs-vsctl -- --columns=name,ofport,external_ids list Interface # 查看端口ID信息
 ovs-vsctl -- --columns=name,tag list Port           # 查看端口的vlan tag信息
 ovs-vsctl get port dpdk1 tag  # 查看某个端口的vlan tag
+ovs-vsctl list-br # 查看bridge信息
+ovs-vsctl br-to-vlan <br>
+ovs-vsctl br-to-parent <br>
+ovs-vsctl list-ports <br>   # 查看端口信息
+ovs-vsctl list-ifaces <br>  # 查看接口信息
+ovs-vsctl get-controller <br>
+ovs-vsctl get-manager
+ovs-vsctl get-ssl
+ovs-vsctl get-aa-mapping <br>
 
 
 # OpenFlow流表信息
 ovs-ofctl -O OpenFlow13 dump-flows br0  # 查看流表
 ovs-appctl bridge/dump-flows br0   # 支持查看所有流表，包括隐藏的流表
+
+ovs-ofctl -O OpenFlow13 show <br>
+ovs-ofctl -O OpenFlow13 dump-desc <br>
+ovs-ofctl -O OpenFlow13 dump-tables <br>
+ovs-ofctl -O OpenFlow13 dump-table-features <br>
+ovs-ofctl -O OpenFlow13 dump-table-desc <br>
+ovs-ofctl -O OpenFlow13 get-frags <br>
+ovs-ofctl -O OpenFlow13 dump-ports <br> [port]
+ovs-ofctl -O OpenFlow13 dump-ports-desc <br> [port]
+ovs-ofctl -O OpenFlow13 dump-flows <br> [flow]
+ovs-ofctl -O OpenFlow13 queue-stats <br> [port [queue]]
 
 
 # 其它命令
@@ -1103,6 +1123,8 @@ iptables -I FORWARD 1 -j MYSQL3306
 watch -n 0.5 -d 'cat /proc/net/nf_conntrack | grep -v "udp" | grep 35357 | grep SYN'
 # 抓取SYN包
 tcpdump -i ens160 "host 172.25.18.91 and port 35357" -nnl | grep "\[S"
+# 查看连接信息
+conntrack -L
 ```
 
 
@@ -5040,6 +5062,9 @@ spec:
 
 
 ## CoreDNS
+
+### CoreDNS原理简介
+TODO
 
 ### 通过rewrite plugin修改待解析的域名
 有K8s集群域名被配置为`wushan.thx`，但有域名解析请求被硬编码为`*.cluster.local`结尾，可通过rewrite规避解决，大致思路将`.cluster.local`替换为`wushan.thx`。
