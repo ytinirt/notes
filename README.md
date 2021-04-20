@@ -265,6 +265,7 @@
          * [使用Calico实现容器网络流量限制](#使用calico实现容器网络流量限制)
          * [Calico容器网络中固定Pod IP地址](#calico容器网络中固定pod-ip地址)
       * [CoreDNS](#coredns)
+         * [CoreDNS原理简介](#coredns原理简介)
          * [通过rewrite plugin修改待解析的域名](#通过rewrite-plugin修改待解析的域名)
          * [通过NodeLocalDns指定外部域名解析服务器](#通过nodelocaldns指定外部域名解析服务器)
          * [通过hosts方式手动增加A记录](#通过hosts方式手动增加a记录)
@@ -406,7 +407,7 @@
          * [常用操作](#常用操作-16)
       * [奇技淫巧](#奇技淫巧)
 
-<!-- Added by: travis, at: Thu Mar 25 12:44:59 UTC 2021 -->
+<!-- Added by: travis, at: Tue Apr 20 07:05:08 UTC 2021 -->
 
 <!--te-->
 
