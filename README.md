@@ -826,17 +826,23 @@ busctl
 常用操作
 
 ```bash
+# 不要过多的输出
 systemctl status etcd2.service
-systemctl status gocronitor --lines=0  # 不要过多的输出
+systemctl status gocronitor --lines=0
 systemctl start docker
 systemctl stop docker
 systemctl restart docker
-systemctl enable docker                # Service会在设备上自动启用
+# Service会在设备上自动启用
+systemctl enable docker
 systemctl disable docker
-systemctl show docker -p xxx           # 显示详细配置和属性
+# 显示详细配置和属性
+systemctl show docker -p xxx
+systemctl show --property Environment docker
 systemctl is-active kube-kubelet.service
-systemctl list-dependencies etcd2      # 查看“etcd2”依赖谁
-systemctl list-dependencies etcd2 --reverse # 查看谁依赖“etcd2”
+# 查看“etcd2”依赖谁
+systemctl list-dependencies etcd2
+# 查看谁依赖“etcd2”
+systemctl list-dependencies etcd2 --reverse
 ```
 
 service文件中：
@@ -1954,7 +1960,7 @@ openssl req -newkey rsa:4096 \
            -keyout user.key \
            -nodes \
            -out user.csr \
-           -subj "/CN=user"
+           -subj "/CN=user/O=hehe-company"
 # 使用K8s的CA去签发证书
 openssl x509 -req -in user.csr \
                   -CA /etc/kubernetes/pki/ca.crt \
@@ -2978,23 +2984,44 @@ rpm -qi --scripts kmod-nvidia-latest-dkms-440.95.01-1.el7.x86_64
 #### yum
 
 ```bash
-yum install yum-utils   # 安装yum工具
-yum install man-pages   # 安装系统帮助文档manual
-yum install man-db      # 安装系统帮助文档manual
+# 安装yum工具
+yum install yum-utils
+# 安装docker-ce.repo
+yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+# 修改repo不同的channel
+yum-config-manager --enable docker-ce-nightly
+yum-config-manager --enable docker-ce-test
+# 关闭channel
+yum-config-manager --disable docker-ce-nightly
+
 yum localinstall *.rpm
 yum updateinfo
-yum reinstall --downloadonly --downloaddir=./ <PackageName>-<Version>.<Arch>    # 下载package指定版本的rpm包至本地
-yumdownloader --resolve systemd-219-57.el7_5.1.x86_64                           # 下载package及其依赖的rpm包至本地
-yumdownloader   # 属于yum-utils package
-yumdownloader --source <package-name> # 下载该package的源码包，可以从中获取SPEC文件，再本地编译package。
-yum history # 查看操作历史
-createrepo /opt/repo/openshift  # 创建yum repo
-yum deplist httpd-tools         # 获取httpd-tools依赖的packages
-yum resolvedep httpd-tools      # 获取谁依赖httpd-tools
-yum list docker-ce --showduplicates # 当存在多个版本时，列出这些版本
+# 下载package指定版本的rpm包至本地
+yum reinstall --downloadonly --downloaddir=./ <PackageName>-<Version>.<Arch>
+# 下载package及其依赖的rpm包至本地
+yumdownloader --resolve systemd-219-57.el7_5.1.x86_64
+# 属于yum-utils package
+yumdownloader
+# 下载该package的源码包，可以从中获取SPEC文件，再本地编译package。
+yumdownloader --source <package-name>
+# 查看操作历史
+yum history
+# 创建yum repo
+createrepo /opt/repo/openshift
+# 获取httpd-tools依赖的packages
+yum deplist httpd-tools
+# 获取谁依赖httpd-tools
+yum resolvedep httpd-tools
+# 当存在多个版本时，列出这些版本
+yum list docker-ce --showduplicates
 
 yum install yum-changelog
-yum changelog docker            # 查看docker包的changelog，注意需要安装changelog插件
+# 查看docker包的changelog，注意需要安装changelog插件
+yum changelog docker
+
+# 安装系统帮助文档manual
+yum install man-pages
+yum install man-db
 ```
 
 
@@ -3387,6 +3414,30 @@ journalctl -b -u docker # 自某次引导后的信息
 
 
 ### 其它技巧
+使用`socat`建立四层代理：
+```bash
+# from
+socat UDP4-LISTEN:4789,reuseaddr,fork UNIX-CONNECT:/tmp/unix-4789
+# to
+socat UNIX-LISTEN:/tmp/unix-4789,reuseaddr,fork UDP4:1.2.3.4:4789
+```
+
+
+使用`nmap`扫描端口：
+```bash
+nmap -sU -oG - -p 623 10.0.0.0/24
+```
+
+
+使用`ipmitool`获取服务器信息：
+```bash
+# 获取FRU设备信息
+ipmitool -I lanplus -H $ip -U $username -P $password fru
+
+# 获取网卡信息
+ipmitool -I lanplus -H $ip -U $username -P $password lan print
+```
+
 
 通过tput获取终端的宽度和高度：
 ```bash
@@ -3762,6 +3813,58 @@ TODO
 大致原理为，确保目的地容器存储中已存在基础镜像，可将应用镜像中包含于基础镜像的layer删除并重新打包应用镜像，实现应用镜像缩容的目的。
 传输到目的地，加载镜像时，虽然应用镜像tar包中没有基础镜像layer，但目的地容器存储中已存在对应的基础layer，因此应用镜像也能加载成功。
 
+### 使用buildx构建多架构容器镜像
+参考资料：
+- https://docs.docker.com/buildx/working-with-buildx/
+- https://medium.com/@artur.klauser/building-multi-architecture-docker-images-with-buildx-27d80f7e2408
+- https://github.com/docker/buildx
+- https://github.com/docker/buildx/issues/80
+
+环境要求：
+- 内核版本：4.8及以上（如果用CentOS，建议直接装CentOS 8）
+- Docker版本： 19.03及以上（要使用buildx，19.x版本可能需要开启docker Experimental mode。而20.10.8已默认开启buildx命令。建议使用最新版本的Docker）
+
+环境准备和Demo
+```bash
+# 通过容器方式，准备多架构编译环境（注意，节点重启后需要重新run一次容器）
+docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+
+# 创建并使用builder
+docker buildx create --use --name mybuilder --driver-opt network=host
+# 此处使用主机网络"network=host"，能用到宿主机/etc/hosts，是为了解决私有仓库域名解析的问题
+
+# 检查builder，并触发其准备就绪，实际上就是启一个buidler容器
+docker buildx inspect --bootstrap
+
+# 拷贝为私有仓库签发证书的CA的证书到builder容器，并重启builder容器，解决私有仓库证书问题
+BUILDER_ID=$(docker ps|grep 'moby/buildkit' | awk '{print $1}')
+docker cp </path/to/ca.crt> ${BUILDER_ID}:/etc/ssl/certs/ca-certificates.crt
+docker restart ${BUILDER_ID}
+
+# 查看builder，已支持多种架构
+docker buildx ls
+# 类似如下输出，可看到支持多种架构
+# NAME/NODE    DRIVER/ENDPOINT             STATUS  PLATFORMS
+# mybuilder *  docker-container
+#   mybuilder0 unix:///var/run/docker.sock running linux/amd64, linux/arm64, linux/riscv64, linux/ppc64le, linux/s390x, linux/386, linux/mips64le, linux/mips64, linux/arm/v7, linux/arm/v6
+
+# 准备镜像的Dockerfile和依赖资源文件，例如
+cat << EOF > Dockerfile
+FROM alpine:latest
+CMD echo “Running on $(uname -m)”
+EOF
+
+# 登录镜像仓库
+
+# 构建多架构镜像，并自动以manifest list方式push到镜像仓库
+docker buildx build -t "ytinirt/buildx-test:latest" --platform linux/amd64,linux/arm64 --push .
+
+# 查看镜像
+docker manifest inspect ytinirt/buildx-test:latest
+
+# 可选：删除builder，什么都没发生过
+docker buildx rm mybuilder
+```
 
 ## 容器存储
 
@@ -3979,9 +4082,12 @@ securityContext:
 
 ### Docker卡死hang住
 ```bash
-curl --unix-socket /var/run/docker.sock http://v1.26/containers/json?all=1  # 检查dockerd是否响应服务请求
-kill -USR1 <docker-daemon-pid>   # 线程调用栈输出至/var/run/docker文件夹
-kill -SIGUSR1 <containerd-pid>   # containerd调用栈输出至messages
+# 检查dockerd是否响应服务请求
+curl --unix-socket /var/run/docker.sock http://v1.26/containers/json?all=1
+# 线程调用栈输出至/var/run/docker文件夹
+kill -SIGUSR1 <docker-daemon-pid>
+# containerd调用栈输出至messages
+kill -SIGUSR1 <containerd-pid>
 ```
 
 
@@ -4168,6 +4274,8 @@ systemctl restart docker
 ```
 export https_proxy=http://10.0.0.1:8080/
 export http_proxy=http://10.0.0.1:8080/
+# 白名单方式，指定不代理的地址或域名
+export no_proxy=*.local,10.0.0.0/8,192.168.*.*
 ```
 
 
@@ -4673,7 +4781,15 @@ kubectl config use-context john
 
 ### debug和问题解决
 ```bash
-kill -s SIGQUIT <pid-of-kubelet> # 停止kubelet进程，并打印堆栈，特别有助于定位hang住的问题
+# 保持kubelet在线运行，使用pprof分析kubelet，拿到goroutine堆栈
+curl http://localhost:8001/api/v1/proxy/nodes/node-x/debug/pprof/goroutine?debug=2
+# 或者
+curl http://127.0.0.1:8111/api/v1/nodes/node-x/proxy/debug/pprof/goroutine?debug=2
+
+# 停止kubelet进程，并打印堆栈，特别有助于定位hang住的问题
+kill -s SIGQUIT <pid-of-kubelet>
+# 或者
+kill -SIGABRT <pid-of-kubelet>
 ```
 
 ### 常见操作
@@ -4743,11 +4859,11 @@ kubectl create secret generic htpass-secret --from-file=htpasswd=</path/to/users
 kubectl get sa default -o yaml  # 找到 default sa的携带token信息的secrets
 kubectl get secrets default-token-xxxxx -o jsonpath='{.data.token}' | base64 -d # 直接从secrets中获取TOKEN
 kubectl get secrets -n cattle-system tls-cert -o jsonpath='{.data.cert\.pem}' | base64 -d > cert.pem    # 从secrets中复原证书和秘钥
-NSS_SDB_USE_CACHE=yes curl -H "Authorization : Bearer ${TOKEN}" -k https://10.100.0.1/api/
+NSS_SDB_USE_CACHE=yes curl -H "Authorization: Bearer ${TOKEN}" -k https://10.100.0.1/api/
 
 # Pod（容器）里直接获取token的方法
 TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
-NSS_SDB_USE_CACHE=yes curl -s -H "Authorization : Bearer ${TOKEN}" -k https://10.100.0.1/api/v1/nodes?labelSelector=nodeType%3Dcontroller | jq -r .items[].metadata.name
+NSS_SDB_USE_CACHE=yes curl -s -H "Authorization: Bearer ${TOKEN}" -k https://10.100.0.1/api/v1/nodes?labelSelector=nodeType%3Dcontroller | jq -r .items[].metadata.name
 
 # 从SA(serviceaccount)处获取token的方法
 NS=default
@@ -4926,6 +5042,53 @@ func main() {
 ### 使用devle调试Go程序
 参见 [项目地址](https://github.com/go-delve/delve)。
 
+
+### 使用pprof定位Go程序问题
+kube-apiserver集成了pprof工具，可以通过/debug/prof/*的url来获得heap、profile等信息：
+```bash
+# 首先开启代理，会监听 127.0.0.1:8001
+kubectl proxy
+
+# 内存heap信息
+go tool pprof http://127.0.0.1:8001/debug/pprof/heap
+#进入交互界面后，输入top 20查看内存使用前20的函数调用
+top 20
+
+# goroutine堆栈信息
+go tool pprof http://127.0.0.1:8001/debug/pprof/goroutine
+# 获取 goroutine pprof 文件后，直接打开
+TODO
+
+# 获取profile文件：
+go tool pprof http://127.0.0.1:8001/debug/pprof/profile
+# 查看30s的CPU Profile
+go tool pprof http://127.0.0.1:8001/debug/pprof/profile?seconds=30
+
+# 当程序里调用 runtime.SetBlockProfileRate 后，查看 goroutine blocking profile
+go tool pprof http://127.0.0.1:8001/debug/pprof/block
+
+# 当程序里调用 runtime.SetMutexProfileFraction 后，查看 contended mutexes 锁的持有者
+go tool pprof http://127.0.0.1:8001/debug/pprof/mutex
+
+# 获取并分析5秒的Trace追踪信息
+wget -O trace.out http://127.0.0.1:8001/debug/pprof/trace?seconds=5
+go tool trace trace.out
+
+# 查阅所有profile信息，浏览器打开如下链接：
+# http://127.0.0.1:8001/debug/pprof/
+```
+
+
+参考资料：
+- https://segmentfault.com/a/1190000039649589
+- https://www.kubernetes.org.cn/3119.html
+- https://pkg.go.dev/net/http/pprof
+- https://lightcone.medium.com/how-to-profile-go-programs-c6c00e8f2ebf
+- TODO https://www.huaweicloud.com/articles/760089e5e8665e2397024ce2b9c39871.html
+
+
+### golang diagnostics
+TODO: https://golang.org/doc/diagnostics
 
 
 ## 通过goproxy代理解决package下载问题
