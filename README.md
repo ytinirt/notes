@@ -4084,10 +4084,17 @@ securityContext:
 ```bash
 # 检查dockerd是否响应服务请求
 curl --unix-socket /var/run/docker.sock http://v1.26/containers/json?all=1
+
 # 线程调用栈输出至/var/run/docker文件夹
 kill -SIGUSR1 <docker-daemon-pid>
-# containerd调用栈输出至messages
+
+# containerd调用栈输出至messages，也会输出文件至/tmp目录
 kill -SIGUSR1 <containerd-pid>
+
+# 获取containerd-shim堆栈，堆栈输出至 shim.stdout.log
+# 注意，需要开启containerd-shim -debug
+cat /var/lib/containerd/io.containerd.runtime.v1.linux/moby/<container-id>/shim.stdout.log
+kill -SIGUSR1 <containerd-shim-pid>
 ```
 
 
