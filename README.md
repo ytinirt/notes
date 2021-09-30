@@ -3200,6 +3200,7 @@ strace -p $(pidof etcd) 2>&1 | grep -e  "\(write\|fdatasync\)\((12\|(18\)"
 ```bash
 perf record cat /sys/fs/cgroup/memory/memory.stat
 perf report
+perf top
 ```
 
 #### pstack分析CPU异常高时堆栈信息
@@ -3236,6 +3237,20 @@ user    0m0.001s
 sys     0m0.000s
 ```
 
+获取更详细的信息
+```bash
+# 安装
+yum install time -y
+
+# wrap time，输出更详细信息
+cat <<EOF >/tmp/xtime
+#!/bin/sh
+/usr/bin/time -f '%Uu %Ss %er %MkB %C' "\$@"
+EOF
+chmod a+x /tmp/xtime
+
+/tmp/xtime sleep 1s
+```
 
 
 #### coredump分析
@@ -3414,6 +3429,12 @@ journalctl -b -u docker # 自某次引导后的信息
 
 
 ### 其它技巧
+查看服务器 SN 串号：
+```bash
+dmidecode -t 1| grep "Serial Number"
+```
+
+
 使用`socat`建立四层代理：
 ```bash
 # from
@@ -4913,8 +4934,6 @@ kubectl get cm hehe -o jsonpath='{.data.mysql-node-rc-template\.yaml}'
 kubectl create configmap -n default os-watchdog-config --from-file=i18n_zh.json --from-file=i18n_en.json -o yaml --dry-run | kubectl apply -f -
 ~~~
 
-####
-
 ### 日志相关配置
 
 ```bash
@@ -5050,19 +5069,42 @@ func main() {
 参见 [项目地址](https://github.com/go-delve/delve)。
 
 
+### 使用go tool trace追踪Go程序
+使用`go tool trace`能有效追踪程序执行性能问题、死锁等问题。
+
+TODO
+
+参考资料：
+- [Golang 大杀器之跟踪剖析 trace](https://segmentfault.com/a/1190000019736288)
+
+
 ### 使用pprof定位Go程序问题
-kube-apiserver集成了pprof工具，可以通过/debug/prof/*的url来获得heap、profile等信息：
+kube-apiserver集成了pprof工具，可以通过/debug/prof/*获得kube-apiserver的heap、profile等信息：
 ```bash
 # 首先开启代理，会监听 127.0.0.1:8001
 kubectl proxy
+# 已采集的性能数据，可以启web server访问
+go tool pprof -http=0.0.0.0:8088 /path/to/pprof.kube-apiserver.goroutine.001.pb.gz
+# 也可以交互式访问
+go tool pprof /path/to/pprof.kube-apiserver.goroutine.001.pb.gz
+
+# 当通过web可视化访问时，可能提示“Failed to execute dot. Is Graphviz installed?”，需要安装graphviz
+# 命令如下，参见链接 https://graphviz.org/download/
+yum install graphviz
 
 # 内存heap信息
 go tool pprof http://127.0.0.1:8001/debug/pprof/heap
-#进入交互界面后，输入top 20查看内存使用前20的函数调用
+# 进入交互界面后，输入top 20查看内存使用前20的函数调用
 top 20
 
 # goroutine堆栈信息
 go tool pprof http://127.0.0.1:8001/debug/pprof/goroutine
+# 进入交互界面，查看“执行数量”前top的goroutine
+top
+# 查看goroutine调用栈
+traces
+# 查看代码详情
+list
 # 获取 goroutine pprof 文件后，直接打开
 TODO
 
@@ -5092,6 +5134,8 @@ go tool trace trace.out
 - https://pkg.go.dev/net/http/pprof
 - https://lightcone.medium.com/how-to-profile-go-programs-c6c00e8f2ebf
 - TODO https://www.huaweicloud.com/articles/760089e5e8665e2397024ce2b9c39871.html
+- TODO https://go.dev/blog/pprof
+- TODO https://github.com/rsc/benchgraffiti
 
 
 ### golang diagnostics
@@ -6536,7 +6580,21 @@ update user set password = 'xxx', salt = 'yyy' where login = 'admin';
 
 ## Redis
 
-连接redis服务器 `redis-cli -p 6579 -a password -h 172.25.18.234`
+### Redis常用操作
+```bash
+# 连接redis服务器
+redis-cli -p 6579 -a password -h 172.25.18.234
+
+# 设置kv。注意，slave节点上只读，不能set。
+set demokey Amila
+# 查询kv
+get demokey
+# 查看所有key
+keys *
+
+# 查看复制信息
+info replication
+```
 
 
 
@@ -6650,6 +6708,21 @@ curl -s "os-prometheus.prometheus-monitoring.svc:9090/api/v1/query?query=(sum(ra
 curl -s "os-prometheus.prometheus-monitoring.svc:9090/api/v1/query?query=(sum(rate(node_network_receive_bytes_total%5B1m%5D))by(instance))" | jq
 
 curl -s "os-prometheus.prometheus-monitoring.svc:9090/api/v1/query?query=sum(rate(container_network_transmit_bytes_total%7Bnode%3D%22platform-172%22%7D%5B1m%5D))" | jq
+```
+
+### Pushgateway
+```bash
+# 简单的示例
+echo "some_metric 3.14" | curl --data-binary @- http://127.0.0.1:9091/metrics/job/some_job
+
+# 复杂的示例
+cat <<EOF | curl --data-binary @- http://127.0.0.1:9091/metrics/job/some_job/instance/some_instance
+# TYPE some_metric counter
+some_metric{label="val1"} 42
+# TYPE another_metric gauge
+# HELP another_metric Just an example.
+another_metric 2398.283
+EOF
 ```
 
 ### Alertmanager
@@ -7483,6 +7556,10 @@ Ctrl + F
 
 
 ## 奇技淫巧
+atom超级好用的package：
+- document-outline
+- markdown-writer
+- markdown-preview
 
 Azure镜像源`mirror.azure.cn`
 
