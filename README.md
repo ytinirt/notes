@@ -2856,8 +2856,12 @@ echo "blacklist acpi-cpufreq" >> /etc/modprobe.d/cpufreq.conf
 使用`iperf`测试网络性能：
 
 ```bash
-iperf -s                 # 服务端执行
-iperf -c <serverIP>      # 客户端执行
+# 服务端执行
+iperf -s
+# 客户端执行
+iperf -c <serverIP>
+# 测试示例
+iperf3 -c <serverIP>  -t 30   -b 100M  -P 4
 ```
 
 
@@ -3636,6 +3640,8 @@ echo $(($(cat /dev/urandom | od -A none -w2 | head -n 1) % 3500)) #  生成随�
 mount -o loop -t iso9660 /root/xxx.iso /root/isomount/
 mtr # 比 traceroute 更好用的路由追踪工具
 ps -ax --width 100000   # 通过ps查看进程的执行命令和参数时，若遇到被截断，可指定--width显示完整的命令和参数信息
+# 打印进程间父子关系
+ps -afx
 date +"%Y-%m-%d %T"
 date +"%F %T.%3N"
 date --date='Mon Apr 2 00:21:03 2018' +'%s'    # date的格式化输入和格式化输出
@@ -3821,7 +3827,16 @@ cat /sys/fs/cgroup/memory/kubepods/burstable/podaebd4ae8-8e1b-11e8-b174-3ca82ae9
 ## containerd
 ### 常用操作
 ```bash
-docker-ctr-current --address unix:///var/run/docker/libcontainerd/docker-containerd.sock   # 使用containerd客户端
+# 使用containerd客户端
+docker-ctr-current --address unix:///var/run/docker/libcontainerd/docker-containerd.sock
+
+# 日志查看
+# 方式1： 目录 /var/run/containerd/io.containerd.grpc.v1.cri/containers 下能够看到容器stdout和stderr的pipe文件。
+# 直接cat pipe文件，就能看到标准和错误输出。注意，这里只能看到实时输出。
+cat /var/run/containerd/io.containerd.grpc.v1.cri/containers/<容器id>/io/2615573161/<容器id>-stdout
+# 方式2： 目录 /var/log/pods 下能够看到kubelet保存的容器日志输出，kubelet也是使用上了上述1把容器的stdout和stderr输出到/var/log下，
+# 实现查看历史日志得能力，提升易用性。
+cat /var/log/pods/kube-system_apiserver-proxy-xxx/nginx/0.log
 ```
 
 ## 容器镜像
@@ -4083,6 +4098,7 @@ chcon -v --type=httpd_sys_content_t /html
 chcon -Rv --type=httpd_sys_content_t /html
 restorecon -R /html
 ausearch -m avc --start recent
+ausearch -ui 0
 setsebool -P virt_use_nfs 1
 ```
 
@@ -4809,15 +4825,37 @@ kubectl config use-context john
 
 ### debug和问题解决
 ```bash
+# 开启apiserver proxy
+# 注意，因示例和debug原因开启的disable-filter选项，会带来严重的安全问题，需谨慎
+# 默认端口8001
+kubectl proxy --address=0.0.0.0 --disable-filter=true
+
+# kube-apiserver
+# 浏览器打开 http://x.x.x.x:8001/debug/pprof/ 查看apiserver的pprof信息
+# 获取apiserver的goroutine信息（概要）
+curl http://x.x.x.x:8001/debug/pprof/goroutine?debug=1
+# 或（详细信息）
+curl http://x.x.x.x:8001/debug/pprof/goroutine?debug=2
+# TODOTODO
+
+# kubelet
 # 保持kubelet在线运行，使用pprof分析kubelet，拿到goroutine堆栈
 curl http://localhost:8001/api/v1/proxy/nodes/node-x/debug/pprof/goroutine?debug=2
 # 或者
-curl http://127.0.0.1:8111/api/v1/nodes/node-x/proxy/debug/pprof/goroutine?debug=2
-
+curl http://127.0.0.1:8001/api/v1/nodes/node-x/proxy/debug/pprof/goroutine?debug=2
 # 停止kubelet进程，并打印堆栈，特别有助于定位hang住的问题
 kill -s SIGQUIT <pid-of-kubelet>
 # 或者
 kill -SIGABRT <pid-of-kubelet>
+# 收集heap信息
+wget -O kubelet-heap.out http://127.0.0.1:8001/api/v1/nodes/node-x/proxy/debug/pprof/heap
+
+# kubelet健康检查
+curl 127.0.0.1:10248/healthz
+# 获取更多细节
+curl -k https://127.0.0.1:10250/healthz --cacert /etc/kubernetes/keys/ca.pem --cert /etc/kubernetes/keys/kubernetes.pem --key /etc/kubernetes/keys/kubernetes-key.pem
+
+
 ```
 
 ### 常见操作
@@ -5154,6 +5192,29 @@ go env -w GOPRIVATE=*.corp.example.com
 go env -w GOPRIVATE=example.com/org_name
 ```
 参见[goproxy官网](https://goproxy.io/zh/)
+
+
+## 示例
+```golang
+// 自定义排序方式
+sort.Sort(byCreationTimestamp(terminatedPods))
+...
+// byCreationTimestamp sorts a list by creation timestamp, using their names as a tie breaker.
+type byCreationTimestamp []*v1.Pod
+
+func (o byCreationTimestamp) Len() int      { return len(o) }
+func (o byCreationTimestamp) Swap(i, j int) { o[i], o[j] = o[j], o[i] }
+
+func (o byCreationTimestamp) Less(i, j int) bool {
+	if o[i].CreationTimestamp.Equal(&o[j].CreationTimestamp) {
+		return o[i].Name < o[j].Name
+	}
+	return o[i].CreationTimestamp.Before(&o[j].CreationTimestamp)
+}
+
+
+```
+
 
 # Special column
 
@@ -7560,6 +7621,7 @@ atom超级好用的package：
 - document-outline
 - markdown-writer
 - markdown-preview
+- markdown-toc
 
 Azure镜像源`mirror.azure.cn`
 
