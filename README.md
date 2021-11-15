@@ -1870,6 +1870,13 @@ usermod -s /bin/bash nova
 ```
 
 
+### audit系统审计
+```bash
+ausearch
+auditctl -a exit,always -F arch=b64 -F exe!=/usr/bin/nice&&/usr/bin/du -S execve
+```
+
+
 ### HTPasswd认证
 在RHEL/CentOS上，htpasswd来自httpd-tools包。
 ```bash
@@ -2497,6 +2504,7 @@ PROCESS STATE CODES
 ps -eTo stat,pid,tid,ppid,comm --no-header | sed -e 's/^ \*//' | perl -nE 'chomp;say if (m!^S*[RD]+\S*!)'
 # 查看进程状态
 ps -e -o pid,stat,comm,lstart,wchan=WIDE-WCHAN-COLUMN
+ps -p 1,222,3,14 -o pid,ppid,lstart,args
 top                 #监控进程/线程状态    ->f->选择关注项
 ps                  #查看进程/线程
 ps -o ppid= 19312   #查找19312的父进程，注意 ppid= 和 19312 间的空格
@@ -2594,6 +2602,16 @@ du -sh --exclude='lib/*' # 统计时排出lib目录下所有内容
 ```
 
 
+#### 打开文件数
+```bash
+# 操作系统层面，最大打开文件/fd数
+cat /proc/sys/fs/file-max
+# 操作系统层面，当前打开文件连接数
+cat /proc/sys/fs/file-nr
+# 进程层面，最大打开文件/fd数，因此应该小于上述/proc/sys/fs/file-max的值
+ulimit -n
+```
+
 
 #### lsof查看打开文件
 
@@ -2609,6 +2627,12 @@ for i in $(ps -ef | grep shim | grep -v grep | grep -v "\-\-shim" | awk '{print 
 
 # 统计、查看未关闭文件句柄的进程
 lsof 2>/dev/null | grep -i deleted | awk '{print $2}' | sort -n | uniq -c | sort -nr
+
+# 查看什么command打开的文件最多
+lsof 2>/dev/null | awk '{print $1}' | sort | uniq -c | sort -r -n | head
+
+# 查看nginx命令打开的文件数，输出打开文件TOP10的进程pid
+lsof 2>/dev/null | grep ^nginx | awk '{print $2}' | sort -n | uniq -c | sort -rn | head
 ```
 
 
@@ -3722,6 +3746,16 @@ cgdelete
 
 ## namespaces
 
+### 常用命令
+```bash
+# 查看ns的inode信息
+ls -Li /proc/1/ns/net
+# TODO: https://unix.stackexchange.com/questions/113530/how-to-find-out-namespace-of-a-particular-process
+
+# 查看pid所述的容器/pod
+nsenter -t ${pid} -u hostname
+```
+
 ### 常用工具
 
 #### lsns
@@ -3839,6 +3873,39 @@ cat /var/run/containerd/io.containerd.grpc.v1.cri/containers/<容器id>/io/26155
 cat /var/log/pods/kube-system_apiserver-proxy-xxx/nginx/0.log
 ```
 
+### 如何编译containerd
+可直接在ARM架构的环境编译aarch64，如下示例包含containerd与runc
+```bash
+docker run -it --privileged --network host\
+    -v /var/lib/containerd \
+    -v ${PWD}/runc:/go/src/github.com/opencontainers/runc \
+    -v ${PWD}/containerd:/go/src/github.com/containerd/containerd \
+    -e GOPATH=/go \
+    -w /go/src/github.com/containerd/containerd containerd/build-aarch64:1.1.0 sh
+# 进入容器里操作
+# 编译 runc
+cd /go/src/github.com/opencontainers/runc
+make
+# 编译 containerd
+cd /go/src/github.com/containerd/containerd
+make
+```
+
+### 根据进程pid查询pod
+```bash
+function pid2pod {
+  local pid=$1
+  if [ -f /proc/${pid}/cgroup ]; then
+    local cid=$(cat /proc/${pid}/cgroup | grep ":memory:" | awk -F '/' '{print $NF}' | awk -F ':' '{print $NF}')
+    if [ "${cid}" != "" ]; then
+      ctr -n k8s.io c info ${cid} 2>/dev/null | jq -r '.Labels["io.kubernetes.pod.namespace"]+" "+.Labels["io.kubernetes.pod.name"]' 2>/dev/null
+    fi
+  fi
+}
+
+```
+
+
 ## 容器镜像
 ### 采用合并打包实现缩容
 TODO
@@ -3887,7 +3954,7 @@ docker buildx ls
 # 准备镜像的Dockerfile和依赖资源文件，例如
 cat << EOF > Dockerfile
 FROM alpine:latest
-CMD echo “Running on $(uname -m)”
+CMD echo "Running on $(uname -m)"
 EOF
 
 # 登录镜像仓库
@@ -4935,6 +5002,28 @@ NSS_SDB_USE_CACHE=yes curl -s -H "Authorization: Bearer ${TOKEN}" -k https://10.
 NS=default
 SA=admin
 TOKEN=$(kubectl get secrets -n ${NS} $(kubectl get sa -n ${NS} ${SA} -o jsonpath='{.secrets[0].name}') -o jsonpath='{.data.token}' | base64 -d)
+
+# 遍历所有pod
+for n_p in $(kubectl get pod -A | sed 1d | awk '{print $1":"$2}'); do
+    n=$(echo $n_p | cut -d: -f1)
+    p=$(echo $n_p | cut -d: -f2)
+    echo $n  $p
+    kubectl get pod -n $n $p -o json | jq .spec.containers[].imagePullPolicy -r 2>/dev/null
+    kubectl get pod -n $n $p -o json | jq .spec.initContainers[].imagePullPolicy -r 2>/dev/null
+    echo
+done
+
+# 遍历所有工作负载
+WorkLoads="ds deploy rc sts"
+for wl in $(echo $WorkLoads); do
+    echo "============== $wl =============="
+    for n_i in $(kubectl get $wl -A | sed 1d | awk '{print $1":"$2}'); do
+        n=$(echo $n_i | cut -d: -f1)
+        i=$(echo $n_i | cut -d: -f2)
+        echo $n $i : $(kubectl get $wl -n $n $i -o json | jq .spec.template.spec.containers[].imagePullPolicy -r 2>/dev/null) $(kubectl get $wl -n $n $i -o json | jq .spec.template.spec.initContainers[].imagePullPolicy -r 2>/dev/null)
+    done
+done
+
 ```
 
 
@@ -5046,6 +5135,19 @@ pci-0000:18:00.1-fc-0x20110002ac012e3b-lun-9
 ```
 由于存储多路径，同一个LUN对应填写两个WWN，上述LUN-9对应 WWN 21120002ac012e3b 和 WWN 20110002ac012e3b 。
 
+
+### 编译kubelet
+使用构建镜像编译：
+```bash
+docker run -it --privileged \
+    -v ${PWD}/kubernetes:/go/src/github.com/kubernetes/kubernetes \
+    -e GOPATH=/go \
+    -w /go/src/github.com/kubernetes/kubernetes k8s.gcr.io/build-image/kube-cross:v1.15.8-legacy-1 sh
+# 需要编什么架构，就export什么架构：
+#   export KUBE_BUILD_PLATFORMS=linux/arm64
+export KUBE_BUILD_PLATFORMS=linux/amd64
+make WHAT=cmd/kubelet GOLDFLAGS=""
+```
 
 
 # Golang
@@ -7155,6 +7257,8 @@ curl -H "Content-Type:application/json-patch+json" --request PATCH "http://127.0
 
 ```bash
 jq .
+# jq escape dot
+cat xxx | jq '.Labels["io.kubernetes.pod.namespace"]'
 kubectl get pod --all-namespaces -o json | jq -r '.items[] | select(.spec.hostNetwork) | .metadata.namespace + ":" +.metadata.name' | wc -l
 kubectl get pods -o json | jq '.items[] | select(.spec.hostname == "webapp-server-2" or .spec.hostname == "webapp-server-1") | .metadata.name' | tr -d '"'
 kubectl get pods -o json | jq '.items[].metadata.name'
