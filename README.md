@@ -2586,6 +2586,7 @@ iostat -x 1         # 查看cpu和硬盘io信息
 dstat               # 查看CPU、MEM、硬盘io信息
 dstat --aio --io --disk --tcp --top-io-adv --top-bio-adv
 dstat -m --top-mem  # 查看内存占用最多者
+top -b -n1 -o RES | head -n27 | sed '1,7d'    # TOP 20内存使用
 mpstat -P ALL 1     # 每个CPU核的使用率
 dmesg -H            # 查看kernel信息
 perf
@@ -3754,6 +3755,22 @@ ls -Li /proc/1/ns/net
 
 # 查看pid所述的容器/pod
 nsenter -t ${pid} -u hostname
+
+# 查看pid所在容器的内存用量
+nsenter -t ${pid} -m cat /sys/fs/cgroup/memory/memory.usage_in_bytes
+
+# 查看pid所在容器的cpu使用率（近10秒）
+function cpu-usage {
+  local pid=$1
+  local start=$(nsenter -t ${pid} -m cat /sys/fs/cgroup/cpu/cpuacct.usage 2>/dev/null)
+  sleep 10s
+  local end=$(nsenter -t ${pid} -m cat /sys/fs/cgroup/cpu/cpuacct.usage 2>/dev/null)
+  if [ "${start}" != "" ] && [ "${end}" != "" ]; then
+    # echo "(${end} - ${start}) / 100000000" | bc
+    local cpuacct=$[${end} - ${start}]
+    echo $[${cpuacct}/100000000]%
+  fi
+}
 ```
 
 ### 常用工具
@@ -3871,6 +3888,9 @@ cat /var/run/containerd/io.containerd.grpc.v1.cri/containers/<容器id>/io/26155
 # 方式2： 目录 /var/log/pods 下能够看到kubelet保存的容器日志输出，kubelet也是使用上了上述1把容器的stdout和stderr输出到/var/log下，
 # 实现查看历史日志得能力，提升易用性。
 cat /var/log/pods/kube-system_apiserver-proxy-xxx/nginx/0.log
+
+# 查看容器指标信息，例如cpu、内存开销
+ctr -n k8s.io t metric <cid>
 ```
 
 ### 如何编译containerd
@@ -3903,6 +3923,18 @@ function pid2pod {
   fi
 }
 
+```
+
+
+## 容器运行时runc
+### 常用命令
+```bash
+# 查看容器进程信息
+# 其中<cid>可以通过 ctr -n k8s.io c ls | grep <image-name> 获取
+runc --root /run/containerd/runc/k8s.io ps <cid>
+
+# 进入容器执行命令
+runc --root /run/containerd/runc/k8s.io exec -t <cid> bash
 ```
 
 
