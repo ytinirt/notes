@@ -1149,7 +1149,16 @@ tcpdump -i ens160 "host 172.25.18.91 and port 35357" -nnl | grep "\[S"
 conntrack -L
 ```
 
+### ipvs
+#### 常用命令
+```bash
+ipvsadm -Ln --stats
+ipvsadm -Ln -c
+ipvsadm -L --timeout
+ipvsadm -Ln --rate
+ipvsadm -Ln --thresholds
 
+```
 
 ### 配置网卡聚合NIC bonding
 **注意**，本示例在CentOS7上操作。
@@ -4975,29 +4984,38 @@ curl -k https://127.0.0.1:10250/healthz --cacert /etc/kubernetes/keys/ca.pem --c
 ### 常见操作
 
 ```bash
-kubectl api-versions    #  查看API版本
+# 查看API版本
+kubectl api-versions
 # 注意，OpenShift的Controller-Manager和Scheduler组件整合为controller组件，并使用https://x.x.x.x:8444/healthz作为健康检查endpoint
-curl -k https://10.125.30.224:8444/healthz  #  OpenShift平台查看controller的健康情况
-kubectl get componentstatus # 查看集群组件信息
+# OpenShift平台查看controller的健康情况
+curl -k https://10.125.30.224:8444/healthz
+# 查看集群组件信息
+kubectl get componentstatus
 kubectl get --raw /api/v1/componentstatuses/controller-manager | jq
 kubectl get --raw /apis/metrics.k8s.io/v1beta1/namespaces/openshift-sdn/pods/sdn-5bbcx | jq
 kubectl get --raw /apis/custom.metrics.k8s.io/v1beta1/namespaces/default/pods/*/http_requests | jq
 ./kubectl --server=https://kubernetes/ --certificate-authority=/tmp/openssl/ca.crt --client-certificate=/tmp/openssl/client.crt --client-key=/tmp/openssl/client.key get pod
 /opt/bin/kubectl -s 127.0.0.1:8888 get pod -o wide
 /opt/bin/kubectl -s 127.0.0.1:8888 describe ep
-/opt/bin/kubectl -s 127.0.0.1:8888 describe pod        # 查看Pod信息，定位问题
+# 查看Pod信息，定位问题
+/opt/bin/kubectl -s 127.0.0.1:8888 describe pod        
 /opt/bin/kubectl -s 127.0.0.1:8888 cluster-info
 /opt/bin/kubectl -s 127.0.0.1:8888 get services
 /opt/bin/kubectl -s 127.0.0.1:8888 get rc
-/opt/bin/kubectl -s 127.0.0.1:8888 get nodes -o=custom-columns=NAME:.metadata.name,IPS:.status.addresses    # 自定义信息的输出列
+# 自定义信息的输出列
+/opt/bin/kubectl -s 127.0.0.1:8888 get nodes -o=custom-columns=NAME:.metadata.name,IPS:.status.addresses    
 kubelet --help 2>&1 | less
-# node状态为Ready,SchedulingDisabled时，手工开启调度：/opt/bin/kubectl -s 127.0.0.1:8888 uncordon 172.25.18.13
-kubectl logs -p -c ruby web-1  # 查看Pod web-1中前一个ruby容器的日志
-kubectl get svc mysql-node1 -o jsonpath='{.spec.clusterIP}' # 支持json格式解析
+# node状态为Ready,SchedulingDisabled时，手工开启调度
+/opt/bin/kubectl -s 127.0.0.1:8888 uncordon 172.25.18.13
+# 查看Pod web-1中前一个ruby容器的日志
+kubectl logs -p -c ruby web-1  
+# 支持json格式解析
+kubectl get svc mysql-node1 -o jsonpath='{.spec.clusterIP}'
 kubectl get pods -n default -l app=foo -o=jsonpath='{range .items[*]}{.metadata.name} {end}'
 kubectl get namespaces -o jsonpath='{.items[*].metadata.name}'
 /opt/bin/kubectl -s 127.0.0.1:8888 delete -f /opt/bin/confFile-cluster/openstack-new-rc.yaml
-kubectl get pod | grep -v NAME | awk '{print $1}'      # 查看所有Pod
+# 查看所有Pod
+kubectl get pod | grep -v NAME | awk '{print $1}'      
 kubectl get pod ceportalrc-n5sqd -o template --template={{.status.phase}}          # 查看Pod的运行状态
 kubectl get node 172.25.18.24 -o template --template={{.status.nodeInfo.osImage}}  # 查看Node的操作系统信息
 kubectl logs --namespace="kube-system" kube-dns-v17.1-rc1-27sj0 kubedns  # 查看容器的log
@@ -5070,6 +5088,10 @@ for wl in $(echo $WorkLoads); do
         echo $n $i : $(kubectl get $wl -n $n $i -o json | jq .spec.template.spec.containers[].imagePullPolicy -r 2>/dev/null) $(kubectl get $wl -n $n $i -o json | jq .spec.template.spec.initContainers[].imagePullPolicy -r 2>/dev/null)
     done
 done
+
+# 遍历一个命名空间下所有资源
+kubectl api-resources --verbs=list --namespaced -o name \
+  | xargs -n 1 kubectl get --show-kind --ignore-not-found -n ${NAMESPACE}
 
 ```
 
@@ -5344,6 +5366,24 @@ go env -w GOPRIVATE=example.com/org_name
 
 
 ## 示例
+
+### 启HTTP服务
+`http.go`文件内容如下：
+```golang
+package main
+
+import (
+        "net/http"
+)
+
+func main() {
+        http.Handle("/", http.FileServer(http.Dir("./")))
+        http.ListenAndServe(":34567", nil)
+}
+```
+执行命令`go run http.go`启动服务。
+
+### 代码实例
 ```golang
 // 自定义排序方式
 sort.Sort(byCreationTimestamp(terminatedPods))
@@ -7022,6 +7062,19 @@ rbd create hehe-images2 -p .diskpool.rbd --data-pool test01 --size 100M
 ```
 
 ## KVM
+
+### 检查是否支持虚拟化
+查看 `/proc/cpuinfo` 中是否有`svm`（AMD）或`vmx`（Intel）标识。
+
+检查是否开启kvm嵌套虚拟化：
+```bash
+modinfo kvm_intel | grep nested
+cat /sys/module/kvm_intel/parameters/nested
+# 若未开启，采用如下方式开启
+modprobe -r kvm-intel
+modprobe kvm-intel nested=1
+cat /sys/module/kvm_intel/parameters/nested
+```
 
 ### virsh操作
 
