@@ -701,6 +701,13 @@ grep -e ipvs -e nf_conntrack_ipv4 /lib/modules/$(uname -r)/modules.builtin
 
 ### inotify
 
+#### inotify打开句柄数耗尽问题解决办法
+```bash
+# 日志中报错“unable to create inotify: too many open files”
+# 解决办法为调大 fs.inotify.max_user_instances
+fs.inotify.max_user_instances = 8192
+```
+
 #### inotify文件监控句柄数耗尽的解决办法
 
 ```bash
@@ -710,9 +717,12 @@ fs.inotify.max_user_watches = 1000000
 #### 找到谁在使用inotify instance资源
 
 ```bash
+# 有效
+find /proc/*/fd -lname anon_inode:inotify 2>/dev/null | cut -d/ -f3 | xargs -I '{}' -- ps --no-headers -o '%p %U %c' -p '{}' | uniq -c | sort -nr
+
+# 执行太慢了
 for foo in /proc/*/fd/*; do readlink -f $foo; done | grep inotify | sort | uniq -c | sort -nr
 find /proc/*/fd/* -type l -lname 'anon_inode:inotify' -print
-find /proc/*/fd -lname anon_inode:inotify | cut -d/ -f3 | xargs -I '{}' -- ps --no-headers -o '%p %U %c' -p '{}' | uniq -c | sort -nr
 ```
 
 #### 找到谁在使用inotify watch资源
@@ -3467,14 +3477,20 @@ logger -p user.info -t modname message
 #### 使用journalctl查看日志
 
 ```bash
-journalctl              # 查看CentOS上服务的log，包括Kubernetes/docker/flannel/etcd等服务都能通过该命令查看log
-journalctl -xe          # 查看尾部的日志
+# 查看CentOS上服务的log，包括Kubernetes/docker/flannel/etcd等服务都能通过该命令查看log
+journalctl              
+# 查看尾部的日志
+journalctl -xe          
 journalctl --no-pager -u docker
-journalctl -k           # 仅查看内核日志
+# 仅查看内核日志
+journalctl -k           
 journalctl --since="19:00:00" -u docker
 journalctl --since="2018-02-21 19:00:00"
 journalctl --vacuum-size=2G --vacuum-time=1week
-journalctl -b -u docker # 自某次引导后的信息
+# 自某次引导后的信息
+journalctl -b -u docker
+# 查看error级别及以上的系统错误日志
+journalctl -b -p3
 ```
 
 
@@ -4207,6 +4223,11 @@ targeted policy有四种形式的访问控制：
 system_u:system_r:container_runtime_t:s0 root 22190 18571  0 Apr12 ?   00:00:38 /usr/bin/docker-containerd-shim-current 6b312ef59368 /var/run/docker/libcontainerd/6b312ef59368 /usr/libexec/docker/docker-runc-current
 ```
 可看到该容器的shim进程SELinux安全上下文，标识该进程类型为`container_runtime_t`，与上述config.v2.json文件的类型`container_var_lib_t`类似、均属于container_t域下，因此shim进程可以访问该文件。
+
+
+#### 深入学习
+TODO: https://blog.csdn.net/xsm666/article/details/81357363
+
 
 #### 常用操作
 ```bash
@@ -4984,6 +5005,10 @@ curl -k https://127.0.0.1:10250/healthz --cacert /etc/kubernetes/keys/ca.pem --c
 ### 常见操作
 
 ```bash
+# 定制输出
+kubectl get pod --sort-by=.status.startTime -o=custom-columns=name:.metadata.name,startTime:.status.startTime
+
+
 # 查看API版本
 kubectl api-versions
 # 注意，OpenShift的Controller-Manager和Scheduler组件整合为controller组件，并使用https://x.x.x.x:8444/healthz作为健康检查endpoint
@@ -5016,24 +5041,37 @@ kubectl get namespaces -o jsonpath='{.items[*].metadata.name}'
 /opt/bin/kubectl -s 127.0.0.1:8888 delete -f /opt/bin/confFile-cluster/openstack-new-rc.yaml
 # 查看所有Pod
 kubectl get pod | grep -v NAME | awk '{print $1}'      
-kubectl get pod ceportalrc-n5sqd -o template --template={{.status.phase}}          # 查看Pod的运行状态
-kubectl get node 172.25.18.24 -o template --template={{.status.nodeInfo.osImage}}  # 查看Node的操作系统信息
-kubectl logs --namespace="kube-system" kube-dns-v17.1-rc1-27sj0 kubedns  # 查看容器的log
+# 查看Pod的运行状态
+kubectl get pod ceportalrc-n5sqd -o template --template={{.status.phase}}          
+# 查看Node的操作系统信息
+kubectl get node 172.25.18.24 -o template --template={{.status.nodeInfo.osImage}}  
+# 查看容器的log
+kubectl logs --namespace="kube-system" kube-dns-v17.1-rc1-27sj0 kubedns  
 kubectl drain ${node} --delete-local-data --ignore-daemonsets --force
 kubectl uncordon ${node}
-kubectl label node 172.25.18.22 node=node3 # 给name为172.25.18.22的node打标签node: node3，kube-dns依赖于这个标签的。
+# 给name为172.25.18.22的node打标签node: node3，kube-dns依赖于这个标签的。
+kubectl label node 172.25.18.22 node=node3
 kubectl label --overwrite node 172.25.19.119 nodeType=cellClus
-kubectl label node 172.25.19.117 cellGrp-  # 删除节点的cellGrp标签
-kubectl exec -it <pod名称> [-c <pod中容器名称>] <sh | bash> # k8s直接进容器
+# 删除节点的cellGrp标签
+kubectl label node 172.25.19.117 cellGrp-  
+# k8s直接进容器
+kubectl exec -it <pod名称> [-c <pod中容器名称>] <sh | bash>
 # https://kubernetes.io/docs/tasks/debug-application-cluster/get-shell-running-container/
-kubectl exec <pod> -- /node-cache -help  # 其中双横线--将k8s命令同希望容器里执行的命令分隔开
+# 其中双横线--将k8s命令同希望容器里执行的命令分隔开
+kubectl exec <pod> -- /node-cache -help  
 # 示例，通过别名，方便的使用工具pod里的命令
 alias ceph='kubectl -n rook-ceph exec $(kubectl -n rook-ceph get pod -l "app=rook-ceph-tools" -o jsonpath='{.items[0].metadata.name}') -- ceph'
-kubectl edit clusterrole   # 查看/修改RBAC
-kubectl get events         # 查看事件
-kubectl get events --field-selector type=Warning # 过滤查看Warning类型的事件
-kubectl get events --field-selector type!=Normal # 过滤查看异常类型的事件
-curl  -s 'http://172.25.19.109:8888/api/v1/namespaces/default/pods?labelSelector=app=rabbitmq-cluster,node=rabbit2' | jq '.items[].metadata.name' | tr -d '"'
+# 查看/修改RBAC
+kubectl edit clusterrole   
+# 查看事件
+kubectl get events         
+# 过滤查看Warning类型的事件
+kubectl get events --field-selector type=Warning
+# 过滤查看异常类型的事件
+kubectl get events --field-selector type!=Normal
+# 过滤查看某个pod的事件
+kubectl get event --namespace ns --field-selector involvedObject.kind=Pod --field-selector involvedObject.name=xxx-yyy
+curl  -s 'http://1.2.3.4:8080/api/v1/namespaces/default/pods?labelSelector=app=rabbitmq,node=n2' | jq '.items[].metadata.name' | tr -d '"'
 
 # 通过curl直接访问Kubernetes的HTTPS RESTful API，注意：
 # --cacert 指定CA中心的证书crt
@@ -5053,10 +5091,13 @@ NSS_SDB_USE_CACHE=yes curl --cacert /etc/origin/master/ca.crt --cert /etc/origin
 # 通过文件创建secret，其中指定secret中的键/文件名为htpasswd
 kubectl create secret generic htpass-secret --from-file=htpasswd=</path/to/users.htpasswd> -n kube-system
 
-# 通过token直接访问apiserver
-kubectl get sa default -o yaml  # 找到 default sa的携带token信息的secrets
-kubectl get secrets default-token-xxxxx -o jsonpath='{.data.token}' | base64 -d # 直接从secrets中获取TOKEN
-kubectl get secrets -n cattle-system tls-cert -o jsonpath='{.data.cert\.pem}' | base64 -d > cert.pem    # 从secrets中复原证书和秘钥
+## 通过token直接访问apiserver
+# 找到 default sa的携带token信息的secrets
+kubectl get sa default -o yaml  
+# 直接从secrets中获取TOKEN
+kubectl get secrets default-token-xxxxx -o jsonpath='{.data.token}' | base64 -d
+# 从secrets中复原证书和秘钥
+kubectl get secrets -n cattle-system tls-cert -o jsonpath='{.data.cert\.pem}' | base64 -d > cert.pem    
 NSS_SDB_USE_CACHE=yes curl -H "Authorization: Bearer ${TOKEN}" -k https://10.100.0.1/api/
 
 # Pod（容器）里直接获取token的方法
@@ -5092,6 +5133,9 @@ done
 # 遍历一个命名空间下所有资源
 kubectl api-resources --verbs=list --namespaced -o name \
   | xargs -n 1 kubectl get --show-kind --ignore-not-found -n ${NAMESPACE}
+
+# 设置默认StorageClass
+kubectl patch storageclass gold -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
 
 ```
 
@@ -5230,6 +5274,18 @@ CGO_ENABLED=0 go build -o harbor_ui github.com/vmware/harbor/src/ui
 # 使用vendor
 go build -mod vendor ./pkg/agent
 ```
+
+## 编译构建
+### 通过build tag定制Go可执行文件
+在待控制的源文件头加：
+```
+// +build tag_name
+```
+编译时需指定如下`tag`，才将源文件编进去，具体操作如下：
+```
+go build -tags tag_name
+```
+详见 [customizing-go-binaries-with-build-tags](https://www.digitalocean.com/community/tutorials/customizing-go-binaries-with-build-tags)
 
 ## 如何Debug Golang程序
 
@@ -6293,6 +6349,135 @@ func getIPAMConfig(clusterNetworks []common.ClusterNetwork, localSubnet string) 
 
 ```
 
+
+## OpenShift4
+### 常用操作
+```bash
+## TODOTODO: podman inspect vs podman manifest inspect
+sudo podman manifest inspect quay.io/openshift-release-dev/ocp-release@sha256:dd71b3cd08ce1e859e0e740a585827c9caa1341819d1121d92879873a127f5e2
+sudo podman inspect quay.io/openshift-release-dev/ocp-release@sha256:dd71b3cd08ce1e859e0e740a585827c9caa1341819d1121d92879873a127f5e2
+
+
+## 强制跳过machine-config-operator对节点的mc检查
+# 在希望跳过的节点上执行
+touch /run/machine-config-daemon-force
+
+
+## 节点后台直接下载容器镜像
+# 配置代理，如果需要
+export https_proxy=http://127.0.0.1:8080/
+export http_proxy=http://127.0.0.1:8080/
+# 拿kubelet使用的认证信息，去下载容器镜像
+podman pull --authfile /v/var/lib/kubelet/config.json quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:f5628b30aa047fe32cba9308c70c581f7d9812f40a3e651a84f0532af184bfd2
+
+
+## 直接操作ETCD数据
+# 切换为root用户，并执行如下命令
+source /etc/kubernetes/static-pod-resources/etcd-certs/configmaps/etcd-scripts/etcd.env
+source /etc/kubernetes/static-pod-resources/etcd-certs/configmaps/etcd-scripts/etcd-common-tools
+dl_etcdctl
+export ETCDCTL_CERT=/etc/kubernetes/static-pod-resources/etcd-certs/secrets/etcd-all-certs/etcd-peer-master0.crt
+export ETCDCTL_KEY=/etc/kubernetes/static-pod-resources/etcd-certs/secrets/etcd-all-certs/etcd-peer-master0.key
+export ETCDCTL_CACERT=/etc/kubernetes/static-pod-resources/etcd-certs/configmaps/etcd-serving-ca/ca-bundle.crt
+etcdctl ...
+
+
+## 调用OSUS服务，获取graph的示例：
+curl --silent --header 'Accept:application/json' 'https://api.openshift.com/api/upgrades_info/v1/graph?arch=amd64&channel=stable-4.2'
+
+
+## 对接使用htpasswd IDP
+# 创建用户名和密码文件
+htpasswd -bB users.htpasswd <username> <password>
+# 创建secret
+kubectl create secret generic htpass-secret --from-file=htpasswd=users.htpasswd -n openshift-config
+# 配置OAuth对接htpasswd IDP
+cat <<EOF | kubectl apply -f -
+apiVersion: config.openshift.io/v1
+kind: OAuth
+metadata:
+  name: cluster
+spec:
+  identityProviders:
+  - name: htpasswd_provider
+    mappingMethod: claim
+    type: HTPasswd
+    htpasswd:
+      fileData:
+        name: htpass-secret
+EOF
+# 当用户首次登录时，会新建 user 和 identity 资源实例
+# 给用户赋予集群管理员权限，其中 cluster-admin 是预置的 clusterRole
+oc adm policy add-cluster-role-to-user cluster-admin zhaoyao
+
+
+## 对接使用htpasswd IDP，更新用户
+# 获取当前htpasswd用户和密码文件
+oc get secret htpass-secret -ojsonpath={.data.htpasswd} -n openshift-config | base64 --decode > users.htpasswd
+# 添加新用户
+htpasswd -bB users.htpasswd <username> <password>
+# 删除老用户，注意，后续需要同步删除对应的 user 和 identity 资源实例
+htpasswd -D users.htpasswd <username>
+# 使配置生效
+oc create secret generic htpass-secret --from-file=htpasswd=users.htpasswd --dry-run=client -o yaml -n openshift-config | oc replace -f -
+
+
+## 查看审计日志
+oc adm node-logs --role=master --path=kube-apiserver
+oc adm node-logs master0 --path=kube-apiserver/audit.log
+
+
+## 查看节点上服务日志
+oc adm node-logs <node_name> -u crio
+oc adm node-logs <node_name> -u kubelet
+
+
+## 获取集群所有资源对象，这些资源对象由CVO创建管理
+# 获取当前版本的update image，实际上其也是cluster-version-operator pod使用的容器镜像
+oc get clusterversion -o jsonpath='{.status.desired.image}{"\n"}' version
+# 获取CVO管理对象的列表
+oc adm release extract --from=quay.io/openshift-release-dev/ocp-release@sha256:1935b6c8277e351550bd7bfcc4d5df7c4ba0f7a90165c022e2ffbe789b15574a --to=release-image
+# release-metadata文件携带版本元数据
+# image-references文件携带OpenShift集群需要的容器镜像
+ls release-image
+
+## 直接提取版本镜像release image
+$ mkdir /tmp/release
+$ oc image extract quay.io/openshift-release-dev/ocp-release:4.5.1-x86_64 --path /:/tmp/release
+
+
+## 让Operator/资源对象不被CVO管理，此后就能随便edit资源对象了
+# 查看当前的override信息
+oc get -o json clusterversion version | jq .spec.overrides
+# 为了向override中增加表项配置，需要给 clusterversion/version 打 patch
+# 新建.spec.overrides
+cat <<EOF >version-patch-first-override.yaml
+- op: add
+  path: /spec/overrides
+  value:
+  - kind: Deployment
+    group: apps
+    name: network-operator
+    namespace: openshift-network-operator
+    unmanaged: true
+EOF
+# 新增一项override
+cat <<EOF >version-patch-add-override.yaml
+- op: add
+  path: /spec/overrides/-
+  value:
+    kind: Deployment
+    group: apps
+    name: network-operator
+    namespace: openshift-network-operator
+    unmanaged: true
+EOF
+# 执行patch
+oc patch clusterversion version --type json -p "$(cat version-patch.yaml)"
+## 也可以直接停掉CVO
+oc scale --replicas 0 -n openshift-cluster-version deployments/cluster-version-operator
+
+```
 
 ## Harbor
 
