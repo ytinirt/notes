@@ -969,6 +969,12 @@ ovs_dbg_listports
 ```
 
 
+### OVN
+#### 常用操作
+```bash
+# LB列表
+ovn-nbctl lb-list
+```
 
 ### bridge网桥
 
@@ -1327,12 +1333,27 @@ ACTION=="add", SUBSYSTEM=="net", DRIVERS=="?*", ATTR{address}=="0c:da:41:1d:e3:4
 [参考资料](https://doc.dpdk.org/guides-18.08/nics/intel_vf.html)
 
 
+### SPDK
+- [参考资料](https://tonydeng.github.io/sdn-handbook/dpdk/spdk.html)
+- [容器里运行](https://github.com/spdk/spdk/tree/master/docker)
+
 ### SR-IOV
 
 
 
 ## Storage
 
+### Disk操作
+#### 使用fdisk操作MBR
+
+#### 使用sgdisk操作GPT
+```bash
+# 查看GPT分区信息
+sgdisk --print /dev/<sdxxx>
+
+# 【危险操作】清除GPT分区信息
+# sgdisk -z /dev/<sdxxx>
+```
 
 
 ### lvm和devicemapper
@@ -2186,7 +2207,11 @@ ssh-keygen -t dsa -f /etc/ssh/ssh_host_dsa_key
 sshd -T | grep kex    # 获取sshd服务端支持的加密算法
 ```
 
-
+#### 使用ssh-keygen生成秘钥
+```bash
+# 增加comment
+ssh-keygen -C dev@ytinirt.cn
+```
 
 #### 客户端ssh
 
@@ -2286,6 +2311,20 @@ add-apt-repository ppa:nhandler/ppa
 ### CentOS
 
 #### 常用操作
+获取yum repo中的变量值
+```bash
+# CentOS 8
+/usr/libexec/platform-python -c 'import dnf, json; db = dnf.dnf.Base(); print(json.dumps(db.conf.substitutions, indent=2))'
+```
+
+
+解决CentOS 8安装软件时，源报错的问题：
+```bash
+# 将 mirror.centos.org 改为 vault.centos.org
+sed -i 's|baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' *
+# 同时，不再使用mirrorlist
+```
+
 
 删除老的、不用的内核Kernel
 
@@ -3498,6 +3537,12 @@ journalctl -b -p3
 
 
 ### 其它技巧
+tar解压时，保留owner的id：
+```bash
+tar -zxf data.tar.gz --numeric-owner
+```
+
+
 查看服务器 SN 串号：
 ```bash
 dmidecode -t 1| grep "Serial Number"
@@ -3918,6 +3963,9 @@ cat /sys/fs/cgroup/memory/kubepods/burstable/podaebd4ae8-8e1b-11e8-b174-3ca82ae9
 ## containerd
 ### 常用操作
 ```bash
+# 批量导出容器
+ctr -n k8s.io i export image.tar coredns:v1.7.0 kube-proxy:v1.18.8
+
 # 使用containerd客户端
 docker-ctr-current --address unix:///var/run/docker/libcontainerd/docker-containerd.sock
 
@@ -4312,6 +4360,19 @@ curl -v -X POST http://<ip>:2375/v1.26/images/load -T xxx.tar    #  调用docker
 ```
 
 
+### 安装指定版本docker
+操作如下：
+```bash
+yum -y install yum-utils
+sudo yum-config-manager --add-repo http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
+# 查看可安装docker版本
+yum list docker-ce --showduplicates | sort -
+yum install -y docker-ce-19.03.13-3.el7
+systemctl enable docker.service
+systemctl restart docker
+```
+也支持在既有`Containerd`的节点上，安装Docker。
+
 ### 关闭docker0
 K8s集群网络插件打通容器网络，大多未使用`docker0`，另一方面`docker0`默认占用`172.17.0.1/16`网段，IP地址存在冲突可能，为此考虑关闭`docker0`。
 注意，要让网络配置修改生效，必须先把容器全部停掉，具体操作如下：
@@ -4460,8 +4521,8 @@ systemctl restart docker
 
 **注意**，在终端中设置代理时，采用小写，例如：
 ```
-export https_proxy=http://10.0.0.1:8080/
-export http_proxy=http://10.0.0.1:8080/
+export https_proxy=http://192.168.58.1:8080/
+export http_proxy=http://192.168.58.1:8080/
 # 白名单方式，指定不代理的地址或域名
 export no_proxy=*.local,10.0.0.0/8,192.168.*.*
 ```
@@ -4966,6 +5027,14 @@ kubectl config use-context john
 
 
 ## 操作实例
+
+### 从secret中获取证书信息
+```bash
+function b642cert {
+  local b64=$1
+  echo $b64 | base64 -d | openssl x509 -noout -text
+}
+```
 
 ### debug和问题解决
 ```bash
@@ -5580,6 +5649,9 @@ spec:
 其中通过`cni.projectcalico.org/ipAddrs`注解配置IP地址。
 **注意**，固定IP地址应在容器网络IP地址池内，获取IP地址池的方法为查看节点上配置文件`/etc/cni/net.d/10-calico.conflist`中ipam段的`ipv4_pools`。
 
+
+## kube-ovn
+### 常用操作
 
 
 ## CoreDNS
@@ -6353,6 +6425,11 @@ func getIPAMConfig(clusterNetworks []common.ClusterNetwork, localSubnet string) 
 ## OpenShift4
 ### 常用操作
 ```bash
+## 使用podman操作容器镜像
+# 镜像导出
+sudo podman save -m quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:8c8813c quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:a705303fa | gzip > hehe.tar.gz
+
+
 ## TODOTODO: podman inspect vs podman manifest inspect
 sudo podman manifest inspect quay.io/openshift-release-dev/ocp-release@sha256:dd71b3cd08ce1e859e0e740a585827c9caa1341819d1121d92879873a127f5e2
 sudo podman inspect quay.io/openshift-release-dev/ocp-release@sha256:dd71b3cd08ce1e859e0e740a585827c9caa1341819d1121d92879873a127f5e2
