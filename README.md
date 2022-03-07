@@ -5551,6 +5551,14 @@ source /etc/bash_completion.d/git
 ### 常用操作
 
 ```bash
+## 将github上的项目搬运到gitlab
+git remote rename origin old-origin
+git remote add origin git@x.x.x:path/to/project.git
+# 将github上的分支track到本地
+for remote in `git branch -r | grep -v master `; do git checkout --track $remote ; done
+git push -u origin --all
+git push -u origin --tags
+
 git push -u origin maxscale-2.1.7       # push的同时，设置默认的远程仓库分支
 git branch -vv
 git clone -b maxscale-2.1.7 https://github.com/ytinirt/test.git
