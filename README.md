@@ -2326,6 +2326,12 @@ sed -i 's|baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' *
 ```
 
 
+CentOS 8安装EPEL仓库
+```
+dnf install epel-release -y
+```
+
+
 删除老的、不用的内核Kernel
 
 ```bash
@@ -6434,10 +6440,8 @@ func getIPAMConfig(clusterNetworks []common.ClusterNetwork, localSubnet string) 
 ### 常用操作
 ```bash
 ## 使用oc命令执行容器镜像mirror操作
-oc image mirror quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:ae92a919cb6da4d1a5d832f8bc486ae92e55bf3814ebab94bf4baa4c4bcde85d image.ytinirt.cn/zhaoyao/ocp4
-# 如果quay.io没有访问权限，可以把/var/lib/kubelet/config.json拷贝到 ~/.docker/config.json，podman和docker用的auths是兼容的
-cp /var/lib/kubelet/config.json ~/.docker/
-# 如果image.ytinirt.cn没有访问权限，需要把该仓库的auth追加到~/.docker/config.json
+oc image mirror -a /var/lib/kubelet/config.json quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:ae92a919cb6da4d1a5d832f8bc486ae92e55bf3814ebab94bf4baa4c4bcde85d image.ytinirt.cn/zhaoyao/ocp4
+# 如果image.ytinirt.cn没有访问权限，需要把该仓库的auth追加到/var/lib/kubelet/config.json
 # 如果image.ytinirt.cn的CA不是权威的，可以将其CA放到 /etc/pki/ca-trust/source/anchors 目录下，并执行 update-ca-trust extract
 
 
@@ -6450,6 +6454,11 @@ sudo podman save -m quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:8c8813
 sudo podman manifest inspect quay.io/openshift-release-dev/ocp-release@sha256:dd71b3cd08ce1e859e0e740a585827c9caa1341819d1121d92879873a127f5e2
 sudo podman inspect quay.io/openshift-release-dev/ocp-release@sha256:dd71b3cd08ce1e859e0e740a585827c9caa1341819d1121d92879873a127f5e2
 sudo podman manifest inspect  quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:ae92a919cb6da4d1a5d832f8bc486ae92e55bf3814ebab94bf4baa4c4bcde85d --log-level=debug
+
+
+## 在OpenShift节点上启调试debug容器
+podman run --network=host -it centos bash
+
 
 ## 强制跳过machine-config-operator对节点的mc检查
 # 在希望跳过的节点上执行
