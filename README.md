@@ -4004,7 +4004,7 @@ make
 function pid2pod {
   local pid=$1
   if [ -f /proc/${pid}/cgroup ]; then
-    local cid=$(cat /proc/${pid}/cgroup | grep ":memory:" | awk -F '/' '{print $NF}' | awk -F ':' '{print $NF}')
+    local cid=$(cat /proc/${pid}/cgroup | grep ":memory:" | awk -F '/' '{print $NF}' | awk -F ':' '{print $NF}') | sed 's/^cri-containerd-//g' | sed 's/.scope$//g'
     if [ "${cid}" != "" ]; then
       ctr -n k8s.io c info ${cid} 2>/dev/null | jq -r '.Labels["io.kubernetes.pod.namespace"]+" "+.Labels["io.kubernetes.pod.name"]' 2>/dev/null
     fi
@@ -5553,7 +5553,7 @@ source /etc/bash_completion.d/git
 ```bash
 ## 将github上的项目搬运到gitlab
 git remote rename origin old-origin
-git remote add origin git@x.x.x:path/to/project.git
+git remote add origin git@gitlab.x.y:path/to/project.git
 # 将github上的分支track到本地
 for remote in `git branch -r | grep -v master `; do git checkout --track $remote ; done
 git push -u origin --all
@@ -6433,6 +6433,14 @@ func getIPAMConfig(clusterNetworks []common.ClusterNetwork, localSubnet string) 
 ## OpenShift4
 ### 常用操作
 ```bash
+## 使用oc命令执行容器镜像mirror操作
+oc image mirror quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:ae92a919cb6da4d1a5d832f8bc486ae92e55bf3814ebab94bf4baa4c4bcde85d image.ytinirt.cn/zhaoyao/ocp4
+# 如果quay.io没有访问权限，可以把/var/lib/kubelet/config.json拷贝到 ~/.docker/config.json，podman和docker用的auths是兼容的
+cp /var/lib/kubelet/config.json ~/.docker/
+# 如果image.ytinirt.cn没有访问权限，需要把该仓库的auth追加到~/.docker/config.json
+# 如果image.ytinirt.cn的CA不是权威的，可以将其CA放到 /etc/pki/ca-trust/source/anchors 目录下，并执行 update-ca-trust extract
+
+
 ## 使用podman操作容器镜像
 # 镜像导出
 sudo podman save -m quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:8c8813c quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:a705303fa | gzip > hehe.tar.gz
@@ -6441,7 +6449,7 @@ sudo podman save -m quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:8c8813
 ## TODOTODO: podman inspect vs podman manifest inspect
 sudo podman manifest inspect quay.io/openshift-release-dev/ocp-release@sha256:dd71b3cd08ce1e859e0e740a585827c9caa1341819d1121d92879873a127f5e2
 sudo podman inspect quay.io/openshift-release-dev/ocp-release@sha256:dd71b3cd08ce1e859e0e740a585827c9caa1341819d1121d92879873a127f5e2
-
+sudo podman manifest inspect  quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:ae92a919cb6da4d1a5d832f8bc486ae92e55bf3814ebab94bf4baa4c4bcde85d --log-level=debug
 
 ## 强制跳过machine-config-operator对节点的mc检查
 # 在希望跳过的节点上执行
@@ -6733,6 +6741,11 @@ docker ps | grep apiserver
 docker restart <apiserver_id>
 ```
 
+## minio
+```bash
+# 容器方式运行minio
+docker run -d -p 9000:9000 -p 9001:9001 --name minio -e "MINIO_ACCESS_KEY=TEST" -e "MINIO_SECRET_KEY=TEST123456" -v /data:/data -v /root/zhaoyao/minio-config:/root/.minio minio/minio server /data --console-address ":9001"
+```
 
 ## nginx
 
