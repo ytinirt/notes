@@ -851,6 +851,12 @@ busctl
 常用操作
 
 ```bash
+# 查看依赖的服务
+systemctl list-dependencies crio
+# 查看被谁依赖
+systemctl list-dependencies --reverse crio
+
+
 # 不要过多的输出
 systemctl status etcd2.service
 systemctl status gocronitor --lines=0
@@ -1983,6 +1989,7 @@ DefaultLimitNPROC=102400
 ~~~bash
 # 读取x509证书的信息
 openssl x509 -in xxx.crt -text -noout
+openssl x509 -dates  -noout  -in kube-apiserver-localhost-server.crt
 # 证书有效期起始时间
 openssl x509 -in ${cert} -noout -dates | grep notBefore | awk -F"=" '{print $2}'
 openssl x509 -enddate -noout -in file.pem
@@ -2321,7 +2328,7 @@ add-apt-repository ppa:nhandler/ppa
 解决CentOS 8安装软件时，源报错的问题：
 ```bash
 # 将 mirror.centos.org 改为 vault.centos.org
-sed -i 's|baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' *
+sed -i 's|baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/*
 # 同时，不再使用mirrorlist
 ```
 
@@ -3130,6 +3137,10 @@ yum changelog docker
 # 安装系统帮助文档manual
 yum install man-pages
 yum install man-db
+
+# 修改、切换repo后建议重新缓存repo信息
+yum clean all
+yum makecache
 ```
 
 
@@ -4010,7 +4021,7 @@ make
 function pid2pod {
   local pid=$1
   if [ -f /proc/${pid}/cgroup ]; then
-    local cid=$(cat /proc/${pid}/cgroup | grep ":memory:" | awk -F '/' '{print $NF}' | awk -F ':' '{print $NF}') | sed 's/^cri-containerd-//g' | sed 's/.scope$//g'
+    local cid=$(cat /proc/${pid}/cgroup | grep ":memory:" | awk -F '/' '{print $NF}' | awk -F ':' '{print $NF}' | sed 's/^cri-containerd-//g' | sed 's/.scope$//g')
     if [ "${cid}" != "" ]; then
       ctr -n k8s.io c info ${cid} 2>/dev/null | jq -r '.Labels["io.kubernetes.pod.namespace"]+" "+.Labels["io.kubernetes.pod.name"]' 2>/dev/null
     fi
@@ -5083,6 +5094,8 @@ curl -k https://127.0.0.1:10250/healthz --cacert /etc/kubernetes/keys/ca.pem --c
 # 定制输出
 kubectl get pod --sort-by=.status.startTime -o=custom-columns=name:.metadata.name,startTime:.status.startTime
 
+# 以创建时间排序
+kubectl get secret -A --sort-by .metadata.creationTimestamp
 
 # 查看API版本
 kubectl api-versions
@@ -7648,6 +7661,11 @@ curl -H "Content-Type:application/json-patch+json" --request PATCH "http://127.0
 使用jq格式化输出
 
 ```bash
+# 仅输出顶级key
+cat master.ign | jq '. |= keys'
+# 输出顶级和二级key
+cat master.ign | jq '.| map_values(keys)'
+
 jq .
 # jq escape dot
 cat xxx | jq '.Labels["io.kubernetes.pod.namespace"]'
@@ -8113,6 +8131,13 @@ Ctrl + F
 
 
 ## 奇技淫巧
+MarkDown中图片配置大小：
+```
+![img.png](tls-validity-hard-code-24h.png)
+修改为：
+<img src="tls-validity-hard-code-24h.png" alt="tls-validity-hard-code-24h" width="800"/>
+```
+
 atom超级好用的package：
 - document-outline
 - markdown-writer
