@@ -856,6 +856,8 @@ systemctl list-dependencies crio
 # 查看被谁依赖
 systemctl list-dependencies --reverse crio
 
+# 查看服务启动耗时
+systemd-analyze blame
 
 # 不要过多的输出
 systemctl status etcd2.service
