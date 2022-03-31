@@ -4046,6 +4046,23 @@ runc --root /run/containerd/runc/k8s.io exec -t <cid> bash
 
 
 ## 容器镜像
+### 从无到有制作基础镜像
+比如制作一个CentOS操作系统的基础镜像，使用CentOS的yum源即可：
+```bash
+mkdir -p /tmp/test/baseimage
+# 往/tmp/test/baseimage这个目录安装bash和yum，过程中会自动解决依赖
+yum -c /etc/yum.conf --installroot=/tmp/test/baseimage --releasever=/  install bash yum
+
+# 进入目录可以看到rootfs
+[root@xxx baseimage]# ls
+bin  boot  dev  etc  home  lib  lib64  media  mnt  opt  proc  root  run  sbin  srv  sys  tmp  usr  var
+# 此时，可以手动修改rootfs中的文件，例如修改etc/yum.repos.d目录下*.repo，定制仓库路径
+
+# 生成并上传基础镜像
+tar --numeric-owner -c -C "/tmp/test/baseimage" . | docker import - docker.io/ytinirt/baseimage:v1
+docker push docker.io/ytinirt/baseimage:v1
+```
+
 ### 采用合并打包实现缩容
 TODO
 
