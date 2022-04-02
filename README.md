@@ -26,6 +26,7 @@
          * [NUMA](#numa)
          * [内核模块Module](#内核模块module)
          * [inotify](#inotify)
+            * [inotify打开句柄数耗尽问题解决办法](#inotify打开句柄数耗尽问题解决办法)
             * [inotify文件监控句柄数耗尽的解决办法](#inotify文件监控句柄数耗尽的解决办法)
             * [找到谁在使用inotify instance资源](#找到谁在使用inotify-instance资源)
             * [找到谁在使用inotify watch资源](#找到谁在使用inotify-watch资源)
@@ -40,6 +41,8 @@
          * [常用操作](#常用操作)
          * [虚拟网络中的Linux接口](#虚拟网络中的linux接口)
          * [OpenvSwitch](#openvswitch)
+         * [OVN](#ovn)
+            * [常用操作](#常用操作-1)
          * [bridge网桥](#bridge网桥)
          * [veth-pair](#veth-pair)
             * [veth接口速率speed](#veth接口速率speed)
@@ -49,12 +52,14 @@
          * [iptables](#iptables)
             * [预置的chains](#预置的chains)
             * [table类型](#table类型)
-            * [常用操作](#常用操作-1)
+            * [常用操作](#常用操作-2)
             * [实例](#实例)
             * [绕过kube-proxy的nodePort直接做DNAT](#绕过kube-proxy的nodeport直接做dnat)
             * [iptables-extensions](#iptables-extensions)
          * [conntrack](#conntrack)
-            * [常用操作](#常用操作-2)
+            * [常用操作](#常用操作-3)
+         * [ipvs](#ipvs)
+            * [常用命令](#常用命令)
          * [配置网卡聚合NIC bonding](#配置网卡聚合nic-bonding)
          * [组播](#组播)
          * [防火墙](#防火墙)
@@ -64,10 +69,14 @@
          * [InfiniBand](#infiniband)
          * [RDMA](#rdma)
          * [DPDK](#dpdk)
+         * [SPDK](#spdk)
          * [SR-IOV](#sr-iov)
       * [Storage](#storage)
+         * [Disk操作](#disk操作)
+            * [使用fdisk操作MBR](#使用fdisk操作mbr)
+            * [使用sgdisk操作GPT](#使用sgdisk操作gpt)
          * [lvm和devicemapper](#lvm和devicemapper)
-            * [常用命令](#常用命令)
+            * [常用命令](#常用命令-1)
             * [LVM XFS的扩容和缩容](#lvmxfs的扩容和缩容)
             * [LVM EXT4的扩容和缩容](#lvmext4的扩容和缩容)
             * [Docker使用devicemapper的操作步骤](#docker使用devicemapper的操作步骤)
@@ -81,7 +90,7 @@
          * [内存文件系统](#内存文件系统)
          * [xfs文件系统](#xfs文件系统)
             * [配额管理](#配额管理)
-            * [常用操作](#常用操作-3)
+            * [常用操作](#常用操作-4)
          * [samba](#samba)
          * [NFS](#nfs)
             * [搭建NFS测试环境](#搭建nfs测试环境)
@@ -102,6 +111,7 @@
             * [根证书缺失导致TLS通信失败](#根证书缺失导致tls通信失败)
          * [远程安全终端openssh](#远程安全终端openssh)
             * [服务端sshd](#服务端sshd)
+            * [使用ssh-keygen生成秘钥](#使用ssh-keygen生成秘钥)
             * [客户端ssh](#客户端ssh)
             * [ssh免密登录](#ssh免密登录)
             * [ssh隧道](#ssh隧道)
@@ -113,13 +123,14 @@
          * [Debian](#debian)
             * [添加仓库](#添加仓库)
          * [CentOS](#centos)
-            * [常用操作](#常用操作-4)
+            * [常用操作](#常用操作-5)
+            * [NetworkManager网络管理](#networkmanager网络管理)
             * [获取RPM包的源码](#获取rpm包的源码)
             * [构建自定义的CentOS内核](#构建自定义的centos内核)
             * [关闭coredump](#关闭coredump)
          * [defunct进程](#defunct进程)
          * [主机资源监控](#主机资源监控)
-            * [常用命令](#常用命令-1)
+            * [常用命令](#常用命令-2)
             * [打开文件数](#打开文件数)
             * [lsof查看打开文件](#lsof查看打开文件)
             * [fuser查找资源使用](#fuser查找资源使用)
@@ -177,9 +188,9 @@
          * [cgroup子系统](#cgroup子系统)
          * [挂载cgroupfs](#挂载cgroupfs)
          * [判断是否为cgroupv2](#判断是否为cgroupv2)
-         * [常用操作](#常用操作-5)
+         * [常用操作](#常用操作-6)
       * [namespaces](#namespaces)
-         * [常用命令](#常用命令-2)
+         * [常用命令](#常用命令-3)
          * [常用工具](#常用工具)
             * [lsns](#lsns)
             * [nsenter](#nsenter)
@@ -188,12 +199,13 @@
          * [容器环境下的swap使用](#容器环境下的swap使用)
          * [深入docker stats命令](#深入docker-stats命令)
       * [containerd](#containerd)
-         * [常用操作](#常用操作-6)
+         * [常用操作](#常用操作-7)
          * [如何编译containerd](#如何编译containerd)
          * [根据进程pid查询pod](#根据进程pid查询pod)
       * [容器运行时runc](#容器运行时runc)
-         * [常用命令](#常用命令-3)
+         * [常用命令](#常用命令-4)
       * [容器镜像](#容器镜像)
+         * [从无到有制作基础镜像](#从无到有制作基础镜像)
          * [采用合并打包实现缩容](#采用合并打包实现缩容)
          * [移除基础镜像层实现缩容](#移除基础镜像层实现缩容)
          * [使用buildx构建多架构容器镜像](#使用buildx构建多架构容器镜像)
@@ -204,12 +216,15 @@
          * [linux capabilities](#linux-capabilities)
          * [seccomp](#seccomp)
          * [selinux](#selinux)
-            * [常用操作](#常用操作-7)
+            * [深入学习](#深入学习)
+            * [一次完整的报错分析](#一次完整的报错分析)
+            * [常用操作](#常用操作-8)
             * [为Pod/容器设置selinux label](#为pod容器设置selinux-label)
       * [Docker问题定位](#docker问题定位)
          * [Docker卡死hang住](#docker卡死hang住)
       * [Docker操作](#docker操作)
-         * [常用操作](#常用操作-8)
+         * [常用操作](#常用操作-9)
+         * [安装指定版本docker](#安装指定版本docker)
          * [关闭docker0](#关闭docker0)
          * [修改容器的ulimit默认配置](#修改容器的ulimit默认配置)
          * [使用docker-storage-setup初始化docker存储](#使用docker-storage-setup初始化docker存储)
@@ -246,6 +261,7 @@
             * [证书用户User](#证书用户user)
                * [如何创建一个证书用户](#如何创建一个证书用户)
       * [操作实例](#操作实例)
+         * [从secret中获取证书信息](#从secret中获取证书信息)
          * [debug和问题解决](#debug和问题解决)
          * [常见操作](#常见操作-1)
          * [客户端访问集群时context配置](#客户端访问集群时context配置)
@@ -258,7 +274,9 @@
          * [FC存储多路径的PV配置](#fc存储多路径的pv配置)
          * [编译kubelet](#编译kubelet)
    * [Golang](#golang)
-      * [常用操作](#常用操作-9)
+      * [常用操作](#常用操作-10)
+      * [编译构建](#编译构建)
+         * [通过build tag定制Go可执行文件](#通过build-tag定制go可执行文件)
       * [如何Debug Golang程序](#如何debug-golang程序)
          * [打印堆栈](#打印堆栈)
          * [使用devle调试Go程序](#使用devle调试go程序)
@@ -267,16 +285,20 @@
          * [golang diagnostics](#golang-diagnostics)
       * [通过goproxy代理解决package下载问题](#通过goproxy代理解决package下载问题)
       * [示例](#示例)
+         * [启HTTP服务](#启http服务)
+         * [代码实例](#代码实例)
    * [Special column](#special-column)
       * [Git](#git)
          * [git命令补全](#git命令补全)
-         * [常用操作](#常用操作-10)
+         * [常用操作](#常用操作-11)
       * [Makefile](#makefile)
          * [Makefile文件](#makefile文件)
          * [cmake](#cmake)
       * [Calico](#calico)
          * [使用Calico实现容器网络流量限制](#使用calico实现容器网络流量限制)
          * [Calico容器网络中固定Pod IP地址](#calico容器网络中固定pod-ip地址)
+      * [kube-ovn](#kube-ovn)
+         * [常用操作](#常用操作-12)
       * [CoreDNS](#coredns)
          * [CoreDNS原理简介](#coredns原理简介)
          * [通过rewrite plugin修改待解析的域名](#通过rewrite-plugin修改待解析的域名)
@@ -293,24 +315,26 @@
          * [错误类型说明](#错误类型说明)
       * [Helm](#helm)
          * [背后的思路](#背后的思路)
-         * [常用命令](#常用命令-4)
+         * [常用命令](#常用命令-5)
       * [AK/SK认证](#aksk认证)
          * [AK/SK原理](#aksk原理)
          * [AK/SK流程](#aksk流程)
       * [tcpdump](#tcpdump)
          * [tcpdump和libpcap常用规则](#tcpdump和libpcap常用规则)
       * [Openstack](#openstack)
-         * [常用操作](#常用操作-11)
+         * [常用操作](#常用操作-13)
          * [K8s中openstack-cloud-provider获取实例元数据](#k8s中openstack-cloud-provider获取实例元数据)
             * [通过ConfigDrive方式](#通过configdrive方式)
             * [通过MetadataService方式](#通过metadataservice方式)
          * [nova compute健康状态检查](#nova-compute健康状态检查)
          * [rally测试中TCP端口耗尽问题解决](#rally测试中tcp端口耗尽问题解决)
       * [OpenShift and OKD](#openshift-and-okd)
-         * [常用操作](#常用操作-12)
+         * [常用操作](#常用操作-14)
          * [官方yum源](#官方yum源)
          * [OpenShift 3.x DNS介绍](#openshift-3x-dns介绍)
          * [深入OpenShift SDN网络](#深入openshift-sdn网络)
+      * [OpenShift4](#openshift4)
+         * [常用操作](#常用操作-15)
       * [Harbor](#harbor)
          * [手动清理镜像](#手动清理镜像)
       * [Rancher](#rancher)
@@ -320,6 +344,7 @@
          * [为apiserver新增SAN](#为apiserver新增san)
             * [方法一，通过kubespray](#方法一通过kubespray)
             * [方法二，通过kubeadm](#方法二通过kubeadm)
+      * [minio](#minio)
       * [nginx](#nginx)
       * [haproxy](#haproxy)
          * [使用socat操作UNIX domain套接字](#使用socat操作unix-domain套接字)
@@ -330,7 +355,7 @@
       * [memcached](#memcached)
       * [mysql](#mysql)
          * [数据库操作](#数据库操作)
-            * [常用操作](#常用操作-13)
+            * [常用操作](#常用操作-16)
             * [数据库master节点操作](#数据库master节点操作)
             * [数据库slave节点操作](#数据库slave节点操作)
             * [重置slave上master binlog的位置](#重置slave上master-binlog的位置)
@@ -351,7 +376,7 @@
       * [Redis](#redis)
          * [Redis常用操作](#redis常用操作)
       * [RabbitMQ](#rabbitmq)
-         * [常用操作](#常用操作-14)
+         * [常用操作](#常用操作-17)
          * [rabbitmq节点重新加入集群](#rabbitmq节点重新加入集群)
       * [influxdb](#influxdb)
       * [Prometheus](#prometheus)
@@ -362,9 +387,10 @@
          * [prometheus-operator](#prometheus-operator)
       * [Weavescope](#weavescope)
       * [Ceph](#ceph)
-         * [常用命令](#常用命令-5)
+         * [常用命令](#常用命令-6)
          * [ONEStor](#onestor)
       * [KVM](#kvm)
+         * [检查是否支持虚拟化](#检查是否支持虚拟化)
          * [virsh操作](#virsh操作)
       * [drbd](#drbd)
          * [drbd常见命令](#drbd常见命令)
@@ -383,7 +409,7 @@
             * [简单示例](#简单示例)
             * [实用例子](#实用例子)
             * [操作说明](#操作说明)
-         * [常用操作](#常用操作-15)
+         * [常用操作](#常用操作-18)
       * [base64](#base64)
       * [Shell脚本](#shell脚本)
          * [Bash实例](#bash实例)
@@ -419,10 +445,10 @@
    * [Memo and Skills](#memo-and-skills)
       * [宿主机上直接修改容器内文件](#宿主机上直接修改容器内文件)
       * [vi/vim](#vivim)
-         * [常用操作](#常用操作-16)
+         * [常用操作](#常用操作-19)
       * [奇技淫巧](#奇技淫巧)
 
-<!-- Added by: admin, at: Wed Nov 17 00:11:51     2021 -->
+<!-- Added by: admin, at: Sat Apr  2 16:46:27     2022 -->
 
 <!--te-->
 
@@ -2409,6 +2435,25 @@ echo "exec gnome-session" >> ~/.xinitrc
 startx
 ```
 
+#### NetworkManager网络管理
+**注意**，要使用`NetworkManager`管理`OVS`，需安装`NetworkManager-ovs`包。
+
+命令行工具
+```bash
+# 查看连接信息
+nmcli connection show
+nmcli connection show br-ex
+nmcli --get-values ipv4.dhcp-client-id conn show 0ae83f63-5be5-3002-a6b0-1295ec3b55c4
+nmcli --get-values ipv6.dhcp-duid conn show 0ae83f63-5be5-3002-a6b0-1295ec3b55c4
+nmcli --get-values ipv6.addr-gen-mode conn show 0ae83f63-5be5-3002-a6b0-1295ec3b55c4
+nmcli --get-values connection.type conn show 0ae83f63-5be5-3002-a6b0-1295ec3b55c4
+
+# 新建连接
+nmcli c add type ovs-bridge con-name br-ex conn.interface br-ex 802-3-ethernet.mtu 1500 ipv4.route-metric 49 ipv6.route-metric 49 ipv6.addr-gen-mode eui64
+# 使能连接
+nmcli conn up br-ex
+```
+
 
 #### 获取RPM包的源码
 以yum源上docker为例，docker属于CentOS-extras仓库，获取其相关信息：
@@ -2670,6 +2715,10 @@ sar -n keyword [,...] #关键字包括：DEV 网络设备信息；NFS 客户端�
 watch more /proc/net/dev    #定位丢包情况
 cat /proc/net/snmp  #查看和分析240秒内网络包量、流量、错包、丢包，重传率时RetransSegs/OutSegs
 dig @127.0.0.1 -4 masternode  #查看域名解析地址，其中指定server为127.0.0.1，且仅查询A记录（ipv4）
+# 正向解析
+dig @<nameserver_ip> api.ocp4.ytinirt.cn
+# 反向解析
+dig @<nameserver_ip> -x 1.2.3.4
 iostat -x 1         # 查看cpu和硬盘io信息
 dstat               # 查看CPU、MEM、硬盘io信息
 dstat --aio --io --disk --tcp --top-io-adv --top-bio-adv
@@ -3610,6 +3659,9 @@ curl常用命令
 ```bash
 # 向静态文件服务器上传静态资源文件
 curl -u 'user:password' -X PUT "url_to_file" -T path_to_file -v
+
+# 重试
+GRACEFUL_CURL="curl --retry 30 --retry-delay 5 --retry-connrefused --max-time 3"
 ```
 
 查看系统开机时间
@@ -4312,6 +4364,24 @@ system_u:system_r:container_runtime_t:s0 root 22190 18571  0 Apr12 ?   00:00:38 
 #### 深入学习
 TODO: https://blog.csdn.net/xsm666/article/details/81357363
 
+
+#### 一次完整的报错分析
+```
+Apr 01 09:43:22 master0 setroubleshoot[1417162]: SELinux is preventing /usr/sbin/xtables-nft-multi from ioctl access on the directory /sys/fs/cgroup. For complete SELinux messages run: sealert -l e1a4eb18-019a-4552-bd0c-4706ada83ab9
+Apr 01 09:43:22 master0 setroubleshoot[1417162]: SELinux is preventing /usr/sbin/xtables-nft-multi from ioctl access on the directory /sys/fs/cgroup.
+
+                                                 *****  Plugin catchall (100. confidence) suggests   **************************
+
+                                                 If you believe that xtables-nft-multi should be allowed ioctl access on the cgroup directory by default.
+                                                 Then you should report this as a bug.
+                                                 You can generate a local policy module to allow this access.
+                                                 Do
+                                                 allow this access for now by executing:
+                                                 # ausearch -c 'iptables' --raw | audit2allow -M my-iptables
+                                                 # semodule -X 300 -i my-iptables.pp
+
+Apr 01 09:43:22 master0 setroubleshoot[1417162]: AnalyzeThread.run(): Set alarm timeout to 10
+```
 
 #### 常用操作
 ```bash
@@ -5110,6 +5180,15 @@ curl -k https://127.0.0.1:10250/healthz --cacert /etc/kubernetes/keys/ca.pem --c
 ### 常见操作
 
 ```bash
+function man_pull {
+    local ns=$1
+    local pod=$2
+
+    for i in $(kubectl get pod -n ${ns} ${pod} -o json | jq .spec.containers[].image -r | sort | uniq); do
+        podman pull $i
+    done
+}
+
 # 定制输出
 kubectl get pod --sort-by=.status.startTime -o=custom-columns=name:.metadata.name,startTime:.status.startTime
 
@@ -6449,8 +6528,10 @@ echo '{ "cniVersion": "0.3.1", "name": "examplenet", "ipam": { "type": "host-loc
 
 进入openshift-sdn命名空间任一pod，使用如下命令查看信息：
 ```bash
-ovs-ofctl -O OpenFlow13 dump-flows br0
 ovs-vsctl show
+ovs-ofctl -O OpenFlow13 dump-flows br0
+ovs-ofctl -O OpenFlow13 dump-tables br0
+ovs-ofctl -O OpenFlow13 dump-ports br0
 ovs-ofctl -O OpenFlow13 show br0
 nsenter -t <容器的PID> -n ip link
 iptables -t nat -s
