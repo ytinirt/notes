@@ -5,4 +5,3 @@
 * [OpenShift](./docs/openshift.md)
 * [Golang](./docs/golang.md)
 * [Special Column](./docs/special.md)
-* [Memo and Skills](./docs/memo.md)
