@@ -938,10 +938,13 @@ https://vincent.bernat.ch/en/blog/2017-vxlan-linux
 常用命令：
 
 ```bash
-# 数据库相关命令
-ovsdb-client list-dbs  # 查看数据库列表
-ovsdb-client get-schema  | jq   # 查看schema
-ovsdb-client list-tables # 查看表
+## 数据库相关命令
+# 查看数据库列表
+ovsdb-client list-dbs
+# 查看schema
+ovsdb-client get-schema  | jq
+# 查看表
+ovsdb-client list-tables
     Table
     -------------------------
     Controller
@@ -960,31 +963,46 @@ ovsdb-client list-tables # 查看表
     Interface
     AutoAttach
     Manager
-ovsdb-client list-columns # 查看表结构信息
-ovsdb-client dump # 输出所有信息
+# 查看表结构信息
+ovsdb-client list-columns
+# 输出所有信息
+ovsdb-client dump
 
 
-# Switch相关命令
-ovs-vsctl list Bridge # 查询Bridge信息，来自 ovsdb-client list-tables 获取的Bridge表
-ovs-vsctl list Open_vSwitch # 查询ovs信息
-ovs-vsctl -- --columns=name,ofport list Interface   # 查看端口名和端口ID关系
-ovs-vsctl -- --columns=name,ofport,external_ids list Interface # 查看端口ID信息
-ovs-vsctl -- --columns=name,tag list Port           # 查看端口的vlan tag信息
-ovs-vsctl get port dpdk1 tag  # 查看某个端口的vlan tag
-ovs-vsctl list-br # 查看bridge信息
+## Switch相关命令
+# 查询Bridge信息，来自 ovsdb-client list-tables 获取的Bridge表
+ovs-vsctl list Bridge
+# 删除ovs网桥
+ovs-vsctl del-br br-ex
+# 查询ovs信息
+ovs-vsctl list Open_vSwitch
+# 查看端口名和端口ID关系
+ovs-vsctl -- --columns=name,ofport list Interface
+# 查看端口ID信息
+ovs-vsctl -- --columns=name,ofport,external_ids list Interface
+# 查看端口的vlan tag信息
+ovs-vsctl -- --columns=name,tag list Port
+# 查看某个端口的vlan tag
+ovs-vsctl get port dpdk1 tag
+# 查看bridge信息
+ovs-vsctl list-br
 ovs-vsctl br-to-vlan <br>
 ovs-vsctl br-to-parent <br>
-ovs-vsctl list-ports <br>   # 查看端口信息
-ovs-vsctl list-ifaces <br>  # 查看接口信息
+# 查看端口信息
+ovs-vsctl list-ports <br>
+# 查看接口信息
+ovs-vsctl list-ifaces <br>
 ovs-vsctl get-controller <br>
 ovs-vsctl get-manager
 ovs-vsctl get-ssl
 ovs-vsctl get-aa-mapping <br>
 
 
-# OpenFlow流表信息
-ovs-ofctl -O OpenFlow13 dump-flows br0  # 查看流表
-ovs-appctl bridge/dump-flows br0   # 支持查看所有流表，包括隐藏的流表
+## OpenFlow流表信息
+# 查看流表
+ovs-ofctl -O OpenFlow13 dump-flows br0
+# 支持查看所有流表，包括隐藏的流表
+ovs-appctl bridge/dump-flows br0
 
 ovs-ofctl -O OpenFlow13 show <br>
 ovs-ofctl -O OpenFlow13 dump-desc <br>
@@ -3458,6 +3476,8 @@ ldconfig    # TODO
 sed '1d'   #跳过（删除）第一行
 sed '$d'   #跳过（删除）最后一行
 sed '1,17d' #删除第1到第17行
+# 匹配和替换word
+sed -i 's/\bhehe\b/xixi/g' /tmp/path/to/file
 sed "s|{INITIAL_CLUSTER}|${INITIAL_CLUSTER}|g" os-param-rc.yaml    # 如果替换的字符串中有'/'，则sed的间隔附可替换为'|'
 sed -i "/Listen 35357/a\ListenBacklog 4096" /etc/httpd/conf.d/wsgi-keystone.conf
 sed -i "s/^Listen 80$/Listen 8080/g" /etc/httpd/conf/httpd.conf
@@ -3484,6 +3504,8 @@ ps -e -o "pid,comm,rss" | grep -v PID | awk '{a+=$3}END{print a}'
 ps -ef | awk '{print $NF, $(NF-1)}'
 ip addr |grep $local_ip |awk '(NR == 1) {print $NF}'
 grep -Eo "mysql-node[0-9]+" #仅返回匹配值
+# 一个复杂的正则匹配
+grep -rE "[_0-9a-zA-Z]*[rR][eE][dD] ?[hH][aA][tT][_0-9a-zA-Z]*" * -o | cut -d: -f2 | sort | uniq
 cut -d/ -f3  #  以'/'进行分隔，获取第3区域的内容
 +------------------+----------+--------------+---------------------------------------+-------------------+
 | File             | Position | Binlog_Do_DB | Binlog_Ignore_DB                      | Executed_Gtid_Set |
@@ -3773,11 +3795,15 @@ TODO
 使用find查找文件
 
 ```bash
-find /var/log/kubernetes -type l  # 查找链接文件
-find ${log_path} -mtime +14 -type f -name "*" -exec rm -rf {} \      #  查找并删除15天以上未修改的文件
-find . -type f -exec doc2unix {} \; # 替换成unix风格
+# 查找链接文件
+find /var/log/kubernetes -type l
+#  查找并删除15天以上未修改的文件
+find ${log_path} -mtime +14 -type f -name "*" -exec rm -rf {} \
+# 替换成unix风格
+find . -type f -exec doc2unix {} \;
 find . -type f ! -name "*.gz"
 find ${volume_dir} -maxdepth 1 -mindepth 1 -type d
+find ./ -type f -not -path "./.git/*" -exec sed -i 's/\bhehe\b/xixi/g' {} \;
 ```
 
 
@@ -8190,6 +8216,9 @@ alias = image[idx:]                             # 截取字符串
 
 实例
 ```bash
+# 匹配Word
+[_0-9a-zA-Z]*[rR][eE][dD] ?[hH][aA][tT][_0-9a-zA-Z]*
+
 # 只能输入1~16位字母、数字、下划线，且只能以字母和数字开头
 ^[A-Za-z0-9][A-Za-z0-9_]{0,15}$
 
