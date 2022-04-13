@@ -1,3 +1,9 @@
+# TOC
+
+<!--ts-->
+<!--te-->
+
+
 # 集群控制面高可用方案
 TODO
 kubernetes的组件，例如apiserver、controller、scheduler、kube-dns在配置时，均能指定多个server，使用failover方式保证高可用。
