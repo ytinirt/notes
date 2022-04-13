@@ -40,7 +40,7 @@
       * [FC存储多路径的PV配置](#fc存储多路径的pv配置)
       * [编译kubelet](#编译kubelet)
 
-<!-- Added by: root, at: Wed Apr 13 23:15:59 CST 2022 -->
+<!-- Added by: root, at: Wed Apr 13 23:28:01 CST 2022 -->
 
 <!--te-->
 
