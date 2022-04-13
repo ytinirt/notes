@@ -1,6 +1,47 @@
 # TOC
 
 <!--ts-->
+   * [TOC](#toc)
+   * [集群控制面高可用方案](#集群控制面高可用方案)
+   * [多实例leader选举](#多实例leader选举)
+   * [Pod健康和就绪检查遇到的坑](#pod健康和就绪检查遇到的坑)
+      * [问题描述](#问题描述)
+      * [结论](#结论)
+      * [分析](#分析)
+      * [其它](#其它)
+   * [Kubernetes高级调度特性](#kubernetes高级调度特性)
+      * [亲和性](#亲和性)
+      * [自定义调度器](#自定义调度器)
+   * [Pod调度如何感知volume的topology](#pod调度如何感知volume的topology)
+   * [CPU资源高级管理](#cpu资源高级管理)
+   * [kube-proxy集群内负载均衡](#kube-proxy集群内负载均衡)
+      * [深入iptables模式的kube-proxy](#深入iptables模式的kube-proxy)
+         * [实现会话亲和性](#实现会话亲和性)
+   * [域名解析和DNS策略](#域名解析和dns策略)
+      * [Pod's DNS Policy](#pods-dns-policy)
+   * [对象名称和字符串格式检查](#对象名称和字符串格式检查)
+   * [kubectl插件](#kubectl插件)
+   * [认证Authentication](#认证authentication)
+      * [Kubernetes用户](#kubernetes用户)
+         * [服务账号Service Account](#服务账号service-account)
+         * [证书用户User](#证书用户user)
+            * [如何创建一个证书用户](#如何创建一个证书用户)
+   * [操作实例](#操作实例)
+      * [从secret中获取证书信息](#从secret中获取证书信息)
+      * [debug和问题解决](#debug和问题解决)
+      * [常见操作](#常见操作)
+      * [客户端访问集群时context配置](#客户端访问集群时context配置)
+      * [ConfigMap使用](#configmap使用)
+      * [日志相关配置](#日志相关配置)
+      * [提升集群HA性能](#提升集群ha性能)
+      * [强制删除Pod](#强制删除pod)
+      * [Pod中获取PodIP的方法](#pod中获取podip的方法)
+      * [emptyDir在宿主机上的路径](#emptydir在宿主机上的路径)
+      * [FC存储多路径的PV配置](#fc存储多路径的pv配置)
+      * [编译kubelet](#编译kubelet)
+
+<!-- Added by: root, at: Wed Apr 13 23:15:59 CST 2022 -->
+
 <!--te-->
 
 

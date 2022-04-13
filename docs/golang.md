@@ -1,6 +1,23 @@
 # TOC
 
 <!--ts-->
+   * [TOC](#toc)
+   * [常用操作](#常用操作)
+   * [编译构建](#编译构建)
+      * [通过build tag定制Go可执行文件](#通过build-tag定制go可执行文件)
+   * [如何Debug Golang程序](#如何debug-golang程序)
+      * [打印堆栈](#打印堆栈)
+      * [使用devle调试Go程序](#使用devle调试go程序)
+      * [使用go tool trace追踪Go程序](#使用go-tool-trace追踪go程序)
+      * [使用pprof定位Go程序问题](#使用pprof定位go程序问题)
+      * [golang diagnostics](#golang-diagnostics)
+   * [通过goproxy代理解决package下载问题](#通过goproxy代理解决package下载问题)
+   * [示例](#示例)
+      * [启HTTP服务](#启http服务)
+      * [代码实例](#代码实例)
+
+<!-- Added by: root, at: Wed Apr 13 23:15:52 CST 2022 -->
+
 <!--te-->
 
 
