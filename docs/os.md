@@ -2201,6 +2201,22 @@ nmcli c add type ovs-bridge con-name br-ex conn.interface br-ex 802-3-ethernet.m
 nmcli conn up br-ex
 ```
 
+#### 配置全局域名解析服务器
+```bash
+cat <<EOF > /etc/NetworkManager/conf.d/dns-servers.conf
+[global-dns-domain-*]
+servers=10.253.15.120,223.5.5.5
+EOF
+```
+
+#### 不去override更新resolv.conf文件
+修改`NetworkManager`配置，在`[main]`段增加`dns=none`，具体：
+```bash
+if [ $(cat /etc/NetworkManager/NetworkManager.conf | grep -c "^dns=none") -eq 0 ]; then
+    sed -i "/^\[main\]/a\dns=none" /etc/NetworkManager/NetworkManager.conf
+    systemctl reload NetworkManager
+fi
+```
 
 ### 获取RPM包的源码
 以yum源上docker为例，docker属于CentOS-extras仓库，获取其相关信息：
