@@ -524,6 +524,14 @@ function b642cert {
 }
 ```
 
+## 从KubeConfig文件中提取证书秘钥
+```bash
+# TODO: 兼容配置有多个cluster、多个user的情况，需要通过current-context判断
+cat e2e-test-kubeconfig  | grep certificate-authority-data | awk '{print $2}' | base64 -d > ca.crt
+cat e2e-test-kubeconfig  | grep client-certificate-data | awk '{print $2}' | base64 -d > tls.crt
+cat e2e-test-kubeconfig  | grep client-key-data | awk '{print $2}' | base64 -d > tls.key
+```
+
 ## debug和问题解决
 ```bash
 # 开启apiserver proxy

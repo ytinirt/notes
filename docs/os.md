@@ -2093,6 +2093,34 @@ add-apt-repository ppa:nhandler/ppa
 ## CentOS
 
 ### 常用操作
+CentOS7使用阿里的yum源：
+```bash
+wget -O /etc/yum.repos.d/CentOS-Base.repo https://mirrors.aliyun.com/repo/Centos-7.repo
+```
+
+使用ISO作为yum源：
+```
+[appstream]
+name=local-yum
+baseurl=file:///root/mnt/etc/yum/x86_64/AppStream/
+enabled=1
+gpgcheck=0
+
+[base]
+name=local-yum-base
+baseurl=file:///root/mnt/etc/yum/x86_64/BaseOS/
+enabled=1
+gpgcheck=0
+
+[deploy]
+name=local-yum-deploy
+baseurl=file:///root/mnt/etc/yum/x86_64/Deploy/
+enabled=1
+gpgcheck=0
+
+```
+
+
 获取yum repo中的变量值
 ```bash
 # CentOS 8

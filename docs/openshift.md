@@ -16,6 +16,24 @@
 
 # 常用操作
 ```bash
+## 查询监控指标
+secretname=$(kubectl get serviceaccount --namespace=openshift-monitoring prometheus-k8s -o jsonpath='{.secrets[1].name}')
+BRIDGE_K8S_AUTH_BEARER_TOKEN=$(kubectl get secret "$secretname" --namespace=openshift-monitoring -o template --template='{{.data.token}}' | base64 --decode)
+THANOS_QUERIER_SVC=$(kubectl get svc -n openshift-monitoring thanos-querier --no-headers | awk '{print $3}')
+PROM_QL='ALERTS{alertname!~"Watchdog|AlertmanagerReceiversNotConfigured|PrometheusRemoteWriteDesiredShards",alertstate="firing",severity!="info"}'
+
+curl -k -H "Authorization: Bearer $BRIDGE_K8S_AUTH_BEARER_TOKEN" \
+"https://$THANOS_QUERIER_SVC:9091/api/v1/query" \
+--data-urlencode "query=$PROM_QL"
+
+
+## 新增pullSecret
+# 编辑 /var/lib/kubelet/config.json，在文件中增加auth
+vi /var/lib/kubelet/config.json
+# 重启crio服务
+systemctl restart crio
+
+
 ## 使用oc命令执行容器镜像mirror操作
 oc image mirror -a /var/lib/kubelet/config.json quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:ae92a919cb6da4d1a5d832f8bc486ae92e55bf3814ebab94bf4baa4c4bcde85d image.ytinirt.cn/zhaoyao/ocp4
 # 如果image.ytinirt.cn没有访问权限，需要把该仓库的auth追加到/var/lib/kubelet/config.json
@@ -104,6 +122,8 @@ oc create secret generic htpass-secret --from-file=htpasswd=users.htpasswd --dry
 ## 查看审计日志
 oc adm node-logs --role=master --path=kube-apiserver
 oc adm node-logs master0 --path=kube-apiserver/audit.log
+## 收集audit审计日志
+oc adm must-gather --dest-dir /path/to/audit/logs/dir/ -- /usr/bin/gather_audit_logs
 
 
 ## 查看节点上服务日志

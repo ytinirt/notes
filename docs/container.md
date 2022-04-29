@@ -578,6 +578,18 @@ function pid2pod {
 
 # CRI-O
 
+# podman
+## 常用命令
+```bash
+# 查看当前挂载的容器镜像
+podman image mount
+
+# 挂载容器镜像
+podman image mount  quay.io/openshift-scale/etcd-perf:latest
+
+# 卸载容器镜像
+podman image unmount quay.io/openshift-scale/etcd-perf:latest
+```
 
 # Docker
 

@@ -1016,6 +1016,51 @@ etcdctl 2>/dev/null -o extended get /coreos.com/network/subnets/10.101.13.0-24
 /debug/vars
 ```
 
+### 如何判断Disk性能满足Etcd运行要求
+
+1. 检查etcd_disk_backend_commit_duration_seconds指标p99小于25ms
+
+etcd会定期将最近的记录打快照，并持久化到disk中，这个指标记录了etcd数据快照持久化写到disk的耗时。
+
+p99小于25ms，才表明disk性能满足etcd的要求。
+
+参考[官方链接](https://etcd.io/docs/v3.5/faq/#:~:text=monitor%20backend_commit_duration_seconds)
+
+2. 检查etcd_disk_wal_fsync_duration_seconds指标p99小于10ms
+
+在采纳wal日志的表项前，调用fsync将日志落盘，这个指标记录了fsync落盘耗时。
+
+p99小于10ms，才表明disk性能满足etcd的要求。
+
+参考[官方链接](https://etcd.io/docs/v3.5/faq/#:~:text=monitor%20wal_fsync_duration_seconds)
+
+3. 使用性能测试工具fio测试fdatasync的p99显著小于10ms
+
+执行命令： fio --rw=write --ioengine=sync --fdatasync=1 --directory=test-data --size=22m --bs=2300 --name=mytest
+
+fdatasync的p99得显著小于10ms，才表明disk的性能满足etcd要求。
+
+说明：fio版本要求3.5+；test-data是一个文件夹，位于待测试的disk挂载的文件系统内。
+
+参考[文档链接](https://www.ibm.com/cloud/blog/using-fio-to-tell-whether-your-storage-is-fast-enough-for-etcd)
+
+4. OpenShift基于fio提供了检测工具
+执行命令：
+```bash
+podman run --volume /var/lib/etcd:/var/lib/etcd:Z quay.io/openshift-scale/etcd-perf
+```
+同样要求`fsync`的p99小于10ms。
+
+参考[文档连接](https://docs.openshift.com/container-platform/4.9/scalability_and_performance/recommended-host-practices.html#recommended-etcd-practices_recommended-host-practices)
+
+
+### 如何判断Network性能满足Etcd运行要求
+* 检查etcd_network_peer_round_trip_time_seconds_bucket指标p99小于50ms
+这个指标表明节点间RRT耗时，PromQL查询方式：
+```
+histogram_quantile(0.99, rate(etcd_network_peer_round_trip_time_seconds_bucket[2m]))
+```
+
 ### kube-apiserver的etcd-quorum-read调查
 目前从一致性考虑，`kube-apiserver`已强制开启`etcd-quorum-read`选项。
 
@@ -1283,6 +1328,17 @@ tc qdisc add dev eth0 root netem loss 10% 50%
 实例：
 ```bash
 promtool debug all http://127.0.0.1:9090/
+```
+
+
+### PromQL语句示例
+```bash
+# OpenShift中
+instance:etcd_disk_backend_commit_duration_seconds:histogram_quantile
+instance:etcd_disk_wal_fsync_duration_seconds:histogram_quantile
+instance:etcd_network_peer_round_trip_time_seconds:histogram_quantile
+
+histogram_quantile(0.99, rate(etcd_network_peer_round_trip_time_seconds_bucket[2m]))
 ```
 
 
