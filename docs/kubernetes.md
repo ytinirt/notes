@@ -615,6 +615,12 @@ kubectl get svc mysql-node1 -o jsonpath='{.spec.clusterIP}'
 kubectl get pods -n default -l app=foo -o=jsonpath='{range .items[*]}{.metadata.name} {end}'
 kubectl get namespaces -o jsonpath='{.items[*].metadata.name}'
 /opt/bin/kubectl -s 127.0.0.1:8888 delete -f /opt/bin/confFile-cluster/openstack-new-rc.yaml
+# go template示例
+kubectl get pod --all-namespaces --field-selector spec.nodeName=$(hostname) -o jsonpath='{range .items[?(.spec.dnsPolicy=="Default")]}{.metadata.namespace}{"/"}{.metadata.name}{"\n"}{end}'
+kubectl get pod --all-namespaces --field-selector spec.nodeName=$(hostname) -o jsonpath='{range .items[?(.spec.hostNetwork==true)]}{.metadata.namespace}{"/"}{.metadata.name}{"\n"}{end}'
+kubectl get nodes --selector='node-role.kubernetes.io/master' -o jsonpath='{.items[0].status.conditions[?(@.type=="Ready")].status}'
+kubectl get pod -o jsonpath='{.spec.containers[?(@.name=="dns")].image}'
+kubectl get pod -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}'
 # 查看所有Pod
 kubectl get pod | grep -v NAME | awk '{print $1}'      
 # 查看Pod的运行状态

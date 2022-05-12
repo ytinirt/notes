@@ -1339,6 +1339,9 @@ instance:etcd_disk_wal_fsync_duration_seconds:histogram_quantile
 instance:etcd_network_peer_round_trip_time_seconds:histogram_quantile
 
 histogram_quantile(0.99, rate(etcd_network_peer_round_trip_time_seconds_bucket[2m]))
+
+(1 - max by(name, namespace)(avg_over_time(aggregator_unavailable_apiservice[10m]))) * 100 < 85
+aggregator_unavailable_apiservice > 0
 ```
 
 

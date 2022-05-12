@@ -567,7 +567,13 @@ function pid2pod {
   local pid=$1
   if [ -f /proc/${pid}/cgroup ]; then
     local cid=$(cat /proc/${pid}/cgroup | grep ":memory:" | awk -F '/' '{print $NF}' | awk -F ':' '{print $NF}' | sed 's/^cri-containerd-//g' | sed 's/.scope$//g')
-    if [ "${cid}" != "" ]; then
+    if [ "${cid}" = "" ]; then
+      # Try cri-o
+      cid=$(cat /proc/${pid}/cgroup | grep -m1 "/crio-" | awk -F '/' '{print $NF}' | sed 's/^crio-//g' | sed 's/.scope$//g')
+      if [ "${cid}" != "" ]; then
+        crictl inspect ${cid} | jq -r '.status.labels["io.kubernetes.pod.namespace"]+" "+.status.labels["io.kubernetes.pod.name"]' 2>/dev/null
+      fi
+    else
       ctr -n k8s.io c info ${cid} 2>/dev/null | jq -r '.Labels["io.kubernetes.pod.namespace"]+" "+.Labels["io.kubernetes.pod.name"]' 2>/dev/null
     fi
   fi

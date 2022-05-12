@@ -1712,6 +1712,7 @@ ausearch
 auditctl -a exit,always -F arch=b64 -F exe!=/usr/bin/nice&&/usr/bin/du -S execve
 ```
 
+TODO: [参见资料](https://www.cyberciti.biz/tips/linux-audit-files-to-see-who-made-changes-to-a-file.html)
 
 ## HTPasswd认证
 在RHEL/CentOS上，htpasswd来自httpd-tools包。
@@ -2503,7 +2504,7 @@ sar -u 3            #查看CPU消耗情况
 sar -q 3            #查看CPU load，可以查看到历史CPU/系统负载
 sar -n ALL          #查看网络统计信息
 sar -n keyword [,...] #关键字包括：DEV 网络设备信息；NFS 客户端统计信息；NFSD 服务端统计信息；SOCK 套接字信息；IP ipv4流量信息；ICMP；TCP；UDP...
-watch more /proc/net/dev    #定位丢包情况
+watch -d more /proc/net/dev    #定位丢包情况
 cat /proc/net/snmp  #查看和分析240秒内网络包量、流量、错包、丢包，重传率时RetransSegs/OutSegs
 dig @127.0.0.1 -4 masternode  #查看域名解析地址，其中指定server为127.0.0.1，且仅查询A记录（ipv4）
 # 正向解析
@@ -3626,6 +3627,7 @@ date +"%Y-%m-%d %T"
 date +"%F %T.%3N"
 date --date='Mon Apr 2 00:21:03 2018' +'%s'    # date的格式化输入和格式化输出
 date -d "10 day ago" +"%Y-%m-%d"               # 符合自然语言的输入和格式化输出
+date -d @1651406848.038734
 echo -e '\n1.2.3.4 hehe\n2.3.4.5 xixi\n' >> /etc/hosts
 echo ${a%?}  # 无条件去掉最后一个字符
 ```
