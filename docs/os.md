@@ -472,12 +472,22 @@ fs.inotify.max_user_watches = 1000000
 ### 找到谁在使用inotify instance资源
 
 ```bash
+# 查看inotify打开文件数
+lsof 2>/dev/null | grep inotify -c
+
+# 通过tail判断当前inotify是否耗尽，因为tail -f也会去创建fsnotify
+tail -f
+
 # 有效
 find /proc/*/fd -lname anon_inode:inotify 2>/dev/null | cut -d/ -f3 | xargs -I '{}' -- ps --no-headers -o '%p %U %c' -p '{}' | uniq -c | sort -nr
+
+# 查看哪些进程在消耗inotify
+ps -p $(find /proc/*/fd/* -type l -lname 'anon_inode:inotify' -print 2> /dev/null | sed -e 's/^\/proc\/\([0-9]*\)\/.*/\1/')
 
 # 执行太慢了
 for foo in /proc/*/fd/*; do readlink -f $foo; done | grep inotify | sort | uniq -c | sort -nr
 find /proc/*/fd/* -type l -lname 'anon_inode:inotify' -print
+find /proc/*/fd/* -type l -lname 'anon_inode:inotify' -exec sh -c 'cat $(dirname {})/../cmdline; echo ""' \; 2>/dev/null
 ```
 
 ### 找到谁在使用inotify watch资源
@@ -3228,13 +3238,17 @@ TODO
 
 | 文件名称 | 说明 |
 | ------- | ---- |
-| cmdline | |
+| cmdline | 命令行字符串 |
 | exe | |
-| stack | |
+| stack | 进程堆栈信息 |
 | root | |
 | syscall | |
 
-
+### D状态进程的分析
+查看进程堆栈信息：
+```bash
+cat /proc/<pid>/stack
+```
 
 ## 动态链接库管理
 

@@ -563,8 +563,18 @@ wget -O kubelet-heap.out http://127.0.0.1:8001/api/v1/nodes/node-x/proxy/debug/p
 curl 127.0.0.1:10248/healthz
 # 获取更多细节
 curl -k https://127.0.0.1:10250/healthz --cacert /etc/kubernetes/keys/ca.pem --cert /etc/kubernetes/keys/kubernetes.pem --key /etc/kubernetes/keys/kubernetes-key.pem
+# 或者
+curl -k https://127.0.0.1:10250/healthz --cacert /etc/kubernetes/pki/ca.crt --cert /etc/kubernetes/pki/apiserver-kubelet-client.crt --key /etc/kubernetes/pki/apiserver-kubelet-client.key
 
+# kubelet的metrics
+curl -k https://127.0.0.1:10250/metrics --cacert /etc/kubernetes/pki/ca.crt --cert /etc/kubernetes/pki/apiserver-kubelet-client.crt --key /etc/kubernetes/pki/apiserver-kubelet-client.key
 
+```
+
+## 堆栈文件分析
+```bash
+# goroutine统计
+grep ^goroutine xxx-goroutine-9.log -A 1 | grep -v "^goroutine\|^--" | sort | less
 ```
 
 ## 常见操作
@@ -616,6 +626,7 @@ kubectl get pods -n default -l app=foo -o=jsonpath='{range .items[*]}{.metadata.
 kubectl get namespaces -o jsonpath='{.items[*].metadata.name}'
 /opt/bin/kubectl -s 127.0.0.1:8888 delete -f /opt/bin/confFile-cluster/openstack-new-rc.yaml
 # go template示例
+kubectl get ns -o jsonpath='{range .items[*]} {.metadata.name}{"\n"} {end}'
 kubectl get pod --all-namespaces --field-selector spec.nodeName=$(hostname) -o jsonpath='{range .items[?(.spec.dnsPolicy=="Default")]}{.metadata.namespace}{"/"}{.metadata.name}{"\n"}{end}'
 kubectl get pod --all-namespaces --field-selector spec.nodeName=$(hostname) -o jsonpath='{range .items[?(.spec.hostNetwork==true)]}{.metadata.namespace}{"/"}{.metadata.name}{"\n"}{end}'
 kubectl get nodes --selector='node-role.kubernetes.io/master' -o jsonpath='{.items[0].status.conditions[?(@.type=="Ready")].status}'
@@ -715,6 +726,26 @@ done
 # 遍历一个命名空间下所有资源
 kubectl api-resources --verbs=list --namespaced -o name \
   | xargs -n 1 kubectl get --show-kind --ignore-not-found -n ${NAMESPACE}
+
+# 遍历一个命名空间下所有资源的label和annotations
+for api in $(kubectl api-resources --verbs=list --namespaced -o name); do
+  kubectl get ${api} --ignore-not-found -n ${NAMESPACE} -o json | jq .items[].metadata.labels
+done
+for api in $(kubectl api-resources --verbs=list --namespaced -o name); do
+  kubectl get ${api} --ignore-not-found -n ${NAMESPACE} -o json | jq .items[].metadata.annotations
+done
+
+# 遍历所有跨命名空间的资源
+kubectl api-resources --verbs=list --namespaced=false -o name \
+  | xargs -n 1 kubectl get --show-kind --ignore-not-found
+
+# 遍历所有跨命名空间的资源的label和annotations
+for api in $(kubectl api-resources --verbs=list --namespaced=false -o name); do
+  kubectl get ${api} --ignore-not-found -o json | jq .items[].metadata.labels
+done
+for api in $(kubectl api-resources --verbs=list --namespaced=false -o name); do
+  kubectl get ${api} --ignore-not-found -o json | jq .items[].metadata.annotations
+done
 
 # 设置默认StorageClass
 kubectl patch storageclass gold -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'

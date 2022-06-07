@@ -111,6 +111,12 @@ mount -t cgroup2 none /tmp/hehe
 grep cgroup /proc/filesystems
 ```
 
+## 降级为cgroupv2
+主机上修改grub配置，重启主机生效：
+```bash
+sudo grubby --update-kernel=ALL --args="systemd.unified_cgroup_hierarchy=0"
+```
+
 ## 常用操作
 
 ```bash
