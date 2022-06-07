@@ -516,6 +516,40 @@ kubectl config use-context john
 
 # 操作实例
 
+## 便捷操作
+* 常用操作别名
+  ```bash
+  alias pod='kubectl get pod -o wide -A'
+  alias svc='kubectl get svc -A'
+  alias node='kubectl get node -o wide'
+  alias kc='kubectl'
+  ```
+
+* 统计各节点上Pod数
+  ```bash
+  function nodePodCnt {
+      local tmp_file=$(mktemp)
+
+      kubectl get pod -A -owide --no-headers > ${tmp_file}
+      if [ $? -eq 0 ]; then
+          for node in $(cat ${tmp_file} | awk '{print $(NF-2)}' | sort | uniq); do
+              echo ${node} $(cat ${tmp_file} | grep -cw ${node})
+          done
+      fi
+
+      rm -f ${tmp_file}
+  }
+  ```
+
+* base64编码的证书信息
+  ```bash
+  function b642cert {
+      local b64=$1
+      echo $b64 | base64 -d | openssl x509 -noout -text
+  }
+  ```
+
+
 ## 从secret中获取证书信息
 ```bash
 function b642cert {

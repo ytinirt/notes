@@ -998,64 +998,69 @@ volumes:
 
 ## Etcd
 
-常见操作
+### 常见操作
+* old
+  ```bash
+  etcdctl ls get
+  etcdctl member list
+  etcdctl --debug cluster-health     # 能看到使用的API
+  etcdctl member list                # 显示成员信息
+  etcdctl mk /hehe/xixi "haha"
+  etcdctl update key 'val'
+  etcdctl rm key
+  etcdctl 2>/dev/null -o extended get /coreos.com/network/subnets/10.101.13.0-24
 
-```bash
-etcdctl ls get
-etcdctl member list
-etcdctl --debug cluster-health     # 能看到使用的API
-etcdctl member list                # 显示成员信息
-etcdctl mk /hehe/xixi "haha"
-etcdctl update key 'val'
-etcdctl rm key
-etcdctl 2>/dev/null -o extended get /coreos.com/network/subnets/10.101.13.0-24
+  # 统计度量信息
+  /metrics
+  # debug信息
+  /debug/vars
+  ```
 
-# 统计度量信息
-/metrics
-# debug信息
-/debug/vars
-```
+* kubeadm创建的k8s集群，获取etcd关键指标
+  ```bash
+  alias etcd_curl='curl -s --cacert /etc/kubernetes/pki/etcd/ca.crt --key /etc/kubernetes/pki/etcd/server.key --cert /etc/kubernetes/pki/etcd/server.crt'
+
+  etcd_curl https://127.0.0.1:2379/metrics
+  etcd_curl https://127.0.0.1:2379/metrics | \
+      grep "etcd_disk_backend_commit_duration_seconds\|etcd_disk_wal_fsync_duration_seconds\|etcd_network_peer_round_trip_time_seconds_bucket\|etcd_server_leader"
+  etcd_curl https://$(hostname):2379/metrics | \
+      grep "etcd_disk_backend_commit_duration_seconds\|etcd_disk_wal_fsync_duration_seconds\|etcd_network_peer_round_trip_time_seconds_bucket\|etcd_server_leader"
+  ```
 
 ### 如何判断Disk性能满足Etcd运行要求
 
-1. 检查etcd_disk_backend_commit_duration_seconds指标p99小于25ms
+**1. 检查etcd_disk_backend_commit_duration_seconds指标p99小于25ms**
 
-etcd会定期将最近的记录打快照，并持久化到disk中，这个指标记录了etcd数据快照持久化写到disk的耗时。
+  etcd会定期将最近的记录打快照，并持久化到disk中，这个指标记录了etcd数据快照持久化写到disk的耗时。
+  p99小于25ms，才表明disk性能满足etcd的要求。
+  参考[官方链接](https://etcd.io/docs/v3.5/faq/#:~:text=monitor%20backend_commit_duration_seconds)
 
-p99小于25ms，才表明disk性能满足etcd的要求。
+**2. 检查etcd_disk_wal_fsync_duration_seconds指标p99小于10ms**
 
-参考[官方链接](https://etcd.io/docs/v3.5/faq/#:~:text=monitor%20backend_commit_duration_seconds)
+  在采纳wal日志的表项前，调用fsync将日志落盘，这个指标记录了fsync落盘耗时。
+  p99小于10ms，才表明disk性能满足etcd的要求。
+  参考[官方链接](https://etcd.io/docs/v3.5/faq/#:~:text=monitor%20wal_fsync_duration_seconds)
 
-2. 检查etcd_disk_wal_fsync_duration_seconds指标p99小于10ms
+**3. 使用性能测试工具fio测试fdatasync的p99显著小于10ms**
 
-在采纳wal日志的表项前，调用fsync将日志落盘，这个指标记录了fsync落盘耗时。
+  执行命令： fio --rw=write --ioengine=sync --fdatasync=1 --directory=test-data --size=22m --bs=2300 --name=mytest
+  fdatasync的p99得显著小于10ms，才表明disk的性能满足etcd要求。
+  说明：fio版本要求3.5+；test-data是一个文件夹，位于待测试的disk挂载的文件系统内。
+  参考[文档链接](https://www.ibm.com/cloud/blog/using-fio-to-tell-whether-your-storage-is-fast-enough-for-etcd)
 
-p99小于10ms，才表明disk性能满足etcd的要求。
+**4. OpenShift基于fio提供了检测工具**
 
-参考[官方链接](https://etcd.io/docs/v3.5/faq/#:~:text=monitor%20wal_fsync_duration_seconds)
-
-3. 使用性能测试工具fio测试fdatasync的p99显著小于10ms
-
-执行命令： fio --rw=write --ioengine=sync --fdatasync=1 --directory=test-data --size=22m --bs=2300 --name=mytest
-
-fdatasync的p99得显著小于10ms，才表明disk的性能满足etcd要求。
-
-说明：fio版本要求3.5+；test-data是一个文件夹，位于待测试的disk挂载的文件系统内。
-
-参考[文档链接](https://www.ibm.com/cloud/blog/using-fio-to-tell-whether-your-storage-is-fast-enough-for-etcd)
-
-4. OpenShift基于fio提供了检测工具
-执行命令：
-```bash
-podman run --volume /var/lib/etcd:/var/lib/etcd:Z quay.io/openshift-scale/etcd-perf
-```
-同样要求`fsync`的p99小于10ms。
-
-参考[文档连接](https://docs.openshift.com/container-platform/4.9/scalability_and_performance/recommended-host-practices.html#recommended-etcd-practices_recommended-host-practices)
+  执行命令：
+  ```bash
+  podman run --volume /var/lib/etcd:/var/lib/etcd:Z quay.io/openshift-scale/etcd-perf
+  ```
+  同样要求`fsync`的p99小于10ms。
+  参考[文档连接](https://docs.openshift.com/container-platform/4.9/scalability_and_performance/recommended-host-practices.html#recommended-etcd-practices_recommended-host-practices)
 
 
 ### 如何判断Network性能满足Etcd运行要求
-* 检查etcd_network_peer_round_trip_time_seconds_bucket指标p99小于50ms
+**检查etcd_network_peer_round_trip_time_seconds_bucket指标p99小于50ms。**
+
 这个指标表明节点间RRT耗时，PromQL查询方式：
 ```
 histogram_quantile(0.99, rate(etcd_network_peer_round_trip_time_seconds_bucket[2m]))
@@ -1103,44 +1108,64 @@ func newStore(c *clientv3.Client, quorumRead, pagingEnabled bool, codec runtime.
 
 ### v3常见操作
 
-性能测试
+* 性能测试
+  ```bash
+  etcdctl3 check perf
+  ```
 
-```bash
-etcdctl3 check perf
-```
+* 获取所有key
+  ```bash
+  ETCDCTL_API=3 /opt/bin/etcdctl-bin/etcdctl get / --prefix --keys-only --cacert=/root/cfssl/ca.pem --cert=/root/cfssl/node-client.pem --key=/root/cfssl/node-client-key.pem
+  ```
 
+* 获取key数量
+  ```bash
+  ETCDCTL_API=3 /opt/bin/etcdctl-bin/etcdctl get / --prefix --keys-only --cacert=/root/cfssl/ca.pem --cert=/root/cfssl/node-client.pem --key=/root/cfssl/node-client-key.pem 2>/dev/null | grep -v ^$ | wc -l
+  ```
 
-获取所有key
+* 查看etcd节点信息
+  ```bash
+  ETCDCTL_API=3 /opt/bin/etcdctl-bin/etcdctl --cacert=/root/cfssl/ca.pem --cert=/root/cfssl/node-client.pem --key=/root/cfssl/node-client-key.pem -w table endpoint status 2>/dev/null
+  ```
 
-```bash
-ETCDCTL_API=3 /opt/bin/etcdctl-bin/etcdctl get / --prefix --keys-only --cacert=/root/cfssl/ca.pem --cert=/root/cfssl/node-client.pem --key=/root/cfssl/node-client-key.pem
-```
+* 遍历etcd中存储的所有数据
+  ```bash
+  for i in $(ETCDCTL_API=3 etcdctl --cert="/etc/etcd/peer.crt" --key="/etc/etcd/peer.key" --cacert="/etc/etcd/ca.crt" --endpoints https://$(hostname):2379  get / --prefix --keys-only 2>/dev/null)
+  do
+    ETCDCTL_API=3 etcdctl --cert="/etc/etcd/peer.crt" --key="/etc/etcd/peer.key" --cacert="/etc/etcd/ca.crt" --endpoints https://$(hostname):2379 get ${i} 2>/dev/null
+  done
+  ```
 
-获取key数量
+* alarm
+  ```bash
+  ETCDCTL_API=3 /opt/bin/etcdctl-bin/etcdctl --cacert=/root/cfssl/ca.pem --cert=/root/cfssl/node-client.pem --key=/root/cfssl/node-client-key.pem alarm list
+  ```
 
-```bash
-ETCDCTL_API=3 /opt/bin/etcdctl-bin/etcdctl get / --prefix --keys-only --cacert=/root/cfssl/ca.pem --cert=/root/cfssl/node-client.pem --key=/root/cfssl/node-client-key.pem 2>/dev/null | grep -v ^$ | wc -l
-```
+* 租期lease
+  ```bash
+  # 查看租期列表
+  ec lease list
+   
+  # 查看租期lease详情
+  ec lease timetolive 3fef7aaab970833d -w fields
+  # 遍历所有租期lease
+  for l in $(ec lease list | grep -v found); do echo -n "$l "; ec lease timetolive $l -w json; done
+   
+  # 查看租期lease关联的key
+  ec lease timetolive 13c77b63768667d7 --keys
+  ```
 
-查看etcd节点信息
+* mvcc压缩
+  ```bash
+  # mvcc压缩
+  ec compaction --physical <revision-from-endpoint-status>
+  ```
 
-```bash
-ETCDCTL_API=3 /opt/bin/etcdctl-bin/etcdctl --cacert=/root/cfssl/ca.pem --cert=/root/cfssl/node-client.pem --key=/root/cfssl/node-client-key.pem -w table endpoint status 2>/dev/null
-```
-
-遍历etcd中存储的所有数据
-
-```bash
-for i in $(ETCDCTL_API=3 etcdctl --cert="/etc/etcd/peer.crt" --key="/etc/etcd/peer.key" --cacert="/etc/etcd/ca.crt" --endpoints https://$(hostname):2379  get / --prefix --keys-only 2>/dev/null)
-do
-  ETCDCTL_API=3 etcdctl --cert="/etc/etcd/peer.crt" --key="/etc/etcd/peer.key" --cacert="/etc/etcd/ca.crt" --endpoints https://$(hostname):2379 get ${i} 2>/dev/null
-done
-```
-
-alarm
-```bash
-ETCDCTL_API=3 /opt/bin/etcdctl-bin/etcdctl --cacert=/root/cfssl/ca.pem --cert=/root/cfssl/node-client.pem --key=/root/cfssl/node-client-key.pem alarm list
-```
+* 存储碎片整理
+  ```bash
+  # 存储碎片整理
+  ec defrag
+  ```
 
 ### v2 API
 
