@@ -1019,6 +1019,7 @@ volumes:
 * kubeadm创建的k8s集群，获取etcd关键指标
   ```bash
   alias etcd_curl='curl -s --cacert /etc/kubernetes/pki/etcd/ca.crt --key /etc/kubernetes/pki/etcd/server.key --cert /etc/kubernetes/pki/etcd/server.crt'
+  alias etcd_metrics='curl -s --cacert /etc/kubernetes/pki/etcd/ca.crt --key /etc/kubernetes/pki/etcd/server.key --cert /etc/kubernetes/pki/etcd/server.crt https://$(hostname):2379/metrics'
 
   etcd_curl https://127.0.0.1:2379/metrics
   etcd_curl https://127.0.0.1:2379/metrics | \

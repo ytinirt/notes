@@ -362,8 +362,11 @@ spec:
     image: gcr.io/google-samples/node-hello:1.0
     securityContext:
       capabilities:
-        add: ["SYS_TIME"]
+        add: ["SYS_TIME", "SYS_ADMIN"]
 ~~~
+* 增加`SYS_ADMIN`，容器内能够`mount`操作。
+* 增加`SYS_TIME`，容器内能够设置系统时间。
+
 
 注意，在add和drop时，去掉了前缀`CAP_`。
 

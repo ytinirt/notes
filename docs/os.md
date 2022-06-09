@@ -428,6 +428,21 @@ HugePages_Surp        0      0      0      0      0
 参见[资料](https://kubernetes.io/docs/tasks/manage-hugepages/scheduling-hugepages/)
 
 
+### 透明大页THP
+
+```bash
+# 关闭透明大页，执行如下命令，然后重启系统生效
+grubby --update-kernel=/boot/vmlinuz-`uname -r` --args="transparent_hugepage=never kpti=off"
+
+# 检查配置是否成功
+grubby --info=/boot/vmlinuz-`uname -r`
+
+# 系统启动后查看是否开启了透明大页内存
+cat /sys/kernel/mm/transparent_hugepage/enabled
+
+# 回退上述修改，重新开启透明大页
+grubby --update-kernel=/boot/vmlinuz-`uname -r` --remove-args="transparent_hugepage=never kpti=off"
+```
 
 ## NUMA
 
@@ -2429,7 +2444,156 @@ PROCESS STATE CODES
 另一方面，当遇到`defunct`进程的父进程为`init(8)`时，目前唯一简便且可行的是重启节点。导致出现这类进程的原因多是IO或者系统调用（syscall）异常，可通过`lsof -p <pid of the zombie>`获取debug信息。
 
 
+## 性能调优和问题定位
+
+### CPU性能
+
+#### 设置或提升CPU运行频率
+```bash
+# 查询CPU额定主频
+cat /proc/cpuinfo
+# 最后参数是额定主频
+cpupower frequency-set -f 2.5GHz
+# 卸载pcc_cpufreq内核模块
+modprobe -r pcc_cpufreq
+```
+#### 解决pcc和acpi的bug导致的CPU降频问题
+
+```bash
+modprobe -r pcc_cpufreq
+modprobe -r acpi_cpufreq
+echo "blacklist pcc-cpufreq" >> /etc/modprobe.d/cpufreq.conf
+echo "blacklist acpi-cpufreq" >> /etc/modprobe.d/cpufreq.conf
+```
+
+
+
+### 网络性能
+
+使用`iperf`测试网络性能：
+
+```bash
+# 服务端执行
+iperf -s
+# 客户端执行
+iperf -c <serverIP>
+# 测试示例
+iperf3 -c <serverIP>  -t 30   -b 100M  -P 4
+```
+
+
+
+### IO性能
+
+#### 使用iostat判断io瓶颈
+间隔两秒看cpu util，如果到70%左右性能就会有明显影响：
+```bash
+iostat -xz 2
+```
+
+#### ionice修改io优先级
+
+使用`ionice`提升/限制磁盘IO性能：
+
+```bash
+# 提升etcd3的磁盘IO操作优先级
+ionice -c2 -n0 -p $(pgrep -w etcd3)
+```
+
+在脚本开头增加
+```bash
+ionice -c3 -p$$
+```
+此后该脚本所有操作的io优先级，均被修改为idle class。
+
+
+
+#### fio性能测试
+
+用于测试硬盘性能，准备2GB文件`/tmp/test`。
+
+```bash
+# 顺序读性能
+fio --filename=/tmp/test -iodepth=64 -ioengine=libaio --direct=1 --rw=read --bs=1m --size=2g --numjobs=4 --runtime=10 --group_reporting --name=test-read-linear
+
+# 顺序写性能
+fio --filename=/tmp/test -iodepth=64 -ioengine=libaio --direct=1 --rw=write --bs=1m --size=2g --numjobs=4 --runtime=20 --group_reporting --name=test-write-linear
+
+# 随机读性能
+fio --filename=/tmp/test -iodepth=64 -ioengine=libaio --direct=1 --rw=randread --bs=4k --size=2g --numjobs=64 --runtime=20 --group_reporting --name=test-rand-read
+
+# 随机写性能
+fio --filename=/tmp/test -iodepth=64 -ioengine=libaio --direct=1 --rw=randwrite --bs=4k --size=2g --numjobs=64 --runtime=20 --group_reporting --name=test-rand-write
+
+# 针对device的压力测试
+# 注意，其中-filename指定的设备会被随机读写，请确保上面没有关键数据
+fio -filename=/dev/sda1 -direct=1 -iodepth 1 -thread -rw=randrw -rwmixread=70 -ioengine=psync -bsrange=512-10240 -numjobs=1 --rate 1M -runtime=6000 -time_based -group_reporting -name=randrw_70read_4k_local
+
+# 另一个测试命令实例
+fio --filename=/tmp/1G -iodepth=64 -ioengine=libaio --direct=1 --rw=randwrite --bs=4k --size=1g --numjobs=64 --runtime=10 --group_reporting --name=test
+```
+
+
+参见[文章](https://www.ibm.com/cloud/blog/using-fio-to-tell-whether-your-storage-is-fast-enough-for-etcd)，测试方法如下：
+```bash
+fio --rw=write --ioengine=sync --fdatasync=1 --directory=test-data --size=22m --bs=2300 --name=mytest
+```
+TODO
+
+
+
+#### iozone
+
+TODO
+
+
+#### 判断SSD还是HDD
+最准确的办法是查看服务器控制台中硬件信息。当不便于查看服务器控制台时，可考虑如下方法：
+```bash
+# 1 for hard disks
+# 0 for SSD
+cat /sys/block/sda/queue/rotational
+```
+注意，存在RAID控制器或者VM上，判断可能不准。
+参见[how-to-know-if-a-disk-is-an-ssd-or-an-hdd](https://unix.stackexchange.com/questions/65595/how-to-know-if-a-disk-is-an-ssd-or-an-hdd)。
+
+
+### 使用stress进行压力测试
+TODO
+```bash
+docker run -d -m 100M --rm polinux/stress stress  --vm 1 --vm-bytes 128M --vm-keep --timeout 3600s
+```
+
+
 ## 主机资源监控
+
+### vmstat
+
+```bash
+vmstat 3 100        #查看swap in/out
+vmstat -m           #查看slab信息   vm.min_slab_ratio 检查slab与vm的比例
+vmstat -s           #显示事件计数器和内存状态
+cat /proc/vmstat | grep 'pgpg\|pswp'     #查看page交换in/out的统计值
+```
+
+### mpstat
+```bash
+mpstat              # 查看资源使用率的【利器】，说明详见man mpstat
+mpstat.steal        # 检查vm的cpu资源是否被hypervisor挪用
+mpstat -P ALL 1     # 每个CPU核的使用率
+```
+
+### pidstat
+查看进程的状态详情
+```bash
+# 进程上下文切换
+pidstat -w 3 10
+# 查看页错误（page fault）和内存使用率
+pidstat -p <pid> -r 1 10
+```
+
+### iftop
+监控网络接口
 
 ### 常用命令
 
@@ -2444,7 +2608,6 @@ top                 #监控进程/线程状态    ->f->选择关注项
 ps                  #查看进程/线程
 ps -o ppid= 19312   #查找19312的父进程，注意 ppid= 和 19312 间的空格
 pstree -l -a -A pid #查看进程树
-iftop               #监控网络
 top -H -p pid
 top -b -n 1             # batch模式，输出1次
 slabtop             #监控内存SLAB使用情况
@@ -2498,14 +2661,6 @@ iostat -x -k -d 1   #查看I/O详细信息
 iostat -x           #查看系统各个磁盘的读写性能，关注await和iowait的CPU占比
 time python -c "2**1000000000"  # CPU性能
 iotop               #监控磁盘IO操作
-mpstat              # 查看资源使用率的【利器】，说明详见man mpstat
-mpstat.steal        # 检查vm的cpu资源是否被hypervisor挪用
-pidstat
-pidstat -p pid -r 1 #
-vmstat 3 100        #查看swap in/out
-vmstat -m           #查看slab信息   vm.min_slab_ratio 检查slab与vm的比例
-vmstat -s           #显示事件计数器和内存状态
-cat /proc/vmstat | grep 'pgpg\|pswp'     #查看page交换in/out的统计值
 ps -eo min_flt,maj_flt,cmd,pid    #查看 page faults 统计信息，有Minor、Major、Invalid三种 page faults类型
 slabtop -s c        #查看slabinfo信息
 pmstat              #查看系统全局性能  high-level system performance overview
@@ -2526,7 +2681,6 @@ dstat               # 查看CPU、MEM、硬盘io信息
 dstat --aio --io --disk --tcp --top-io-adv --top-bio-adv
 dstat -m --top-mem  # 查看内存占用最多者
 top -b -n1 -o RES | head -n27 | sed '1,7d'    # TOP 20内存使用
-mpstat -P ALL 1     # 每个CPU核的使用率
 dmesg -H            # 查看kernel信息
 perf
 virt-what           # 判断是否虚拟机（Guest、VM）运行
@@ -2790,121 +2944,10 @@ DirectMap2M:    100268032 kB
 | DirectMap4k<br>DirectMap2M<br>DirectMap1G | DirectMap不用于统计内存使用，而是反映TLB效率和负载（Load）的指标，它统计映射为4K、2M和1G页的内存大小。x86架构下，TLB管理更大的“page”，能够提升TLB的性能。 |
 
 
+## 中断信息解读
+`/proc/interrupts`
 
-## 性能调优和问题定位
-
-### CPU性能
-
-#### 设置或提升CPU运行频率
-```bash
-# 查询CPU额定主频
-cat /proc/cpuinfo
-# 最后参数是额定主频
-cpupower frequency-set -f 2.5GHz
-# 卸载pcc_cpufreq内核模块
-modprobe -r pcc_cpufreq
-```
-#### 解决pcc和acpi的bug导致的CPU降频问题
-
-```bash
-modprobe -r pcc_cpufreq
-modprobe -r acpi_cpufreq
-echo "blacklist pcc-cpufreq" >> /etc/modprobe.d/cpufreq.conf
-echo "blacklist acpi-cpufreq" >> /etc/modprobe.d/cpufreq.conf
-```
-
-
-
-### 网络性能
-
-使用`iperf`测试网络性能：
-
-```bash
-# 服务端执行
-iperf -s
-# 客户端执行
-iperf -c <serverIP>
-# 测试示例
-iperf3 -c <serverIP>  -t 30   -b 100M  -P 4
-```
-
-
-
-### IO性能
-
-#### ionice修改io优先级
-
-使用`ionice`提升/限制磁盘IO性能：
-
-```bash
-# 提升etcd3的磁盘IO操作优先级
-ionice -c2 -n0 -p $(pgrep -w etcd3)
-```
-
-在脚本开头增加
-```bash
-ionice -c3 -p$$
-```
-此后该脚本所有操作的io优先级，均被修改为idle class。
-
-
-
-#### fio性能测试
-
-用于测试硬盘性能，准备2GB文件`/tmp/test`。
-
-```bash
-# 顺序读性能
-fio --filename=/tmp/test -iodepth=64 -ioengine=libaio --direct=1 --rw=read --bs=1m --size=2g --numjobs=4 --runtime=10 --group_reporting --name=test-read-linear
-
-# 顺序写性能
-fio --filename=/tmp/test -iodepth=64 -ioengine=libaio --direct=1 --rw=write --bs=1m --size=2g --numjobs=4 --runtime=20 --group_reporting --name=test-write-linear
-
-# 随机读性能
-fio --filename=/tmp/test -iodepth=64 -ioengine=libaio --direct=1 --rw=randread --bs=4k --size=2g --numjobs=64 --runtime=20 --group_reporting --name=test-rand-read
-
-# 随机写性能
-fio --filename=/tmp/test -iodepth=64 -ioengine=libaio --direct=1 --rw=randwrite --bs=4k --size=2g --numjobs=64 --runtime=20 --group_reporting --name=test-rand-write
-
-# 针对device的压力测试
-# 注意，其中-filename指定的设备会被随机读写，请确保上面没有关键数据
-fio -filename=/dev/sda1 -direct=1 -iodepth 1 -thread -rw=randrw -rwmixread=70 -ioengine=psync -bsrange=512-10240 -numjobs=1 --rate 1M -runtime=6000 -time_based -group_reporting -name=randrw_70read_4k_local
-
-# 另一个测试命令实例
-fio --filename=/tmp/1G -iodepth=64 -ioengine=libaio --direct=1 --rw=randwrite --bs=4k --size=1g --numjobs=64 --runtime=10 --group_reporting --name=test
-```
-
-
-参见[文章](https://www.ibm.com/cloud/blog/using-fio-to-tell-whether-your-storage-is-fast-enough-for-etcd)，测试方法如下：
-```bash
-fio --rw=write --ioengine=sync --fdatasync=1 --directory=test-data --size=22m --bs=2300 --name=mytest
-```
-TODO
-
-
-
-#### iozone
-
-TODO
-
-
-#### 判断SSD还是HDD
-最准确的办法是查看服务器控制台中硬件信息。当不便于查看服务器控制台时，可考虑如下方法：
-```bash
-# 1 for hard disks
-# 0 for SSD
-cat /sys/block/sda/queue/rotational
-```
-注意，存在RAID控制器或者VM上，判断可能不准。
-参见[how-to-know-if-a-disk-is-an-ssd-or-an-hdd](https://unix.stackexchange.com/questions/65595/how-to-know-if-a-disk-is-an-ssd-or-an-hdd)。
-
-
-### 使用stress进行压力测试
-TODO
-```bash
-docker run -d -m 100M --rm polinux/stress stress  --vm 1 --vm-bytes 128M --vm-keep --timeout 3600s
-```
-
+`/proc/irq`
 
 ## 文件系统修复
 
@@ -2926,9 +2969,6 @@ touch forcefsck
 e2fsck -n /dev/sde # 先了解下
 e2fsck -y /dev/sde # 然后修复
 ```
-
-
-
 
 
 ## 软件包管理
@@ -3161,6 +3201,9 @@ strace -eopen pip 2>&1|grep pip.conf
 
 # 获取etcd每次写操作字节数，借此评估fio测试块大小  TODO
 strace -p $(pidof etcd) 2>&1 | grep -e  "\(write\|fdatasync\)\((12\|(18\)"
+
+# 查看系统调用和耗时的汇总信息，特别有助于分析性能问题
+strace -c -f -p <pid of process/thread>
 ```
 
 ### ftrace查看系统调用耗时
