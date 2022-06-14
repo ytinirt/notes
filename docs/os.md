@@ -2128,19 +2128,19 @@ wget -O /etc/yum.repos.d/CentOS-Base.repo https://mirrors.aliyun.com/repo/Centos
 ```
 [appstream]
 name=local-yum
-baseurl=file:///root/mnt/etc/yum/x86_64/AppStream/
+baseurl=file:///mnt/etc/yum/x86_64/AppStream/
 enabled=1
 gpgcheck=0
 
 [base]
 name=local-yum-base
-baseurl=file:///root/mnt/etc/yum/x86_64/BaseOS/
+baseurl=file:///mnt/etc/yum/x86_64/BaseOS/
 enabled=1
 gpgcheck=0
 
 [deploy]
 name=local-yum-deploy
-baseurl=file:///root/mnt/etc/yum/x86_64/Deploy/
+baseurl=file:///mnt/etc/yum/x86_64/Deploy/
 enabled=1
 gpgcheck=0
 
@@ -2485,7 +2485,7 @@ iperf3 -c <serverIP>  -t 30   -b 100M  -P 4
 
 ### IO性能
 
-#### 使用iostat判断io瓶颈
+#### iostat判断io瓶颈
 间隔两秒看cpu util，如果到70%左右性能就会有明显影响：
 ```bash
 iostat -xz 2
@@ -2684,11 +2684,6 @@ top -b -n1 -o RES | head -n27 | sed '1,7d'    # TOP 20内存使用
 dmesg -H            # 查看kernel信息
 perf
 virt-what           # 判断是否虚拟机（Guest、VM）运行
-ss state ESTABLISHED    #查看TCP已连接数
-ss -s
-ss -aonp            # 查看套接字 socket 连接信息，基本等同于 netstat -ptn
-ss -tpn dst :8080   #
-netstat -aonp
 lsblk
 ethtool				# 查看以太接口信息
 du -d 1 -h
@@ -2707,7 +2702,7 @@ ulimit -n
 ```
 
 
-### lsof查看打开文件
+### lsof（文件和设备）
 
 ```bash
 # 统计打开文件数
@@ -2731,7 +2726,7 @@ lsof 2>/dev/null | grep ^nginx | awk '{print $2}' | sort -n | uniq -c | sort -rn
 
 
 
-### fuser查找资源使用
+### fuser（文件和设备）
 
 当挂载点无法umount、提示“device is busy”时，能够使用fuser查找到谁在使用这个资源。
 
@@ -2748,13 +2743,28 @@ fuser -v -n tcp 80
 ```
 
 
-
-### netstat查看网络资源
+### netstat（网络）
 
 常用操作：
 
 ```bash
-netstat -anp    #查看所有连接及其pid
+#查看所有连接及其pid
+netstat -anp
+netstat -aonp
+```
+
+
+### ss（网络）
+
+常用操作：
+
+```bash
+#查看TCP已连接数
+ss state ESTABLISHED
+ss -s
+# 查看套接字 socket 连接信息，基本等同于 netstat -ptn
+ss -aonp
+ss -tpn dst :8080
 ```
 
 
@@ -3676,6 +3686,8 @@ realpath file                     # 获取file的绝对路径
 stat -L /var/log/kubernetes/kube-proxy.INFO # 查看链接文件详细信息
 echo $(($(cat /dev/urandom | od -A none -w2 | head -n 1) % 3500)) #  生成随机数
 mount -o loop -t iso9660 /root/xxx.iso /root/isomount/
+# ISO以光盘方式挂载，其设备路径为 /dev/sr0
+mount -o loop -t iso9660 /dev/sr0 /mnt/
 mtr # 比 traceroute 更好用的路由追踪工具
 ps -ax --width 100000   # 通过ps查看进程的执行命令和参数时，若遇到被截断，可指定--width显示完整的命令和参数信息
 # 打印进程间父子关系

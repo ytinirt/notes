@@ -2481,6 +2481,11 @@ alias = image[idx:]                             # 截取字符串
 alt + 9745
 ```
 
+### Chrome因证书问题打不开页面
+在页面直接敲`thisisunsafe`。
 
+或在 [页面](chrome://net-internals/#hsts) 配置。
+
+参见[链接](https://blog.csdn.net/Angel_guoo/article/details/122432809) 。
 
 
