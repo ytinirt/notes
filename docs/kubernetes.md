@@ -210,6 +210,13 @@ done
 自定义调度器就是一个“controller”，不停的“reconcile”。
 
 
+# API优先级APIPriorityAndFaireness
+```bash
+# https://www.yisu.com/zixun/523074.html
+oc get --raw /debug/api_priority_and_fairness/dump_priority_levels
+```
+
+
 # Pod调度如何感知volume的topology
 环境中有三个节点，类型为Controller：
 ```bash
@@ -659,6 +666,8 @@ kubectl get svc mysql-node1 -o jsonpath='{.spec.clusterIP}'
 kubectl get pods -n default -l app=foo -o=jsonpath='{range .items[*]}{.metadata.name} {end}'
 kubectl get namespaces -o jsonpath='{.items[*].metadata.name}'
 /opt/bin/kubectl -s 127.0.0.1:8888 delete -f /opt/bin/confFile-cluster/openstack-new-rc.yaml
+# 使用--field-selector过滤
+kubectl get pod -A --field-selector spec.nodeName=zy-sno
 # go template示例
 kubectl get ns -o jsonpath='{range .items[*]} {.metadata.name}{"\n"} {end}'
 kubectl get pod --all-namespaces --field-selector spec.nodeName=$(hostname) -o jsonpath='{range .items[?(.spec.dnsPolicy=="Default")]}{.metadata.namespace}{"/"}{.metadata.name}{"\n"}{end}'

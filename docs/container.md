@@ -705,7 +705,6 @@ docker pull xxxx   # 从registry上下载镜像至本地
 docker run -it --name test --net container:1a9bfd40505e --entrypoint=/usr/bin/sh openstack-glance:RC2  # 共享容器网络，glance中携带tcpdump命令，可网络抓包
 docker run -it --name test --net=host openstack-keystone:D1101 bash
 docker rm -f $(docker ps | grep haproxy | awk '{print $1}')
-docker build -t centos:base -f Dockerfile .
 docker run -it --net=host centos:base bash     # 共享HOST网络
 docker export $(docker create busybox:1.0.0) > busybox.tar # 提取镜像的rootfs文件
 mkdir rootfs                                               # 提取镜像的rootfs文件
@@ -722,6 +721,16 @@ docker info -f '{{json .}}' | jq  #  格式化输出
 docker load --input images.tar.gz
 docker save myimage:latest | gzip > myimage_latest.tar.gz
 curl -v -X POST http://<ip>:2375/v1.26/images/load -T xxx.tar    #  调用docker接口load容器镜像
+```
+
+
+### docker build构建镜像
+```bash
+# 常规操作
+docker build -t centos:base -f Dockerfile .
+
+# 为容器镜像增加label的简便操作
+echo "FROM centos:7" | docker build --label foo="bar" --label key="value" -t "centos:7-labeled" -
 ```
 
 

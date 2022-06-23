@@ -1150,6 +1150,16 @@ ACTION=="add", SUBSYSTEM=="net", DRIVERS=="?*", ATTR{address}=="0c:da:41:1d:e3:4
 # Storage
 
 ## Disk操作
+### 使用storcli查看存储信息
+```bash
+/opt/bin/storcli64 /c0 show
+```
+
+### 使用lshw查看磁盘硬件信息
+```bash
+lshw -C disk
+```
+
 ### 使用fdisk操作MBR
 
 ### 使用sgdisk操作GPT
