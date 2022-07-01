@@ -27,7 +27,7 @@
             * [当没有stress时如何对CPU施压](#当没有stress时如何对cpu施压)
             * [并发执行多任务](#并发执行多任务)
             * [替换变量](#替换变量)
-            * [日志输出：](#日志输出)
+            * [日志输出](#日志输出)
             * [检查文件是否存在](#检查文件是否存在)
             * [IFS指定分隔符](#ifs指定分隔符)
             * [遍历处理被IFS分隔过的数组](#遍历处理被ifs分隔过的数组)
@@ -64,6 +64,9 @@
          * [通过hosts方式手动增加A记录](#通过hosts方式手动增加a记录)
    * [基础组件和服务](#基础组件和服务)
       * [Etcd](#etcd)
+         * [常见操作](#常见操作)
+         * [如何判断Disk性能满足Etcd运行要求](#如何判断disk性能满足etcd运行要求)
+         * [如何判断Network性能满足Etcd运行要求](#如何判断network性能满足etcd运行要求)
          * [kube-apiserver的etcd-quorum-read调查](#kube-apiserver的etcd-quorum-read调查)
          * [v3常见操作](#v3常见操作)
          * [v2 API](#v2-api)
@@ -74,6 +77,7 @@
          * [错误类型说明](#错误类型说明)
       * [Prometheus](#prometheus)
          * [promtool工具](#promtool工具)
+         * [PromQL语句示例](#promql语句示例)
          * [RESTful接口查询示例](#restful接口查询示例)
          * [Pushgateway](#pushgateway)
          * [Alertmanager](#alertmanager)
@@ -160,8 +164,9 @@
          * [atom超级好用的package](#atom超级好用的package)
          * [Azure镜像源](#azure镜像源)
          * [Office Word中打钩](#office-word中打钩)
+         * [Chrome因证书问题打不开页面](#chrome因证书问题打不开页面)
 
-<!-- Added by: root, at: Wed Apr 13 23:28:10 CST 2022 -->
+<!-- Added by: admin, at: Fri Jul  1 15:23:43     2022 -->
 
 <!--te-->
 

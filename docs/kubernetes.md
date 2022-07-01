@@ -12,6 +12,7 @@
    * [Kubernetes高级调度特性](#kubernetes高级调度特性)
       * [亲和性](#亲和性)
       * [自定义调度器](#自定义调度器)
+   * [API优先级APIPriorityAndFaireness](#api优先级apipriorityandfaireness)
    * [Pod调度如何感知volume的topology](#pod调度如何感知volume的topology)
    * [CPU资源高级管理](#cpu资源高级管理)
    * [kube-proxy集群内负载均衡](#kube-proxy集群内负载均衡)
@@ -27,8 +28,11 @@
          * [证书用户User](#证书用户user)
             * [如何创建一个证书用户](#如何创建一个证书用户)
    * [操作实例](#操作实例)
+      * [便捷操作](#便捷操作)
       * [从secret中获取证书信息](#从secret中获取证书信息)
+      * [从KubeConfig文件中提取证书秘钥](#从kubeconfig文件中提取证书秘钥)
       * [debug和问题解决](#debug和问题解决)
+      * [堆栈文件分析](#堆栈文件分析)
       * [常见操作](#常见操作)
       * [客户端访问集群时context配置](#客户端访问集群时context配置)
       * [ConfigMap使用](#configmap使用)
@@ -40,7 +44,7 @@
       * [FC存储多路径的PV配置](#fc存储多路径的pv配置)
       * [编译kubelet](#编译kubelet)
 
-<!-- Added by: root, at: Wed Apr 13 23:28:01 CST 2022 -->
+<!-- Added by: admin, at: Fri Jul  1 15:23:32     2022 -->
 
 <!--te-->
 

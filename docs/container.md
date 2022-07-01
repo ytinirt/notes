@@ -6,6 +6,7 @@
       * [cgroup子系统](#cgroup子系统)
       * [挂载cgroupfs](#挂载cgroupfs)
       * [判断是否为cgroupv2](#判断是否为cgroupv2)
+      * [降级为cgroupv1](#降级为cgroupv1)
       * [常用操作](#常用操作)
    * [namespaces](#namespaces)
       * [常用命令](#常用命令)
@@ -20,6 +21,9 @@
       * [使用buildx构建多架构容器镜像](#使用buildx构建多架构容器镜像)
    * [容器存储](#容器存储)
       * [overlay2](#overlay2)
+         * [存储配额限制](#存储配额限制)
+         * [容器可读可写层用量统计](#容器可读可写层用量统计)
+         * [根据overlay数据目录digest反查容器/镜像](#根据overlay数据目录digest反查容器镜像)
       * [宿主机上直接修改容器内文件](#宿主机上直接修改容器内文件)
    * [容器安全](#容器安全)
       * [Discretionary Access Control](#discretionary-access-control)
@@ -37,6 +41,8 @@
       * [如何编译containerd](#如何编译containerd)
       * [根据进程pid查询pod](#根据进程pid查询pod)
    * [CRI-O](#cri-o)
+   * [podman](#podman)
+      * [常用命令](#常用命令-2)
    * [Docker](#docker)
       * [容器环境下的swap使用](#容器环境下的swap使用)
       * [深入docker stats命令](#深入docker-stats命令)
@@ -44,6 +50,7 @@
          * [Docker卡死hang住](#docker卡死hang住)
       * [Docker操作](#docker操作)
          * [常用操作](#常用操作-3)
+         * [docker build构建镜像](#docker-build构建镜像)
          * [安装指定版本docker](#安装指定版本docker)
          * [关闭docker0](#关闭docker0)
          * [修改容器的ulimit默认配置](#修改容器的ulimit默认配置)
@@ -56,7 +63,7 @@
          * [容器文件系统使用率统计](#容器文件系统使用率统计)
          * [强制重启Docker服务](#强制重启docker服务)
 
-<!-- Added by: root, at: Wed Apr 13 23:27:56 CST 2022 -->
+<!-- Added by: admin, at: Fri Jul  1 15:23:28     2022 -->
 
 <!--te-->
 

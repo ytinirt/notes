@@ -3,13 +3,19 @@
 <!--ts-->
    * [TOC](#toc)
    * [常用操作](#常用操作)
+   * [测试](#测试)
+      * [执行内容查询](#执行内容查询)
+      * [UT](#ut)
+      * [IT](#it)
+      * [组件e2e](#组件e2e)
+      * [版本e2e](#版本e2e)
    * [OpenShift3 and OKD](#openshift3-and-okd)
       * [常用操作](#常用操作-1)
       * [官方yum源](#官方yum源)
       * [OpenShift 3.x DNS介绍](#openshift-3x-dns介绍)
       * [深入OpenShift SDN网络](#深入openshift-sdn网络)
 
-<!-- Added by: root, at: Wed Apr 13 23:28:04 CST 2022 -->
+<!-- Added by: admin, at: Fri Jul  1 15:23:34     2022 -->
 
 <!--te-->
 
