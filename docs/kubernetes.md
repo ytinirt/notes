@@ -745,6 +745,13 @@ NS=default
 SA=admin
 TOKEN=$(kubectl get secrets -n ${NS} $(kubectl get sa -n ${NS} ${SA} -o jsonpath='{.secrets[0].name}') -o jsonpath='{.data.token}' | base64 -d)
 
+# 模仿Pod内使用in-cluster配置访问apiserver
+NS=default
+POD=test
+TOKEN=$(kubectl exec -n ${NS} ${POD} -- cat /var/run/secrets/kubernetes.io/serviceaccount/token)
+curl -H "Authorization: Bearer ${TOKEN}" -k https://kubernetes.default.svc:443/api/v1/nodes
+
+
 # 遍历所有pod
 for n_p in $(kubectl get pod -A | sed 1d | awk '{print $1":"$2}'); do
     n=$(echo $n_p | cut -d: -f1)

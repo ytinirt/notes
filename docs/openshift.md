@@ -16,6 +16,10 @@
 
 # 常用操作
 ```bash
+#
+podman ps --all --external
+podman ps --all --storage
+
 ## 查询监控指标
 secretname=$(kubectl get serviceaccount --namespace=openshift-monitoring prometheus-k8s -o jsonpath='{.secrets[1].name}')
 BRIDGE_K8S_AUTH_BEARER_TOKEN=$(kubectl get secret "$secretname" --namespace=openshift-monitoring -o template --template='{{.data.token}}' | base64 --decode)
@@ -178,6 +182,17 @@ oc scale --replicas 0 -n openshift-cluster-version deployments/cluster-version-o
 
 ```
 
+# 测试
+## 执行内容查询
+[链接](https://steps.ci.openshift.org/search)
+
+## UT
+
+## IT
+
+## 组件e2e
+
+## 版本e2e
 
 
 # OpenShift3 and OKD

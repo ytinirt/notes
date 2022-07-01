@@ -278,12 +278,30 @@ docker buildx rm mybuilder
 # 容器存储
 
 ## overlay2
+
+### 存储配额限制
 参见[storage-driver-options](https://docs.docker.com/engine/reference/commandline/dockerd/#storage-driver-options)。即使采用overlay2存储驱动，也可以借助xfs的pquota特性，为容器rw层做限制。
 > overlay2.size
 >
 > Sets the default max size of the container. It is supported only when the backing fs is xfs and mounted with pquota mount option. Under these conditions the user can pass any size less then the backing fs size.
 
 更进一步，通过`xfs`文件系统的`pquota`属性，可以实现文件夹级别的存储配额限制。
+
+### 容器可读可写层用量统计
+```bash
+# 进入overlay的数据目录
+cd /var/lib/containers/storage/overlay
+# 统计容器可读可写层新增文件大小统计排序
+for d in $(find . -name "diff"  -type d -maxdepth 2 2>/dev/null); do du -sh $d 2>/dev/null; done | grep -v ^0  | grep -v K | sort -n
+```
+
+### 根据overlay数据目录digest反查容器/镜像
+```bash
+for cid in $(crictl ps -a -q ); do echo $cid; crictl inspect $cid | grep </var/lib/containers/storage/overlay文件夹下的目录>; done
+for cid in $(podman ps -aq); do echo $cid; podman inspect $cid | grep </var/lib/containers/storage/overlay文件夹下的目录>; done
+for iid in $(crictl img | sed 1d | awk '{print $3}'); do echo $iid; crictl inspecti $iid | grep </var/lib/containers/storage/overlay文件夹下的目录>; done
+
+```
 
 ## 宿主机上直接修改容器内文件
 

@@ -494,7 +494,7 @@ set -- "$@" --init-file="$tempSqlFile"
 
 
 
-#### 日志输出：
+#### 日志输出
 
 ```bash
 function log_print()
@@ -1026,6 +1026,11 @@ volumes:
       grep "etcd_disk_backend_commit_duration_seconds\|etcd_disk_wal_fsync_duration_seconds\|etcd_network_peer_round_trip_time_seconds_bucket\|etcd_server_leader"
   etcd_curl https://$(hostname):2379/metrics | \
       grep "etcd_disk_backend_commit_duration_seconds\|etcd_disk_wal_fsync_duration_seconds\|etcd_network_peer_round_trip_time_seconds_bucket\|etcd_server_leader"
+  ```
+
+* OpenShift中获取etcd关键指标
+  ```bash
+  alias etcd_metrics='curl -s --cacert /etc/kubernetes/static-pod-resources/etcd-certs/configmaps/etcd-serving-ca/ca-bundle.crt --key /etc/kubernetes/static-pod-resources/etcd-certs/secrets/etcd-all-certs/etcd-serving-$(hostname).key --cert /etc/kubernetes/static-pod-resources/etcd-certs/secrets/etcd-all-certs/etcd-serving-$(hostname).crt https://127.0.0.1:2379/metrics'
   ```
 
 ### 如何判断Disk性能满足Etcd运行要求
