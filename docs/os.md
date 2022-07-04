@@ -499,6 +499,8 @@ fs.inotify.max_user_watches = 1000000
 
 ### 找到谁在使用inotify instance资源
 
+instance（一个打开的文件句柄）由调用`inotify_init()`创建。
+
 ```bash
 # 查看inotify打开文件数
 lsof 2>/dev/null | grep inotify -c
@@ -520,13 +522,38 @@ find /proc/*/fd/* -type l -lname 'anon_inode:inotify' -exec sh -c 'cat $(dirname
 
 ### 找到谁在使用inotify watch资源
 
-从代码看，watches的使用数量是统计到每个用户user（uid）的，因此无法找到是那个进程（线程）耗尽了inotify watch资源。
+watches由调用`inotify_add_watch()`创建。
+
+从代码看，watches的使用数量是统计到每个用户user（uid）的，因此无法找到是那个进程（线程）耗尽了inotify watch资源？？？
 详见Linux内核代码 `fs/notify/inotify/inotify_user.c`:
 
 ```c
 inotify_new_watch()
   atomic_inc(&group->inotify_data.user->inotify_watches);
 ```
+
+检查 `user.max_inotify_watches` ，默认65536。使用如下脚本，能够统计到各进程打开的watch资源数：
+```bash
+#!/usr/bin/env bash
+#
+# Copyright 2019 (c) roc
+#
+# This script shows processes holding the inotify fd, alone with HOW MANY directories each inotify fd watches(0 will be ignored).
+total=0
+result="EXE PID FD-INFO INOTIFY-WATCHES\n"
+while read pid fd; do \
+  exe="$(readlink -f /proc/$pid/exe || echo n/a)"; \
+  fdinfo="/proc/$pid/fdinfo/$fd" ; \
+  count="$(grep -c inotify "$fdinfo" || true)"; \
+  if [ $((count)) != 0 ]; then
+    total=$((total+count)); \
+    result+="$exe $pid $fdinfo $count\n"; \
+  fi
+done <<< "$(lsof +c 0 -n -P -u root|awk '/inotify$/ { gsub(/[urw]$/,"",$4); print $2" "$4 }')" && echo "total $total inotify watches" && result="$(echo -e $result|column -t)\n" && echo -e "$result" | head -1 && echo -e "$result" | sed "1d" | sort -k 4rn;
+
+```
+关键信息来自`/proc/$pid/fdinfo/$fd`。
+
 
 ### inotify-tools
 

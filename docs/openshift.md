@@ -22,7 +22,22 @@
 
 # 常用操作
 ```bash
-#
+## 修改kube-controller-manager配置
+# 编辑kubecontrollermanager.operator.openshift.io/cluster，
+# 参考observedConfig，增加unsupportedConfigOverrides字段，在extendedArguments中指定希望配置的参数
+spec:
+  observedConfig:
+    extendedArguments:
+      cluster-cidr:
+      - 10.0.0.0/14
+  unsupportedConfigOverrides:
+    extendedArguments:
+      node-monitor-grace-period:
+      - 15s
+  useMoreSecureServiceCA: true
+
+
+## 使用podman查看cri创建的pod
 podman ps --all --external
 podman ps --all --storage
 
