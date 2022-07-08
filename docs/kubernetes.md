@@ -614,6 +614,12 @@ curl -k https://127.0.0.1:10250/healthz --cacert /etc/kubernetes/pki/ca.crt --ce
 # kubelet的metrics
 curl -k https://127.0.0.1:10250/metrics --cacert /etc/kubernetes/pki/ca.crt --cert /etc/kubernetes/pki/apiserver-kubelet-client.crt --key /etc/kubernetes/pki/apiserver-kubelet-client.key
 
+/metrics
+/metrics/cadvisor
+/metrics/probes
+
+/metrics/resource
+
 ```
 
 ## 堆栈文件分析

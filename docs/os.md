@@ -2178,19 +2178,13 @@ wget -O /etc/yum.repos.d/CentOS-Base.repo https://mirrors.aliyun.com/repo/Centos
 ```
 [appstream]
 name=local-yum
-baseurl=file:///mnt/etc/yum/x86_64/AppStream/
+baseurl=file:///mnt/AppStream/
 enabled=1
 gpgcheck=0
 
 [base]
 name=local-yum-base
-baseurl=file:///mnt/etc/yum/x86_64/BaseOS/
-enabled=1
-gpgcheck=0
-
-[deploy]
-name=local-yum-deploy
-baseurl=file:///mnt/etc/yum/x86_64/Deploy/
+baseurl=file:///mnt/BaseOS/
 enabled=1
 gpgcheck=0
 
