@@ -23,6 +23,16 @@
 
 # 常用操作
 
+## 避免1.17的编译注释被自动修改
+```bash
+for s in $(git status | grep modified | awk '{print $2}'); do
+    c=$(head -n1 $s | grep "^//go:build" -c)
+    if [ $c -eq 1 ]; then
+        sed -i '1d' $s
+    fi
+done
+```
+
 ```bash
 # 编译静态链接的可执行文件
 CGO_ENABLED=0 go build -o harbor_ui github.com/vmware/harbor/src/ui

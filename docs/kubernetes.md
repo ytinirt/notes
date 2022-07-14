@@ -934,3 +934,6 @@ docker run -it --privileged \
 export KUBE_BUILD_PLATFORMS=linux/amd64
 make WHAT=cmd/kubelet GOLDFLAGS=""
 ```
+
+# 备忘
+`kube-controller-manager`的默认配置在`kubernetes/pkg/controller/apis/config/v1alpha1/zz_generated.defaults.go`中`SetDefaults_KubeControllerManagerConfiguration()`设置。
