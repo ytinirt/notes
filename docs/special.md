@@ -744,6 +744,17 @@ curl -H "Content-Type:application/json-patch+json" --request PATCH "http://127.0
 
 参见[jsonpatch](http://jsonpatch.com)。
 
+### jq实操
+
+#### 查询k8s的events
+```bash
+# 出现次数排序
+kubectl get event -A -o json | jq '.items[] | select(.count != null) | select(.firstTimestamp != null) | select(.lastTimestamp != null) | (.count | tostring) + " " + (.metadata.name) + " " + (.firstTimestamp) + " " + (.lastTimestamp)' -r | sort -n
+
+# 出现时间排序
+kubectl get event -A -o json | jq '.items[] | select(.count != null) | select(.firstTimestamp != null) | select(.lastTimestamp != null) | (.firstTimestamp) + " " +(.count | tostring) + " " + (.metadata.name) + " "  + (.lastTimestamp)' -r | sort -r
+```
+
 ### 常用操作
 
 使用jq格式化输出
