@@ -617,6 +617,10 @@ function pid2pod {
 
 
 # CRI-O
+```bash
+# 查看当前生效的配置
+crio-status config  | grep -i pid
+```
 
 # podman
 ## 常用命令

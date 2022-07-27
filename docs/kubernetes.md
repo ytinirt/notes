@@ -935,5 +935,11 @@ export KUBE_BUILD_PLATFORMS=linux/amd64
 make WHAT=cmd/kubelet GOLDFLAGS=""
 ```
 
+## 获取k8s控制面组件指标
+```bash
+# 从kubeconfig里拿ca.crt user.crt user.key
+curl --cacert ./ca.crt --cert ./user.crt --key ./user.key https://x.x.x.x:10257/metrics -k
+```
+
 # 备忘
 `kube-controller-manager`的默认配置在`kubernetes/pkg/controller/apis/config/v1alpha1/zz_generated.defaults.go`中`SetDefaults_KubeControllerManagerConfiguration()`设置。
