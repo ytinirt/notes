@@ -2639,6 +2639,36 @@ pidstat -p <pid> -r 1 10
 ### iftop
 监控网络接口
 
+### sar
+
+#### 使能和配置sar
+```bash
+# 安装并使能sysstat服务，开启sar
+dnf install sysstat
+systemctl enable sysstat.service
+systemctl start sysstat.service
+
+# 将sar相关采集程序的执行频率由10分钟修改为2分钟
+PROCESS_FILE=/usr/lib/systemd/system/sysstat-collect.timer; grep '^OnCalendar=\*:00/10$' $PROCESS_FILE; if [ $? -ne 0 ]; then echo 'Modified, do nothing'; else echo 'Default, change 10 min to 1 min'; sed -i 's|^OnCalendar=\*:00/10$|OnCalendar=\*:00/1|' $PROCESS_FILE; fi
+systemctl daemon-reload
+systemctl restart sysstat-collect.timer
+systemctl status sysstat-collect.timer
+```
+
+#### 操作实例
+```bash
+#查看内存使用情况（不包括swap）来自package: pcp-import-sar2pcp
+sar -r 3
+#查看CPU消耗情况
+sar -u 3
+#查看CPU load，可以查看到历史CPU/系统负载
+sar -q 3
+#查看网络统计信息
+sar -n ALL
+#关键字包括：DEV 网络设备信息；NFS 客户端统计信息；NFSD 服务端统计信息；SOCK 套接字信息；IP ipv4流量信息；ICMP；TCP；UDP...
+sar -n keyword [,...]
+```
+
 ### 常用命令
 
 ```bash
@@ -2708,11 +2738,6 @@ iotop               #监控磁盘IO操作
 ps -eo min_flt,maj_flt,cmd,pid    #查看 page faults 统计信息，有Minor、Major、Invalid三种 page faults类型
 slabtop -s c        #查看slabinfo信息
 pmstat              #查看系统全局性能  high-level system performance overview
-sar -r 3            #查看内存使用情况（不包括swap）来自package: pcp-import-sar2pcp
-sar -u 3            #查看CPU消耗情况
-sar -q 3            #查看CPU load，可以查看到历史CPU/系统负载
-sar -n ALL          #查看网络统计信息
-sar -n keyword [,...] #关键字包括：DEV 网络设备信息；NFS 客户端统计信息；NFSD 服务端统计信息；SOCK 套接字信息；IP ipv4流量信息；ICMP；TCP；UDP...
 watch -d more /proc/net/dev    #定位丢包情况
 cat /proc/net/snmp  #查看和分析240秒内网络包量、流量、错包、丢包，重传率时RetransSegs/OutSegs
 dig @127.0.0.1 -4 masternode  #查看域名解析地址，其中指定server为127.0.0.1，且仅查询A记录（ipv4）
