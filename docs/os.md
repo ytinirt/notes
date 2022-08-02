@@ -1717,6 +1717,10 @@ systemctl stop firewalld
 systemctl disable firewalld
 ```
 
+### 通过客户端访问samba服务器
+```bash
+smbclient -c "get path/to/file file" '//samba.foo.bar/workdir/' -U 'user%password'
+```
 
 
 ## NFS
