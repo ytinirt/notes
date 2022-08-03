@@ -2503,10 +2503,17 @@ alt + 9745
 ```
 
 ### Chrome因证书问题打不开页面
+chrome浏览器访问https页面，如果遇到无法访问，提示“因为此网站使用了HSTS”...，可以采用如下几种方式。
+
+#### 直接敲thisisunsafe
 在页面直接敲`thisisunsafe`。
 
 或在 [页面](chrome://net-internals/#hsts) 配置。
 
 参见[链接](https://blog.csdn.net/Angel_guoo/article/details/122432809) 。
 
+#### 管理HSTS
+管理HSTS：
+1. 打开 `chrome://net-internals/#hsts` 页面
+2. 在 【Delete domain security policies】 栏，输入被block的页面的域名，然后点击`Delete`
 
