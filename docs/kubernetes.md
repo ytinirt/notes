@@ -528,6 +528,16 @@ kubectl config use-context john
 # 操作实例
 
 ## 便捷操作
+* 找到master节点
+  ```bash
+  kubectl get node -l node-role.kubernetes.io/master= -o json | jq '.items[].status.addresses[] | select(.type == "InternalIP") | .address' -r
+  ```
+
+* 找到worker节点，且不是master节点
+  ```bash
+  kubectl get node -l node-role.kubernetes.io/worker= -l node-role.kubernetes.io/master!= -o json | jq '.items[].status.addresses[] | select(.type == "InternalIP") | .address' -r
+  ```
+
 * 常用操作别名
   ```bash
   alias pod='kubectl get pod -o wide -A'
