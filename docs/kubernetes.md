@@ -570,6 +570,10 @@ kubectl config use-context john
   }
   ```
 
+## 获取openapi json
+```bash
+kubectl get --raw /openapi/v2 | jq > openapi.json
+```
 
 ## 从secret中获取证书信息
 ```bash

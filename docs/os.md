@@ -1719,7 +1719,7 @@ systemctl disable firewalld
 
 ### 通过客户端访问samba服务器
 ```bash
-smbclient -c "get path/to/file file" '//samba.foo.bar/workdir/' -U 'user%password'
+smbclient -c "get remote/path/to/file local/path/to/file" '//samba.foo.bar/workdir/' -U 'user%password'
 ```
 
 
@@ -2824,6 +2824,8 @@ fuser -v -n tcp 80
 #查看所有连接及其pid
 netstat -anp
 netstat -aonp
+
+netstat -ptn | grep 10257
 ```
 
 
@@ -2832,6 +2834,9 @@ netstat -aonp
 常用操作：
 
 ```bash
+# 连接和端口打开信息
+ss -Htanop \( sport = 10257 \)
+
 #查看TCP已连接数
 ss state ESTABLISHED
 ss -s
