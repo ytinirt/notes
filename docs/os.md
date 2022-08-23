@@ -606,12 +606,13 @@ net.ipv4.ip_local_reserved_ports = 35357,12345
 | 类型 | 参数 | 默认值 | 优化 | 说明 |
 | --- | ---  |  ---- | ---- | ---- |
 | sysctl | net.ipv4.tcp_syncookies  |  ---- | ---- | 开启SYN Cookies，当出现SYN等待队列溢出时，启用cookies来处理 |
+| sysctl | net.ipv4.tcp_retries2  |  15 | 8 | TCP报文重传次数，当发送报文后没有收到ACK，就会触发重传。注意其采用指数回退，每次重试间隔都是上次的两倍。参见[文章](https://pracucci.com/linux-tcp-rto-min-max-and-tcp-retries2.html) |
 | sysctl | net.ipv4.tcp_tw_reuse  |  ---- | ---- | 开启重用，允许将TIME-WAIT sockets重新用于新的TCP连接 |
 | sysctl | net.ipv4.tcp_tw_recycle<br>net.ipv4.tcp_timestamps  |  ---- | ---- | 开启TCP连接中TIME-WAIT sockets的快速回收，已被net.ipv4.tcp_tw_reuse取代 |
 | sysctl | net.ipv4.tcp_fin_timeout  |  ---- | ---- | xxx超时时间 |
-| sysctl | net.ipv4.tcp_keepalive_time  |  ---- | ---- | 优化keepalive 起用的时候，TCP 发送keepalive 消息的频度 |
-| sysctl | net.ipv4.tcp_keepalive_intvl  |  ---- | ---- | 优化keepalive 起用的时候，探测时发探测包的时间间隔值 |
-| sysctl | net.ipv4.tcp_keepalive_probes  |  ---- | ---- | 优化keepalive 起用的时候，探测重试的次数值. 全部超时则认定连接失效 |
+| sysctl | net.ipv4.tcp_keepalive_time  |  30 | 30 | 优化keepalive 起用的时候，TCP 发送keepalive 消息的频度 |
+| sysctl | net.ipv4.tcp_keepalive_intvl  |  30 | 30 | 优化keepalive 起用的时候，探测时发探测包的时间间隔值 |
+| sysctl | net.ipv4.tcp_keepalive_probes  |  9 | 5 | 优化keepalive 起用的时候，探测重试的次数值. 全部超时则认定连接失效 |
 | sysctl | net.ipv4.tcp_max_tw_buckets  |  ---- | ---- | 优化系统同时保持TIME_WAIT的最大数量 |
 | sysctl | net.ipv4.tcp_max_syn_backlog  |  ---- | ---- | 增大socket监听backlog上限 |
 | sysctl | net.ipv4.tcp_synack_retries  |  ---- | ---- | ---- |
