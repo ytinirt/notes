@@ -1236,9 +1236,9 @@ w
 ```
 
 操作实例（xfs文件系统）：
-* fdisk为分区扩容
+* fdisk为分区扩容<br>
   ![img.png](../images/fdisk-extend-partition.png)
-* xfs_growfs为文件系统扩容（fdisk仅完成分区的扩容，文件系统还需操作扩容）
+* xfs_growfs为文件系统扩容（fdisk仅完成分区的扩容，文件系统还需操作扩容）<br>
   ![img.png](../images/xfs_growfs.png)
 
 ### 使用sgdisk操作GPT
