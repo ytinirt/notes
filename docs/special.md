@@ -44,6 +44,8 @@
             * [简单示例](#简单示例)
             * [实用例子](#实用例子)
             * [操作说明](#操作说明)
+         * [jq实操](#jq实操)
+            * [查询k8s的events](#查询k8s的events)
          * [常用操作](#常用操作-2)
       * [base64](#base64)
       * [Helm](#helm)
@@ -165,8 +167,10 @@
          * [Azure镜像源](#azure镜像源)
          * [Office Word中打钩](#office-word中打钩)
          * [Chrome因证书问题打不开页面](#chrome因证书问题打不开页面)
+            * [直接敲thisisunsafe](#直接敲thisisunsafe)
+            * [管理HSTS](#管理hsts)
 
-<!-- Added by: admin, at: Fri Jul  1 15:23:43     2022 -->
+<!-- Added by: admin, at: Sun Aug 28 09:28:50     2022 -->
 
 <!--te-->
 

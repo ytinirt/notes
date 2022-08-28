@@ -74,6 +74,7 @@
          * [使用storcli查看存储信息](#使用storcli查看存储信息)
          * [使用lshw查看磁盘硬件信息](#使用lshw查看磁盘硬件信息)
          * [使用fdisk操作MBR](#使用fdisk操作mbr)
+         * [使用fdisk为分区扩容](#使用fdisk为分区扩容)
          * [使用sgdisk操作GPT](#使用sgdisk操作gpt)
       * [lvm和devicemapper](#lvm和devicemapper)
          * [常用命令](#常用命令-1)
@@ -92,6 +93,7 @@
          * [配额管理](#配额管理)
          * [常用操作](#常用操作-4)
       * [samba](#samba)
+         * [通过客户端访问samba服务器](#通过客户端访问samba服务器)
       * [NFS](#nfs)
          * [搭建NFS测试环境](#搭建nfs测试环境)
          * [nfs问题定位手段](#nfs问题定位手段)
@@ -148,6 +150,9 @@
          * [mpstat](#mpstat)
          * [pidstat](#pidstat)
          * [iftop](#iftop)
+         * [sar](#sar)
+            * [使能和配置sar](#使能和配置sar)
+            * [操作实例](#操作实例)
          * [常用命令](#常用命令-2)
          * [打开文件数](#打开文件数)
          * [lsof（文件和设备）](#lsof文件和设备)
@@ -194,7 +199,7 @@
          * [使用journalctl查看日志](#使用journalctl查看日志)
       * [其它技巧](#其它技巧)
 
-<!-- Added by: admin, at: Fri Jul  1 15:23:39     2022 -->
+<!-- Added by: admin, at: Sun Aug 28 09:28:46     2022 -->
 
 <!--te-->
 
@@ -1202,6 +1207,39 @@ lshw -C disk
 ```
 
 ### 使用fdisk操作MBR
+
+### 使用fdisk为分区扩容
+参考[文档](https://access.redhat.com/articles/1190213) 。
+* **注意**，仅支持**最后一个分区**的扩容。
+* **注意**，操作有风险，必要时请备份关键数据。
+* **注意**，操作删除**最后一个分区**前，请记录其`First sector`和`Last sector`信息。
+
+具体操作如下：
+```bash
+# 选取需要操作的disk
+fdisk /dev/sdx
+
+# 敲d和回车，删除最后一个分区，注意，这里仅删除分区信息，后面会恢复并实现扩容
+d
+
+# 敲n和回车，重建最后一个分区
+n
+# 敲回车，直接使用默认的分区号，即之前被删除的最后一个分区的id
+# 敲回车，使用默认的起始sector，【注意】若此前最后一个分区的起始sector同这里默认的不同，请确保输入相同的sector
+# 敲回车，使用默认的终止sector即可
+
+# 【注意】若提示是否删除文件系统的指纹信息（例如xfs signature），一定选择No，敲No和回车
+No
+
+# 敲w和回车，保存上述修改
+w
+```
+
+操作实例（xfs文件系统）：
+* fdisk为分区扩容
+  ![img.png](../images/fdisk-extend-partition.png)
+* xfs_growfs为文件系统扩容（fdisk仅完成分区的扩容，文件系统还需操作扩容）
+  ![img.png](../images/xfs_growfs.png)
 
 ### 使用sgdisk操作GPT
 ```bash

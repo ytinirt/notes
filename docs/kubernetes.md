@@ -29,6 +29,7 @@
             * [如何创建一个证书用户](#如何创建一个证书用户)
    * [操作实例](#操作实例)
       * [便捷操作](#便捷操作)
+      * [获取openapi json](#获取openapi-json)
       * [从secret中获取证书信息](#从secret中获取证书信息)
       * [从KubeConfig文件中提取证书秘钥](#从kubeconfig文件中提取证书秘钥)
       * [debug和问题解决](#debug和问题解决)
@@ -43,8 +44,10 @@
       * [emptyDir在宿主机上的路径](#emptydir在宿主机上的路径)
       * [FC存储多路径的PV配置](#fc存储多路径的pv配置)
       * [编译kubelet](#编译kubelet)
+      * [获取k8s控制面组件指标](#获取k8s控制面组件指标)
+   * [备忘](#备忘)
 
-<!-- Added by: admin, at: Fri Jul  1 15:23:32     2022 -->
+<!-- Added by: admin, at: Sun Aug 28 09:28:40     2022 -->
 
 <!--te-->
 
