@@ -3612,6 +3612,12 @@ nmap -sU -oG - -p 623 10.0.0.0/24
 ```
 
 
+使用`nmap`扫描tls加密套件：
+```bash
+nmap --script ssl-enum-ciphers -p 6443 127.0.0.1
+```
+
+
 使用`ipmitool`获取服务器信息：
 ```bash
 # 获取FRU设备信息
