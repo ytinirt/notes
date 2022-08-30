@@ -575,6 +575,11 @@ cat /var/log/pods/kube-system_apiserver-proxy-xxx/nginx/0.log
 
 # 查看容器指标信息，例如cpu、内存开销
 ctr -n k8s.io t metric <cid>
+
+# 挂载镜像
+ctr -n k8s.io i mount centos:8 /mnt
+# 解除挂载
+ctr -n k8s.io i unmount /mnt
 ```
 
 ## 如何编译containerd
