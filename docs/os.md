@@ -645,12 +645,14 @@ net.ipv4.ip_local_reserved_ports = 35357,12345
 | sysctl | kernel.msgmnb<br>kernel.msgmax  |  ---- | ---- | ---- |
 | sysctl | kernel.shmmax<br>kernel.shmall  |  ---- | ---- | ---- |
 | sysctl | net.ipv4.ip_local_port_range<br>net.ipv4.ip_local_reserved_ports  |  ---- | ---- | ---- |
+| sysctl | fs.aio-max-nr  |  ---- | ---- | ---- |
 | sysctl | fs.file-max  |  ---- | ---- | ---- |
 | sysctl | fs.inotify.max_user_instances  |  ---- | ---- | ---- |
-| sysctl | vm.swappiness  |  ---- | ---- | ---- |
+| sysctl | vm.min_free_kbytes  |  67584 | 2097152 | 系统最小预留内存，频繁使用内存、cache内存占用量大的环境，建议增大系统预留内存 |
 | sysctl | vm.overcommit_memory  |  ---- | ---- | ---- |
+| sysctl | vm.swappiness  |  ---- | ---- | ---- |
 | sysctl | net.core.somaxconn  |  ---- | ---- | ---- |
-| sysctl | net.netfilter.nf_conntrack_tcp_be_liberal  |  ---- | ---- | ---- |
+| sysctl | net.netfilter.nf_conntrack_tcp_be_liberal  |  0 | 1 | https://kubernetes.io/blog/2019/03/29/kube-proxy-subtleties-debugging-an-intermittent-connection-reset/ |
 | limits | nofile  |  ---- | ---- | ---- |
 
 

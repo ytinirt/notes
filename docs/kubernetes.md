@@ -697,8 +697,8 @@ kubectl get namespaces -o jsonpath='{.items[*].metadata.name}'
 kubectl get pod -A --field-selector spec.nodeName=zy-sno
 # go template示例
 kubectl get ns -o jsonpath='{range .items[*]} {.metadata.name}{"\n"} {end}'
-kubectl get pod --all-namespaces --field-selector spec.nodeName=$(hostname) -o jsonpath='{range .items[?(.spec.dnsPolicy=="Default")]}{.metadata.namespace}{"/"}{.metadata.name}{"\n"}{end}'
-kubectl get pod --all-namespaces --field-selector spec.nodeName=$(hostname) -o jsonpath='{range .items[?(.spec.hostNetwork==true)]}{.metadata.namespace}{"/"}{.metadata.name}{"\n"}{end}'
+kubectl get pod -A --field-selector spec.nodeName=$(hostname) -o jsonpath='{range .items[?(.spec.dnsPolicy=="Default")]}{.metadata.namespace}{"/"}{.metadata.name}{"\n"}{end}'
+kubectl get pod -A --field-selector spec.nodeName=$(hostname) -o jsonpath='{range .items[?(.spec.hostNetwork==true)]}{.metadata.namespace}{"/"}{.metadata.name}{"\n"}{end}'
 kubectl get nodes --selector='node-role.kubernetes.io/master' -o jsonpath='{.items[0].status.conditions[?(@.type=="Ready")].status}'
 kubectl get pod -o jsonpath='{.spec.containers[?(@.name=="dns")].image}'
 kubectl get pod -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}'
@@ -732,6 +732,8 @@ kubectl get events
 kubectl get events --field-selector type=Warning
 # 过滤查看异常类型的事件
 kubectl get events --field-selector type!=Normal
+# 格式化输出event
+kubectl get event -A --sort-by=.firstTimestamp -o=custom-columns=NS:.metadata.namespace,NAME:.metadata.name,FirstSeen:.firstTimestamp,LastSeen:.lastTimestamp,REASON:.reason
 # 过滤查看某个pod的事件
 kubectl get event --namespace ns --field-selector involvedObject.kind=Pod --field-selector involvedObject.name=xxx-yyy
 curl  -s 'http://1.2.3.4:8080/api/v1/namespaces/default/pods?labelSelector=app=rabbitmq,node=n2' | jq '.items[].metadata.name' | tr -d '"'

@@ -613,7 +613,12 @@ function pid2pod {
         crictl inspect ${cid} | jq -r '.status.labels["io.kubernetes.pod.namespace"]+" "+.status.labels["io.kubernetes.pod.name"]' 2>/dev/null
       fi
     else
-      ctr -n k8s.io c info ${cid} 2>/dev/null | jq -r '.Labels["io.kubernetes.pod.namespace"]+" "+.Labels["io.kubernetes.pod.name"]' 2>/dev/null
+      result=$(ctr -n k8s.io c info ${cid} 2>/dev/null | jq -r '.Labels["io.kubernetes.pod.namespace"]+" "+.Labels["io.kubernetes.pod.name"]' 2>/dev/null)
+      if [ "${result}" != "" ]; then
+        echo "${result}"
+      else
+        ctr c ls | grep ${cid} | awk '{print $2}' 2>/dev/null
+      fi
     fi
   fi
 }
