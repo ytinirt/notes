@@ -2654,6 +2654,13 @@ docker run -d -m 100M --rm polinux/stress stress  --vm 1 --vm-bytes 128M --vm-ke
 ```
 
 
+### messages日志统计
+#### 既有日志统计
+```bash
+cat messages | cut -c1-12 | uniq -c
+```
+
+
 ## 主机资源监控
 
 ### vmstat

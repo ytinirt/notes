@@ -817,6 +817,15 @@ admin
 ```
 
 
+## butane
+```bash
+alias butane='docker run --rm --interactive         \
+                 --security-opt label=disable          \
+                 --volume "${PWD}":/pwd --workdir /pwd \
+                  quay.io/coreos/butane:release'
+```
+
+
 ## Helm
 
 入门参考 [How to make a Helm chart in 10 minutes](https://opensource.com/article/20/5/helm-charts)
@@ -1051,6 +1060,7 @@ volumes:
 * OpenShift中获取etcd关键指标
   ```bash
   alias etcd_metrics='curl -s --cacert /etc/kubernetes/static-pod-resources/etcd-certs/configmaps/etcd-serving-ca/ca-bundle.crt --key /etc/kubernetes/static-pod-resources/etcd-certs/secrets/etcd-all-certs/etcd-serving-$(hostname).key --cert /etc/kubernetes/static-pod-resources/etcd-certs/secrets/etcd-all-certs/etcd-serving-$(hostname).crt https://127.0.0.1:2379/metrics'
+  etcd_metrics | egrep "backend_commit_d|wal_fsync_d|leader_changes|quota|etcd_mvcc_db_total_size"
   ```
 
 ### 如何判断Disk性能满足Etcd运行要求
