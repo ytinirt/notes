@@ -531,6 +531,11 @@ kubectl config use-context john
 # 操作实例
 
 ## 便捷操作
+* 清理`Completed`状态的Pod
+  ```bash
+  kubectl delete pod --field-selector=status.phase==Succeeded --all-namespaces
+  ```
+
 * 找到master节点
   ```bash
   kubectl get node -l node-role.kubernetes.io/master= -o json | jq '.items[].status.addresses[] | select(.type == "InternalIP") | .address' -r

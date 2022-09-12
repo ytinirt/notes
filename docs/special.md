@@ -194,6 +194,9 @@ source /etc/bash_completion.d/git
 ### 常用操作
 
 ```bash
+# 撤销add的修改
+git reset --mixed
+
 ## 将github上的项目搬运到gitlab
 git remote rename origin old-origin
 git remote add origin git@gitlab.x.y:path/to/project.git

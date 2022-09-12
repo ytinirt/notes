@@ -2577,6 +2577,7 @@ iperf3 -c <serverIP>  -t 30   -b 100M  -P 4
 #### iostat判断io瓶颈
 间隔两秒看cpu util，如果到70%左右性能就会有明显影响：
 ```bash
+# 查看cpu和硬盘io信息，关注await和iowait的CPU占比
 iostat -xz 2
 ```
 
@@ -2783,8 +2784,6 @@ cat /proc/meminfo
     DirectMap2M:     5994496 kB
     DirectMap1G:    96468992 kB
 ifstat
-iostat -x -k -d 1   #查看I/O详细信息
-iostat -x           #查看系统各个磁盘的读写性能，关注await和iowait的CPU占比
 time python -c "2**1000000000"  # CPU性能
 iotop               #监控磁盘IO操作
 ps -eo min_flt,maj_flt,cmd,pid    #查看 page faults 统计信息，有Minor、Major、Invalid三种 page faults类型
@@ -2797,7 +2796,6 @@ dig @127.0.0.1 -4 masternode  #查看域名解析地址，其中指定server为1
 dig @<nameserver_ip> api.ocp4.ytinirt.cn
 # 反向解析
 dig @<nameserver_ip> -x 1.2.3.4
-iostat -x 1         # 查看cpu和硬盘io信息
 dstat               # 查看CPU、MEM、硬盘io信息
 dstat --aio --io --disk --tcp --top-io-adv --top-bio-adv
 dstat -m --top-mem  # 查看内存占用最多者
