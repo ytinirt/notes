@@ -3632,6 +3632,12 @@ ipmitool -I lanplus -H $ip -U $username -P $password fru
 
 # 获取网卡信息
 ipmitool -I lanplus -H $ip -U $username -P $password lan print
+
+# 服务器硬件信息（例如硬件报错）
+ipmitool sel list
+
+# 获取BMC登录信息
+ipmitool lan print
 ```
 
 
