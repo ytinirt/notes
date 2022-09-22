@@ -191,6 +191,17 @@
 source /etc/bash_completion.d/git
 ```
 
+### 从一个仓库pull然后push到另一个仓库
+参见[链接](https://stackoverflow.com/questions/4523496/is-it-possible-to-pull-from-one-repo-and-push-to-other-one) .
+```bash
+# 从一个仓库pull下载
+git pull
+# 修改push的仓库路径
+git remote set-url --push origin git@example.com:another-repo.git
+# push到另一个仓库
+git push
+```
+
 ### 常用操作
 
 ```bash
