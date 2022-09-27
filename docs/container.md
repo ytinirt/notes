@@ -745,9 +745,6 @@ docker run -it --name test --net container:1a9bfd40505e --entrypoint=/usr/bin/sh
 docker run -it --name test --net=host openstack-keystone:D1101 bash
 docker rm -f $(docker ps | grep haproxy | awk '{print $1}')
 docker run -it --net=host centos:base bash     # 共享HOST网络
-docker export $(docker create busybox:1.0.0) > busybox.tar # 提取镜像的rootfs文件
-mkdir rootfs                                               # 提取镜像的rootfs文件
-tar -C rootfs -xf busybox.tar                              # 提取镜像的rootfs文件
 docker stats --no-stream   # 查看容器状态、资源使用情况
 docker run -d -p 881 -v /root/sample/website:/var/www/html/website:rw --privileged=true test-img:1.0 nginx # 映射时需要加--privileged=true防止没有权限
 docker attach xxxx    # 绑定到容器的stdio
@@ -760,6 +757,14 @@ docker info -f '{{json .}}' | jq  #  格式化输出
 docker load --input images.tar.gz
 docker save myimage:latest | gzip > myimage_latest.tar.gz
 curl -v -X POST http://<ip>:2375/v1.26/images/load -T xxx.tar    #  调用docker接口load容器镜像
+```
+
+
+### 提取镜像rootfs文件
+```bash
+docker export $(docker create busybox:1.0.0) > busybox.tar
+mkdir rootfs
+tar -C rootfs -xf busybox.tar
 ```
 
 
