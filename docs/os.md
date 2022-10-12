@@ -229,6 +229,12 @@ root        12     2  0 Feb02 ?        00:00:14 [migration/1]
 	kernel.msgmni
 	kernel.sem
 
+# 用来查看系统间通信队列列表
+ipcs -q
+
+# 用来创建系统间通信队列
+ipcmk -Q
+
 cat /proc/sys/kernel/sem
 echo 250 32000 100 128 > /proc/sys/kernel/sem
 ipcs -ls
@@ -665,6 +671,7 @@ busctl
 
 
 ## PCI设备
+### 获取PCI设备信息
 从如下位置获取pci设备（id）信息
 ```
 /sys/bus/pci/devices/<device>/class
@@ -673,6 +680,10 @@ busctl
 参见[node-feature-discovery如何获取PCI设备信息](https://github.com/kubernetes-sigs/node-feature-discovery/blob/master/source/pci/pci.go)
 
 
+### 重新扫描PCI设备
+```bash
+echo 1 > /sys/bus/pci/rescan
+```
 
 # Systemd
 
