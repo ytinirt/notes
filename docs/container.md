@@ -100,6 +100,27 @@ cgroup实现本质上是给系统进程挂上hooks，当task运行过程中涉�
 | perf_event | 对cgroup中的task进行统一的性能测试                           |
 | hugetlb    | TODO                                                         |
 
+### cpu和cpuacct cgroup
+| 配置 | 说明 |
+| --- | --- |
+| cpu.cfs_burst_us |  |
+| cpu.cfs_period_us | cfs周期，单位微秒，默认值100000 |
+| cpu.cfs_quota_us | 用以配置在当前cfs周期下能够获取的调度配额，单位微秒，如果给95%个核则配置95000，如果给5个核则配置500000，默认值-1表示不受限 |
+| cpu.shares | 各cgroup共享cpu的权重值，默认1024，闲时cpu用量能超过根据权重计算的共享比例，忙时根据共享比例分配cpu资源 |
+| cpu.stat | **nr_periods**, 表示过去了多少个cpu.cfs_period_us里面配置的时间周期<br>**nr_throttled**, 在上面的这些周期中，有多少次是受到了限制（即cgroup中的进程在指定的时间周期中用光了它的配额）<br>**throttled_time**, cgroup中的进程被限制使用CPU持续了多长时间(纳秒) |
+| cpu.idle |  |
+| cpuacct.usage | 所有cpu核的累加使用时间(nanoseconds)  |
+| cpuacct.usage_percpu | 针对多核，输出的是每个CPU的使用时间(nanoseconds)  |
+| cpuacct.stat | 输出系统（system/kernel mode）耗时和用户（user mode）耗时，单位为USER_HZ。 |
+
+`cpu.shares`用于设置下限，在cpu繁忙时生效。`cpu.cfs_period_us`和`cpu.cfs_quota_us`设置硬上限。
+
+参见：
+- [限制cgroup的CPU使用（subsystem之cpu）](https://segmentfault.com/a/1190000008323952)
+- [CFS Bandwidth Control](https://www.kernel.org/doc/Documentation/scheduler/sched-bwc.txt)
+- [Linux cgroup资源隔离各个击破之 - cpu隔离1](https://developer.aliyun.com/article/54483)
+- [CFS Scheduler](https://www.kernel.org/doc/Documentation/scheduler/sched-design-CFS.txt)
+
 ## 挂载cgroupfs
 
 以cpuset子系统为例：
