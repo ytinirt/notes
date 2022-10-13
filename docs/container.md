@@ -126,6 +126,12 @@ sudo grubby --update-kernel=ALL --args="systemd.unified_cgroup_hierarchy=0"
 
 ## 常用操作
 
+### 使用systemd管理cgroup
+```bash
+systemd-cgls   # 查看systemd cgroup的配置层级关系
+systemd-cgtop  # 基于cgroup，直接查看cpu和内存的使用情况
+```
+
 ```bash
 mount -t cgroup
 lssubsys -m
@@ -395,6 +401,8 @@ spec:
 
 注意，在add和drop时，去掉了前缀`CAP_`。
 
+进一步[阅读](https://cloud.redhat.com/blog/linux-capabilities-in-openshift) 。
+
 ## seccomp
 
 参考资料[seccomp](https://docs.docker.com/engine/security/seccomp)
@@ -630,6 +638,19 @@ function pid2pod {
 ```bash
 # 查看当前生效的配置
 crio-status config  | grep -i pid
+```
+
+## 指定seccomp profile
+```bash
+# /etc/crio/crio.conf
+[crio.runtime]
+seccomp_profile = "/etc/crio/seccomp.json"
+```
+
+通过配置空的`seccomp.json`文件，放开所有限制：
+```bash
+# cat /etc/crio/seccomp.json
+{}
 ```
 
 # podman

@@ -215,6 +215,21 @@ func main() {
 ```
 执行命令`go run http.go`启动服务。
 
+## 测试cpu性能
+```golang
+package main
+
+import "math/rand"
+
+func main() {
+        var c int
+        for i := 0; i < 1024 * 1024 * 1024; i++ {
+                c = rand.Int() * rand.Int()
+                c = c * rand.Int()
+        }
+}
+```
+
 ## 代码实例
 ```golang
 // 自定义排序方式

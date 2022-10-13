@@ -579,6 +579,16 @@ inotifywatch
 
 ### 典型操作
 
+#### cpu下线和上线
+```bash
+# offline
+echo 0 > /sys/devices/system/cpu/cpu2/online
+# online
+echo 1 > /sys/devices/system/cpu/cpu2/online
+```
+
+#### 其它
+
 设置浮动IP时，需要让haproxy监听非本地IP地址（即VIP地址），在
 ```bash
 /etc/sysctl.conf
