@@ -695,6 +695,12 @@ busctl
 echo 1 > /sys/bus/pci/rescan
 ```
 
+## 周边知识
+### vDSO机制
+`virtual dynamic share object`。
+
+[安全：人见人爱的vDSO机制，如今也靠不住了](https://cloud.tencent.com/developer/article/1073909)
+
 # Systemd
 
 常用操作
@@ -3447,6 +3453,13 @@ TODO
 ```bash
 cat /proc/<pid>/stack
 ```
+
+### objdump分析库和可执行文件
+```bash
+# 查看导出的符号表
+objdump -T vdso.so
+```
+
 
 ## 动态链接库管理
 

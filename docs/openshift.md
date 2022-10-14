@@ -21,6 +21,35 @@
 
 
 # 常用操作
+
+## 获取用户认证Token
+### 使用whoami获取Token
+```bash
+USER=user
+PASSWORD=passwd
+oc login -u ${USER} -p ${PASSWORD}
+oc whoami -t
+```
+
+### 获取OAuth用户的Token
+```bash
+USER=user
+PASSWORD=passwd
+OAUTH=$(oc get route oauth-openshift -n openshift-authentication -ojson | jq -r .spec.host)
+curl -sik "https://${OAUTH}/oauth/authorize?response_type=token&client_id=openshift-challenging-client" --user ${USER}:${PASSWORD} | grep -oP "access_token=\K[^&]*"
+```
+
+### 从ServiceAccount中获取Token
+```bash
+SA=user
+NS=test
+API=$(oc whoami --show-server)
+TOKEN=$(oc serviceaccounts get-token ${SA} -n ${NS})
+# 通过TOKEN查找user
+oc get user '~' --token=${TOKEN}
+curl -H "Authorization: Bearer ${TOKEN}" -X GET -k ${API}/apis
+```
+
 ```bash
 ## 修改kube-controller-manager配置
 # 编辑kubecontrollermanager.operator.openshift.io/cluster，
