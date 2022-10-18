@@ -1401,6 +1401,15 @@ tc qdisc add dev eth0 root netem loss 10% 50%
 
 ## Prometheus
 
+### 指标
+#### 内存
+##### 内存指标说明
+执行`kubectl top pod`命令得到的结果，并不是容器服务中`container_memory_usage_bytes`指标的内存使用量，而是指标`container_memory_working_set_bytes`的内存使用量，计算方式如下：
+* `container_memory_usage_bytes` = `container_memory_rss` + `container_memory_cache` + `kernel memory`
+* `container_memory_working_set_bytes` = `container_memory_usage_bytes` - `total_inactive_file`（未激活的匿名缓存页）
+* `container_memory_working_set_bytes`是容器真实使用的内存量，也是资源限制`limit`时的重启判断依据
+
+详见[为什么在容器、节点、Pod中得到的内存值不一致？](https://help.aliyun.com/document_detail/413870.html) 。
 
 ### promtool工具
 实例：
@@ -1409,7 +1418,38 @@ promtool debug all http://127.0.0.1:9090/
 ```
 
 
-### PromQL语句示例
+### PromQL
+
+#### Pod内存使用百分比
+```
+sum by(namespace, pod) (container_memory_working_set_bytes{job="kubelet"}) / sum by(namespace, pod) (container_spec_memory_limit_bytes{job="kubelet"})
+```
+
+#### Pod内各容器使用百分比
+```
+sum by(namespace, pod, container) (container_memory_working_set_bytes{job="kubelet"}) / sum by(namespace, pod, container) (container_spec_memory_limit_bytes{job="kubelet"})
+```
+
+#### CPU用量
+```
+sum (rate (container_cpu_usage_seconds_total{image!="", job="kubelet"}[5m])) by (namespace, pod, container)
+```
+
+cpu使用率，统计的过去5m历史值，这个百分比不能准确反应cpu是否够用。
+如果cpu资源不够用，更准去的应该是看throttle指标。
+
+TODO： throttle
+
+#### CPU使用率（同limit比较）
+```
+sum(rate(container_cpu_usage_seconds_total{image!="", job="kubelet"}[5m]) * 100000) by (namespace, pod, container) / sum(container_spec_cpu_quota{image!="", job="kubelet"}) by (namespace, pod, container)
+```
+
+注意：
+* 如果没有设置cpu limit，那么就没有这个container_spec_cpu_quota，进而看不到cpu使用率（百分比）
+* TODO: 为什么是乘以100000？ 
+
+#### 其它
 ```bash
 # OpenShift中
 instance:etcd_disk_backend_commit_duration_seconds:histogram_quantile

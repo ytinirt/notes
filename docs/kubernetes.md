@@ -459,10 +459,11 @@ Current user: kubernetes-admin
 
 
 # 认证Authentication
-## Kubernetes用户
-### 服务账号Service Account
-### 证书用户User
-#### 如何创建一个证书用户
+## 账号
+### Kubernetes用户
+#### 服务账号Service Account
+#### 证书用户User
+##### 如何创建一个证书用户
 参见 [certificate-signing-requests](https://kubernetes.io/docs/reference/access-authn-authz/certificate-signing-requests/#normal-user)
 
 创建私钥和csr文件：
@@ -527,6 +528,17 @@ kubectl config set-context john@k8s-cluster --cluster=k8s-cluster --user=john
 kubectl config use-context john
 ```
 
+### 通过webhook对接外部认证提供商
+OAuth
+
+## TODO
+- https://jimmysong.io/kubernetes-handbook/guide/authentication.html
+- https://learnk8s.io/auth-authz
+- https://howieyuen.github.io/docs/kubernetes/kube-apiserver/authentication/
+- https://qingwave.github.io/kube-apiserver-authentication-code/
+- https://www.styra.com/blog/kubernetes-authorization-webhook/
+
+# 鉴权Authorization
 
 # 操作实例
 
