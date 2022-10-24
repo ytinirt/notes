@@ -1840,6 +1840,15 @@ TODO
 
 # Operation & Management
 
+## loop设备
+```bash
+dd if=/dev/zero of=loopfile-1G.img bs=1G count=1
+mkfs.ext4 loopfile-1G.img
+file loopfile-1G.img
+mkdir /mnt/loopdevmnt
+mount loopfile-1G.img /mnt/loopdevmnt/
+```
+
 ## 用户管理
 
 ```bash
@@ -1910,6 +1919,9 @@ DefaultLimitNPROC=102400
 常用命令
 
 ~~~bash
+# TODOTODO 客户端建连
+openssl s_client -host 10.0.0.100 -port 2379 -msg -state -showcerts -tls1_2
+
 # 读取x509证书的信息
 openssl x509 -in xxx.crt -text -noout
 openssl x509 -dates  -noout  -in kube-apiserver-localhost-server.crt
@@ -3146,6 +3158,8 @@ rpm -q kernel
 rpm -qa | grep kernel
 # 查看安装脚本
 rpm -qi --scripts kmod-nvidia-latest-dkms-440.95.01-1.el7.x86_64
+# 查看文件属于哪个包
+rpm -qf /usr/lib/systemd/system/kubelet.service
 ```
 
 
