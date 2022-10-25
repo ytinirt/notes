@@ -4,10 +4,12 @@
    * [TOC](#toc)
    * [cgroup](#cgroup)
       * [cgroup子系统](#cgroup子系统)
+         * [cpu和cpuacct cgroup](#cpu和cpuacct-cgroup)
       * [挂载cgroupfs](#挂载cgroupfs)
       * [判断是否为cgroupv2](#判断是否为cgroupv2)
       * [降级为cgroupv1](#降级为cgroupv1)
       * [常用操作](#常用操作)
+         * [使用systemd管理cgroup](#使用systemd管理cgroup)
    * [namespaces](#namespaces)
       * [常用命令](#常用命令)
       * [常用工具](#常用工具)
@@ -41,6 +43,7 @@
       * [如何编译containerd](#如何编译containerd)
       * [根据进程pid查询pod](#根据进程pid查询pod)
    * [CRI-O](#cri-o)
+      * [指定seccomp profile](#指定seccomp-profile)
    * [podman](#podman)
       * [常用命令](#常用命令-2)
    * [Docker](#docker)
@@ -50,6 +53,7 @@
          * [Docker卡死hang住](#docker卡死hang住)
       * [Docker操作](#docker操作)
          * [常用操作](#常用操作-3)
+         * [提取镜像rootfs文件](#提取镜像rootfs文件)
          * [docker build构建镜像](#docker-build构建镜像)
          * [安装指定版本docker](#安装指定版本docker)
          * [关闭docker0](#关闭docker0)
@@ -63,7 +67,7 @@
          * [容器文件系统使用率统计](#容器文件系统使用率统计)
          * [强制重启Docker服务](#强制重启docker服务)
 
-<!-- Added by: admin, at: Sun Aug 28 09:28:37     2022 -->
+<!-- Added by: admin, at: Tue Oct 25 11:06:36     2022 -->
 
 <!--te-->
 

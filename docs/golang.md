@@ -18,9 +18,10 @@
    * [通过goproxy代理解决package下载问题](#通过goproxy代理解决package下载问题)
    * [示例](#示例)
       * [启HTTP服务](#启http服务)
+      * [测试cpu性能](#测试cpu性能)
       * [代码实例](#代码实例)
 
-<!-- Added by: admin, at: Sun Aug 28 09:28:38     2022 -->
+<!-- Added by: admin, at: Tue Oct 25 11:06:37     2022 -->
 
 <!--te-->
 

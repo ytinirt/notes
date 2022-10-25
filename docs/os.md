@@ -31,9 +31,15 @@
          * [inotify-tools](#inotify-tools)
       * [sysctl和系统配置](#sysctl和系统配置)
          * [典型操作](#典型操作)
+            * [cpu下线和上线](#cpu下线和上线)
+            * [其它](#其它)
          * [内核参数调优](#内核参数调优)
       * [D-Bus](#d-bus)
       * [PCI设备](#pci设备)
+         * [获取PCI设备信息](#获取pci设备信息)
+         * [重新扫描PCI设备](#重新扫描pci设备)
+      * [周边知识](#周边知识)
+         * [vDSO机制](#vdso机制)
    * [Systemd](#systemd)
    * [Networks](#networks)
       * [常用操作](#常用操作)
@@ -99,6 +105,7 @@
          * [nfs问题定位手段](#nfs问题定位手段)
       * [webdav](#webdav)
    * [Operation &amp; Management](#operation--management)
+      * [loop设备](#loop设备)
       * [用户管理](#用户管理)
       * [audit系统审计](#audit系统审计)
       * [HTPasswd认证](#htpasswd认证)
@@ -145,6 +152,8 @@
             * [iozone](#iozone)
             * [判断SSD还是HDD](#判断ssd还是hdd)
          * [使用stress进行压力测试](#使用stress进行压力测试)
+         * [messages日志统计](#messages日志统计)
+            * [既有日志统计](#既有日志统计)
       * [主机资源监控](#主机资源监控)
          * [vmstat](#vmstat)
          * [mpstat](#mpstat)
@@ -191,6 +200,7 @@
          * [coredump分析](#coredump分析)
          * [/proc//目录下文件说明](#proc目录下文件说明)
          * [D状态进程的分析](#d状态进程的分析)
+         * [objdump分析库和可执行文件](#objdump分析库和可执行文件)
       * [动态链接库管理](#动态链接库管理)
       * [文本、字节流编辑](#文本字节流编辑)
       * [L2TP without IPsec配置](#l2tp-without-ipsec配置)
@@ -199,7 +209,7 @@
          * [使用journalctl查看日志](#使用journalctl查看日志)
       * [其它技巧](#其它技巧)
 
-<!-- Added by: admin, at: Sun Aug 28 09:28:46     2022 -->
+<!-- Added by: admin, at: Tue Oct 25 11:06:42     2022 -->
 
 <!--te-->
 

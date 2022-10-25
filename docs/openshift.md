@@ -3,6 +3,10 @@
 <!--ts-->
    * [TOC](#toc)
    * [常用操作](#常用操作)
+      * [获取用户认证Token](#获取用户认证token)
+         * [使用whoami获取Token](#使用whoami获取token)
+         * [获取OAuth用户的Token](#获取oauth用户的token)
+         * [从ServiceAccount中获取Token](#从serviceaccount中获取token)
    * [测试](#测试)
       * [执行内容查询](#执行内容查询)
       * [UT](#ut)
@@ -15,7 +19,7 @@
       * [OpenShift 3.x DNS介绍](#openshift-3x-dns介绍)
       * [深入OpenShift SDN网络](#深入openshift-sdn网络)
 
-<!-- Added by: admin, at: Sun Aug 28 09:28:43     2022 -->
+<!-- Added by: admin, at: Tue Oct 25 11:06:40     2022 -->
 
 <!--te-->
 

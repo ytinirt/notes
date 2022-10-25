@@ -23,10 +23,14 @@
    * [对象名称和字符串格式检查](#对象名称和字符串格式检查)
    * [kubectl插件](#kubectl插件)
    * [认证Authentication](#认证authentication)
-      * [Kubernetes用户](#kubernetes用户)
-         * [服务账号Service Account](#服务账号service-account)
-         * [证书用户User](#证书用户user)
-            * [如何创建一个证书用户](#如何创建一个证书用户)
+      * [账号](#账号)
+         * [Kubernetes用户](#kubernetes用户)
+            * [服务账号Service Account](#服务账号service-account)
+            * [证书用户User](#证书用户user)
+               * [如何创建一个证书用户](#如何创建一个证书用户)
+         * [通过webhook对接外部认证提供商](#通过webhook对接外部认证提供商)
+      * [TODO](#todo)
+   * [鉴权Authorization](#鉴权authorization)
    * [操作实例](#操作实例)
       * [便捷操作](#便捷操作)
       * [获取openapi json](#获取openapi-json)
@@ -47,7 +51,7 @@
       * [获取k8s控制面组件指标](#获取k8s控制面组件指标)
    * [备忘](#备忘)
 
-<!-- Added by: admin, at: Sun Aug 28 09:28:40     2022 -->
+<!-- Added by: admin, at: Tue Oct 25 11:06:39     2022 -->
 
 <!--te-->
 
