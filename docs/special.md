@@ -291,12 +291,29 @@ cmake ../mysql-server-mysql-5.7.20/ -LH
 ```
 
 
+## 文本处理
+### grep
+```bash
+# 搜索时，跳过一些文件
+grep -r --exclude-dir=".git;.svn" "string to search" <directory>
+grep -r --exclude-dir="./*/.git" "string to search" <directory>
+```
+
+### sed
+
+### sort
+
+### uniq
+
 ## Regex
 
-实例
+### 实例
 ```bash
 # 匹配Word
 [_0-9a-zA-Z]*[rR][eE][dD] ?[hH][aA][tT][_0-9a-zA-Z]*
+
+# 匹配word的组合
+(RHEL|rhel|Rhel)_?[2-9]
 
 # 只能输入1~16位字母、数字、下划线，且只能以字母和数字开头
 ^[A-Za-z0-9][A-Za-z0-9_]{0,15}$
@@ -353,7 +370,7 @@ dns.qry.name contains "devops"      # DNS请求过滤
 ```
 
 
-## Shell
+## Shell和Bash
 
 ### Bash实例
 
@@ -364,6 +381,15 @@ for i in $(seq 1 431); do rm -f mysql-bin.$(printf "%06d" $i); done
 for ((i=${hehe}; i<${hehe}+4; i++)); do printf "%03d\n" $i; done   #按照指定位数，左补零
 for ((i=1; i<4; i++)); do echo $i; done
 count=0;while true; do let 'count++'; echo ${count}; done
+```
+
+#### 一次创建多个文件
+```bash
+# 创建26个空文件
+touch {a..z}.txt
+
+# 创建152个文件
+touch {{a..z},{A..Z},{0..99}}.txt
 ```
 
 #### 获取入参名称及值
@@ -2562,6 +2588,11 @@ alias = image[idx:]                             # 截取字符串
 
 
 ## 奇技淫巧
+### MarkDown中的escaping
+```
+pipe字符(|)，可以换成(&#124;)
+```
+
 ### MarkDown中图片配置大小
 ```
 ![img.png](tls-validity-hard-code-24h.png)
