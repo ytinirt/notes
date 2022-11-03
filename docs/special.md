@@ -329,17 +329,21 @@ grep -r --exclude-dir="./*/.git" "string to search" <directory>
 
 ### 实例
 ```bash
+# 匹配list pod和list node操作
+'.*kubectl.* get (po|pods?).* (-A|--all-namespaces).*'
+'.*kubectl.* get (no|nodes?).*'
+
 # 匹配Word
-[_0-9a-zA-Z]*[rR][eE][dD] ?[hH][aA][tT][_0-9a-zA-Z]*
+'[_0-9a-zA-Z]*[rR][eE][dD] ?[hH][aA][tT][_0-9a-zA-Z]*'
 
 # 匹配word的组合
-(RHEL|rhel|Rhel)_?[2-9]
+'(RHEL|rhel|Rhel)_?[2-9]'
 
 # 只能输入1~16位字母、数字、下划线，且只能以字母和数字开头
-^[A-Za-z0-9][A-Za-z0-9_]{0,15}$
+'^[A-Za-z0-9][A-Za-z0-9_]{0,15}$'
 
 # 格式检查，pvc的value
-^([1-9][0-9]*Gi)?$
+'^([1-9][0-9]*Gi)?$'
 ```
 
 ## tcpdump

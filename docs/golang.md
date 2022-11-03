@@ -53,7 +53,8 @@ go build -mod vendor ./pkg/agent
 ```
 
 # 编译构建
-## 通过build tag定制Go可执行文件
+## build tag
+### 用法
 在待控制的源文件头加：
 ```
 // +build tag_name
@@ -63,6 +64,40 @@ go build -mod vendor ./pkg/agent
 go build -tags tag_name
 ```
 详见 [customizing-go-binaries-with-build-tags](https://www.digitalocean.com/community/tutorials/customizing-go-binaries-with-build-tags)
+
+### 与
+```
+// +build linux,cgo
+```
+
+或者
+
+```
+// +build linux
+// +build cgo
+```
+
+### 或
+```
+// +build linux darwin
+```
+
+### 非
+```
+// +build !linux
+```
+
+### 传tag
+```
+go build -tags=linux
+go build -tags="linux cgo"
+go build -tags=linux,cgo
+```
+
+**注意**，如下方式会导致前面的tag被覆盖，不能这样使用：
+```
+go build -tags=linux -tags=cgo
+```
 
 # 如何Debug Golang程序
 

@@ -594,6 +594,22 @@ OAuth
   }
   ```
 
+## 模拟list对kube-apiserver进行压测
+10qps:
+```
+#!/bin/bash
+while true
+do
+    for((i = 0; i<10; i++)); do
+    {
+     timeout 6 kubectl get --raw /api/v1/pods 1>/dev/null
+    }&
+    done
+    sleep 1s
+    echo "$(date) start the next loop..."
+done
+```
+
 ## 获取openapi json
 ```bash
 kubectl get --raw /openapi/v2 | jq > openapi.json
