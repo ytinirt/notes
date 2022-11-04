@@ -1929,8 +1929,9 @@ DefaultLimitNPROC=102400
 常用命令
 
 ~~~bash
-# TODOTODO 客户端建连
+# tls建连，获取server端证书信息
 openssl s_client -host 10.0.0.100 -port 2379 -msg -state -showcerts -tls1_2
+openssl s_client -showcerts -timeout -connect 1.2.3.4:8443 2>/dev/null | grep -i notafter
 
 # 读取x509证书的信息
 openssl x509 -in xxx.crt -text -noout

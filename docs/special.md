@@ -814,6 +814,11 @@ curl -H "Content-Type:application/json-patch+json" --request PATCH "http://127.0
 
 ### jq工具
 
+#### 过滤带有特殊注解的k8s资源
+```bash
+kubectl get svc -A -o json | jq '.items[] | select(.metadata.annotations["service.alpha.openshift.io/serving-cert-secret-name"] != null) | .metadata | .namespace + ":" + .name' -r
+```
+
 #### 查询k8s的events
 ```bash
 # 出现次数排序
