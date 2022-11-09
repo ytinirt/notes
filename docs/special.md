@@ -2615,19 +2615,33 @@ idx = image.find(':9999/') + 6                  # 查找子字符串
 alias = image[idx:]                             # 截取字符串
 ```
 
+## MarkDown
 
-## 奇技淫巧
-### MarkDown中的escaping
+### 时序图
+```mermaid
+sequenceDiagram
+    participant 服务1
+    participant 服务2
+    participant DB
+    服务1->>服务2: create request
+    服务2->>DB: write
+    DB->>服务2: 成功
+    服务2->>服务1: 成功
+```
+
+### escaping转义
 ```
 pipe字符(|)，可以换成(&#124;)
 ```
 
-### MarkDown中图片配置大小
+### 图片配置大小
 ```
 ![img.png](tls-validity-hard-code-24h.png)
 修改为：
 <img src="tls-validity-hard-code-24h.png" alt="tls-validity-hard-code-24h" width="800"/>
 ```
+
+## 奇技淫巧
 
 ### atom超级好用的package
 - document-outline
