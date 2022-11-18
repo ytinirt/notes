@@ -1065,6 +1065,9 @@ ipvsadm -L --timeout
 ipvsadm -Ln --rate
 ipvsadm -Ln --thresholds
 
+# 配置 real server 的权重
+ipvsadm -e -t 192.168.1.201:23456 -r 10.0.224.11:23456 -m -w 1
+
 ```
 
 ## 配置网卡聚合NIC bonding
@@ -3681,6 +3684,7 @@ nmap -sU -oG - -p 623 10.0.0.0/24
 使用`nmap`扫描tls加密套件：
 ```bash
 nmap --script ssl-enum-ciphers -p 6443 127.0.0.1
+nmap -sV --script ssl-enum-ciphers -p 2379 ${IP}
 ```
 
 

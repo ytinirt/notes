@@ -689,6 +689,9 @@ podman image mount  quay.io/openshift-scale/etcd-perf:latest
 
 # 卸载容器镜像
 podman image unmount quay.io/openshift-scale/etcd-perf:latest
+
+# 查看镜像详情
+cat /var/lib/containers/storage/overlay-images | jq
 ```
 
 # Docker
