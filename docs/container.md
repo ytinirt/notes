@@ -592,6 +592,9 @@ runc --root /run/containerd/runc/k8s.io exec -t <cid> bash
 # Containerd
 ## 常用操作
 ```bash
+# 在线收集containerd的dump信息，堆栈文件保存在/tmp目录中
+kill -s SIGUSR1 $(pidof containerd)
+
 # 批量导出容器
 ctr -n k8s.io i export image.tar coredns:v1.7.0 kube-proxy:v1.18.8
 
