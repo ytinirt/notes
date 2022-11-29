@@ -997,5 +997,22 @@ make WHAT=cmd/kubelet GOLDFLAGS=""
 curl --cacert ./ca.crt --cert ./user.crt --key ./user.key https://x.x.x.x:10257/metrics -k
 ```
 
+# Deep Dive系列
+## kube-apiserver
+
+### 服务启动流程
+起点`kubernetes/cmd/kube-apiserver/app/server.go`中`CreateServerChain()` 。
+
+依次经过*Aggregator*、 *KubeAPIServer*、 *APIExtensionServer*三个组件处理请求。
+
+### REST Storage
+`kubernetes/pkg/registry/core/rest/storage_core.go`中`NewLegacyRESTStorage` 。
+
+## kube-controller-manager
+
+## kube-scheduler
+
+## kubelet
+
 # 备忘
 `kube-controller-manager`的默认配置在`kubernetes/pkg/controller/apis/config/v1alpha1/zz_generated.defaults.go`中`SetDefaults_KubeControllerManagerConfiguration()`设置。
