@@ -2775,6 +2775,20 @@ sar -n ALL
 sar -n keyword [,...]
 ```
 
+### 长期测试CPU性能
+```bash
+for i in $(seq 0 99); do
+    echo -en [$(printf "%02d" $i)] $(date +"%Y-%m-%d %T") "\t"
+    echo -n $({ time python3 -c "2**1000000000"; } 2>&1 | grep -v ^$ | awk '{print $2}')
+    echo
+done
+```
+
+或者：
+```bash
+for i in $(seq 0 99); do     echo -en [$(printf "%02d" $i)] $(date +"%Y-%m-%d %T") "\t";     echo -n $({ time python3 -c "2**1000000000"; } 2>&1 | grep -v ^$ | awk '{print $2}');     echo; done | tee ./cpu-perf-test-$(hostname).log
+```
+
 ### 常用命令
 
 ```bash
@@ -2954,6 +2968,11 @@ Linux中内存信息错综复杂，统计值相互可能对不上，其原因在
 - [https://www.kernel.org/doc/Documentation/vm/overcommit-accounting](https://www.kernel.org/doc/Documentation/vm/overcommit-accounting)
 - [https://www.kernel.org/doc/Documentation/sysctl/vm.txt](https://www.kernel.org/doc/Documentation/sysctl/vm.txt)
 - [http://www.win.tue.nl/~aeb/linux/lk/lk-9.html](http://www.win.tue.nl/~aeb/linux/lk/lk-9.html)
+
+### 内存用量TopN
+```bash
+ps -aux | sort -k4nr | head -n 10
+```
 
 ### top内存信息解读
 top典型携带的内存信息如下：

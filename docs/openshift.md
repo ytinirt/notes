@@ -70,10 +70,6 @@ spec:
   useMoreSecureServiceCA: true
 
 
-## 使用podman查看cri创建的pod
-podman ps --all --external
-podman ps --all --storage
-
 ## 查询监控指标
 secretname=$(kubectl get serviceaccount --namespace=openshift-monitoring prometheus-k8s -o jsonpath='{.secrets[1].name}')
 BRIDGE_K8S_AUTH_BEARER_TOKEN=$(kubectl get secret "$secretname" --namespace=openshift-monitoring -o template --template='{{.data.token}}' | base64 --decode)

@@ -682,6 +682,13 @@ seccomp_profile = "/etc/crio/seccomp.json"
 ```
 
 # podman
+## 使用podman查看cri创建的pod
+```bash
+podman ps --all --external
+podman ps --all --storage
+```
+
+
 ## 常用命令
 ```bash
 # 查看当前挂载的容器镜像

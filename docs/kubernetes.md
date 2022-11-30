@@ -1008,6 +1008,13 @@ curl --cacert ./ca.crt --cert ./user.crt --key ./user.key https://x.x.x.x:10257/
 ### REST Storage
 `kubernetes/pkg/registry/core/rest/storage_core.go`中`NewLegacyRESTStorage` 。
 
+### 安装API及其REST Storage
+`vendor/k8s.io/apiserver/pkg/server/genericapiserver.go`中`InstallAPIGroups`和`InstallLegacyAPIGroup`
+
+通过*go-restful*实现API服务，*go-restful*的*Container*在`vendor/k8s.io/apiserver/pkg/server/handler.go`中`NewAPIServerHandler`初始化。
+
+`APIGroupVersion`的`Storage`中，有该*GroupVersion*下所有*resources*的`rest.Storage`。
+
 ## kube-controller-manager
 
 ## kube-scheduler
