@@ -19,7 +19,7 @@
       * [OpenShift 3.x DNS介绍](#openshift-3x-dns介绍)
       * [深入OpenShift SDN网络](#深入openshift-sdn网络)
 
-<!-- Added by: admin, at: Tue Oct 25 11:06:40     2022 -->
+<!-- Added by: admin, at: 2022年12月 2日 15:29:23 -->
 
 <!--te-->
 

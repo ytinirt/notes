@@ -45,6 +45,7 @@
    * [CRI-O](#cri-o)
       * [指定seccomp profile](#指定seccomp-profile)
    * [podman](#podman)
+      * [使用podman查看cri创建的pod](#使用podman查看cri创建的pod)
       * [常用命令](#常用命令-2)
    * [Docker](#docker)
       * [容器环境下的swap使用](#容器环境下的swap使用)
@@ -67,7 +68,7 @@
          * [容器文件系统使用率统计](#容器文件系统使用率统计)
          * [强制重启Docker服务](#强制重启docker服务)
 
-<!-- Added by: admin, at: Tue Oct 25 11:06:36     2022 -->
+<!-- Added by: admin, at: 2022年12月 2日 15:29:19 -->
 
 <!--te-->
 

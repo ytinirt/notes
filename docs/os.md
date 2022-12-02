@@ -162,6 +162,7 @@
          * [sar](#sar)
             * [使能和配置sar](#使能和配置sar)
             * [操作实例](#操作实例)
+         * [长期测试CPU性能](#长期测试cpu性能)
          * [常用命令](#常用命令-2)
          * [打开文件数](#打开文件数)
          * [lsof（文件和设备）](#lsof文件和设备)
@@ -169,6 +170,7 @@
          * [netstat（网络）](#netstat网络)
          * [ss（网络）](#ss网络)
       * [内存信息解读](#内存信息解读)
+         * [内存用量TopN](#内存用量topn)
          * [top内存信息解读](#top内存信息解读)
          * [free信息解读](#free信息解读)
          * [smaps信息解读](#smaps信息解读)
@@ -205,11 +207,17 @@
       * [文本、字节流编辑](#文本字节流编辑)
       * [L2TP without IPsec配置](#l2tp-without-ipsec配置)
       * [日志](#日志)
+         * [systemd-journald日志](#systemd-journald日志)
+            * [开启systemd-journald日志](#开启systemd-journald日志)
+            * [日志限制](#日志限制)
+            * [使用journalctl查看日志](#使用journalctl查看日志)
+         * [rsyslogd日志](#rsyslogd日志)
+            * [日志限制](#日志限制-1)
+            * [同systemd-journald的关系](#同systemd-journald的关系)
          * [shell脚本使用logger输出日志](#shell脚本使用logger输出日志)
-         * [使用journalctl查看日志](#使用journalctl查看日志)
       * [其它技巧](#其它技巧)
 
-<!-- Added by: admin, at: Tue Oct 25 11:06:42     2022 -->
+<!-- Added by: admin, at: 2022年12月 2日 15:29:25 -->
 
 <!--te-->
 
@@ -3639,6 +3647,105 @@ password xxx
 
 ## 日志
 
+### systemd-journald日志
+
+#### 开启systemd-journald日志
+```bash
+mkdir -p /var/log/journal
+
+chgrp systemd-journal /var/log/journal
+chmod g+s /var/log/journal
+# 检查有写权限
+systemd-tmpfiles --create --prefix /var/log/journal
+
+systemctl restart systemd-journald
+# 或者
+killall -USR1 systemd-journald
+```
+
+#### 日志限制
+- `/var/log/journal`下日志限制默认4GB。
+- 配置文件`/etc/systemd/journald.conf` 。
+- 配置帮助`man journald.conf` 。
+- 系统启动时，还会检查根文件系统大小，日志用量不能超过`10%` 。
+
+相关配置：
+```bash
+/etc/systemd/journald.conf
+SystemMaxUse=4G ### 默认最多消耗4GB空间
+SystemMaxFiles=100 ### 默认最多保留100个文件
+```
+
+#### 使用journalctl查看日志
+
+```bash
+# 查看CentOS上服务的log，包括Kubernetes/docker/flannel/etcd等服务都能通过该命令查看log
+journalctl
+# 查看尾部的日志
+journalctl -xe
+journalctl --no-pager -u docker
+# 仅查看内核日志
+journalctl -k
+journalctl --since="19:00:00" -u docker
+journalctl --since="2018-02-21 19:00:00"
+
+# 查看存储用量
+journalctl --disk-usage
+
+# 清理日志，仅保留近期2GB大小的日志
+journalctl --vacuum-size=2G
+
+# 清理日志，仅保留近期2GB大小且近期1周的日志
+journalctl --vacuum-size=2G --vacuum-time=1week
+
+# 自某次引导后的信息
+journalctl -b -u docker
+# 查看error级别及以上的系统错误日志
+journalctl -b -p3
+```
+
+### rsyslogd日志
+- 帮助文档`man rsyslogd`和`man rsyslog.conf` 。
+- 管理`/var/log/messages`等"OG"日志。
+- 其日志由`logrotate`轮转，而`logrotate`由*crond*驱动周期执行。
+- `logrotate`配置见`/etc/logrotate.conf`和`/etc/logrotate.d` 。
+
+#### 日志限制
+目前采用默认策略，每周轮转一次，保留四个历史文件，相当于/var/log/messages会保留5周的日志：
+```bash
+[root@hehe ~]# cat /etc/logrotate.conf
+...
+# rotate log files weekly
+weekly
+
+# keep 4 weeks worth of backlogs
+rotate 4
+
+# uncomment this if you want your log files compressed
+#compress
+
+# packages drop log rotation information into this directory
+include /etc/logrotate.d
+...
+
+[root@hehe ~]# cat /etc/logrotate.d/rsyslog
+/var/log/cron
+/var/log/maillog
+/var/log/messages
+/var/log/secure
+/var/log/spooler
+{
+    missingok
+    sharedscripts
+    postrotate
+        /usr/bin/systemctl kill -s HUP rsyslog.service >/dev/null 2>&1 || true
+    endscript
+}
+```
+
+#### 同systemd-journald的关系
+同`systemd-journald`是并列的关系，实际上systemd-journald已记录日志，rsyslog（/var/log/messages）其实不用再记了，统一通过`journalctl`查看日志。
+
 ### shell脚本使用logger输出日志
 
 shell脚本记录日志统一使用 `logger` 命令，格式：
@@ -3647,29 +3754,7 @@ shell脚本记录日志统一使用 `logger` 命令，格式：
 # -t 是模块名 最好直接使用脚本名称
 logger -p user.info -t modname message
 ~~~
-输出的日志可通过journalctl查看。
-
-### 使用journalctl查看日志
-
-```bash
-# 查看CentOS上服务的log，包括Kubernetes/docker/flannel/etcd等服务都能通过该命令查看log
-journalctl              
-# 查看尾部的日志
-journalctl -xe          
-journalctl --no-pager -u docker
-# 仅查看内核日志
-journalctl -k           
-journalctl --since="19:00:00" -u docker
-journalctl --since="2018-02-21 19:00:00"
-journalctl --vacuum-size=2G --vacuum-time=1week
-# 自某次引导后的信息
-journalctl -b -u docker
-# 查看error级别及以上的系统错误日志
-journalctl -b -p3
-```
-
-
-
+输出的日志可通过`journalctl`查看。
 
 
 ## 其它技巧

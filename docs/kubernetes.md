@@ -33,6 +33,7 @@
    * [鉴权Authorization](#鉴权authorization)
    * [操作实例](#操作实例)
       * [便捷操作](#便捷操作)
+      * [模拟list对kube-apiserver进行压测](#模拟list对kube-apiserver进行压测)
       * [获取openapi json](#获取openapi-json)
       * [从secret中获取证书信息](#从secret中获取证书信息)
       * [从KubeConfig文件中提取证书秘钥](#从kubeconfig文件中提取证书秘钥)
@@ -49,9 +50,17 @@
       * [FC存储多路径的PV配置](#fc存储多路径的pv配置)
       * [编译kubelet](#编译kubelet)
       * [获取k8s控制面组件指标](#获取k8s控制面组件指标)
+   * [Deep Dive系列](#deep-dive系列)
+      * [kube-apiserver](#kube-apiserver)
+         * [服务启动流程](#服务启动流程)
+         * [REST Storage](#rest-storage)
+         * [安装API及其REST Storage](#安装api及其rest-storage)
+      * [kube-controller-manager](#kube-controller-manager)
+      * [kube-scheduler](#kube-scheduler)
+      * [kubelet](#kubelet)
    * [备忘](#备忘)
 
-<!-- Added by: admin, at: Tue Oct 25 11:06:39     2022 -->
+<!-- Added by: admin, at: 2022年12月 2日 15:29:22 -->
 
 <!--te-->
 
