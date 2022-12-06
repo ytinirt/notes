@@ -827,57 +827,67 @@ TOKEN=$(kubectl exec -n ${NS} ${POD} -- cat /var/run/secrets/kubernetes.io/servi
 curl -H "Authorization: Bearer ${TOKEN}" -k https://kubernetes.default.svc:443/api/v1/nodes
 
 
-# 遍历所有pod
-for n_p in $(kubectl get pod -A | sed 1d | awk '{print $1":"$2}'); do
-    n=$(echo $n_p | cut -d: -f1)
-    p=$(echo $n_p | cut -d: -f2)
-    echo $n  $p
-    kubectl get pod -n $n $p -o json | jq .spec.containers[].imagePullPolicy -r 2>/dev/null
-    kubectl get pod -n $n $p -o json | jq .spec.initContainers[].imagePullPolicy -r 2>/dev/null
-    echo
-done
-
-# 遍历所有工作负载
-WorkLoads="ds deploy rc sts"
-for wl in $(echo $WorkLoads); do
-    echo "============== $wl =============="
-    for n_i in $(kubectl get $wl -A | sed 1d | awk '{print $1":"$2}'); do
-        n=$(echo $n_i | cut -d: -f1)
-        i=$(echo $n_i | cut -d: -f2)
-        echo $n $i : $(kubectl get $wl -n $n $i -o json | jq .spec.template.spec.containers[].imagePullPolicy -r 2>/dev/null) $(kubectl get $wl -n $n $i -o json | jq .spec.template.spec.initContainers[].imagePullPolicy -r 2>/dev/null)
-    done
-done
-
-# 遍历一个命名空间下所有资源
-kubectl api-resources --verbs=list --namespaced -o name \
-  | xargs -n 1 kubectl get --show-kind --ignore-not-found -n ${NAMESPACE}
-
-# 遍历一个命名空间下所有资源的label和annotations
-for api in $(kubectl api-resources --verbs=list --namespaced -o name); do
-  kubectl get ${api} --ignore-not-found -n ${NAMESPACE} -o json | jq .items[].metadata.labels
-done
-for api in $(kubectl api-resources --verbs=list --namespaced -o name); do
-  kubectl get ${api} --ignore-not-found -n ${NAMESPACE} -o json | jq .items[].metadata.annotations
-done
-
-# 遍历所有跨命名空间的资源
-kubectl api-resources --verbs=list --namespaced=false -o name \
-  | xargs -n 1 kubectl get --show-kind --ignore-not-found
-
-# 遍历所有跨命名空间的资源的label和annotations
-for api in $(kubectl api-resources --verbs=list --namespaced=false -o name); do
-  kubectl get ${api} --ignore-not-found -o json | jq .items[].metadata.labels
-done
-for api in $(kubectl api-resources --verbs=list --namespaced=false -o name); do
-  kubectl get ${api} --ignore-not-found -o json | jq .items[].metadata.annotations
-done
-
 # 设置默认StorageClass
 kubectl patch storageclass gold -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
 
 ```
 
+## 资源遍历
+### 遍历所有pod
+```bash
+for n_p in $(kubectl get pod -A | sed 1d | awk '{print $1":"$2}'); do
+n=$(echo $n_p | cut -d: -f1)
+p=$(echo $n_p | cut -d: -f2)
+echo $n  $p
+kubectl get pod -n $n $p -o json | jq .spec.containers[].imagePullPolicy -r 2>/dev/null
+kubectl get pod -n $n $p -o json | jq .spec.initContainers[].imagePullPolicy -r 2>/dev/null
+echo
+done
+```
 
+### 遍历所有工作负载
+```bash
+WorkLoads="ds deploy rc sts"
+for wl in $(echo $WorkLoads); do
+echo "============== $wl =============="
+for n_i in $(kubectl get $wl -A | sed 1d | awk '{print $1":"$2}'); do
+n=$(echo $n_i | cut -d: -f1)
+i=$(echo $n_i | cut -d: -f2)
+echo $n $i : $(kubectl get $wl -n $n $i -o json | jq .spec.template.spec.containers[].imagePullPolicy -r 2>/dev/null) $(kubectl get $wl -n $n $i -o json | jq .spec.template.spec.initContainers[].imagePullPolicy -r 2>/dev/null)
+done
+done
+```
+
+### 遍历一个命名空间下所有资源
+```bash
+kubectl api-resources --verbs=list --namespaced -o name \
+| xargs -n 1 kubectl get --show-kind --ignore-not-found -n ${NAMESPACE}
+```
+
+### 遍历一个命名空间下所有资源的label和annotations
+```bash
+for api in $(kubectl api-resources --verbs=list --namespaced -o name); do
+kubectl get ${api} --ignore-not-found -n ${NAMESPACE} -o json | jq .items[].metadata.labels
+done
+for api in $(kubectl api-resources --verbs=list --namespaced -o name); do
+kubectl get ${api} --ignore-not-found -n ${NAMESPACE} -o json | jq .items[].metadata.annotations
+done
+```
+
+### 遍历所有跨命名空间的资源
+```bash
+kubectl api-resources --verbs=list --namespaced=false -o name \
+| xargs -n 1 kubectl get --show-kind --ignore-not-found
+
+### 遍历所有跨命名空间的资源的label和annotations
+```bash
+for api in $(kubectl api-resources --verbs=list --namespaced=false -o name); do
+kubectl get ${api} --ignore-not-found -o json | jq .items[].metadata.labels
+done
+for api in $(kubectl api-resources --verbs=list --namespaced=false -o name); do
+kubectl get ${api} --ignore-not-found -o json | jq .items[].metadata.annotations
+done
+```
 
 ## 客户端访问集群时context配置
 
@@ -1024,11 +1034,119 @@ curl --cacert ./ca.crt --cert ./user.crt --key ./user.key https://x.x.x.x:10257/
 
 `APIGroupVersion`的`Storage`中，有该*GroupVersion*下所有*resources*的`rest.Storage`。
 
+### API定义和版本
+```golang
+// Pod is a collection of containers, used as either input (create, update) or as output (list, get).
+type Pod struct {
+	metav1.TypeMeta
+	// +optional
+	metav1.ObjectMeta
+
+	// Spec defines the behavior of a pod.
+	// +optional
+	Spec PodSpec
+
+	// Status represents the current information about a pod. This data may not be up
+	// to date.
+	// +optional
+	Status PodStatus
+}
+```
+其中：
+- **继承**了`metav1.TypeMeta`和`metav1.ObjectMeta`，即直接拥有通用属性和方法，实现`runtime.Object`等接口
+- **组合**了`PodSpec`和`PodStatus`，指定该资源特性属性
+
+API版本：
+- **外部**版本：`staging/src/k8s.io/api/core/v1/types.go`
+- **内部**版本：`pkg/apis/core/types.go`
+
+`k8s.io/apimachinery/pkg/runtime/serializer/versioning/versioning.go`中`codec`实现：
+- 内外部版本的转化
+- 序列化、反序列化
+
+### 序列化和反序列化
+_json_、_protobuf_、*yaml*格式的序列化和反序列化实现在`staging/src/k8s.io/apimachinery/pkg/runtime/serializer`中。
+
+#### TypeMeta的反序列化
+以*json*为例，在`staging/src/k8s.io/apimachinery/pkg/runtime/serializer/json/meta.go`的`SimpleMetaFactory.Interpret()`中，
+借助`go/src/encoding/json/decode.go`实现对`metav1.TypeMeta`的反序列化，获取*GVK* 。
+
+#### 外部版本的序列化和反序列化
+`staging/src/k8s.io/apimachinery/pkg/runtime/serializer/json/json.go`中`Serializer.Decode()` ，实现外部版本的序列化和反序列化操作。
+
+#### codec和codec factory
+[TODO](https://cloud.tencent.com/developer/article/1891182)
+
+*codec*将内部版本转换为外部版本，并序列化。
+
+`staging/src/k8s.io/apimachinery/pkg/runtime/serializer/versioning/versioning.go`：
+```golang
+type codec struct {
+	encoder   runtime.Encoder
+	decoder   runtime.Decoder
+	convertor runtime.ObjectConvertor
+	creater   runtime.ObjectCreater
+	typer     runtime.ObjectTyper
+	defaulter runtime.ObjectDefaulter
+
+	encodeVersion runtime.GroupVersioner
+	decodeVersion runtime.GroupVersioner
+
+	identifier runtime.Identifier
+
+	// originalSchemeName is optional, but when filled in it holds the name of the scheme from which this codec originates
+	originalSchemeName string
+}
+```
+
+`CodecFactory`环境方法：
+* `DecoderToVersion`，返回反序列化并转化为内部版本的`Decoder`。
+* `EncoderForVersion`，返回转换为特定外部版本并序列化的`Encoder`，编码过程中首先将对象(一般为内部版本)转化为目标版本，再序列化到响应数据流中。
+
+### 资源schema
+参见[链接](https://cloud.tencent.com/developer/article/1902710) 。
+
+GVK和资源model的对应关系，资源model的默认值，资源在不同版本间转化的函数等，均由资源schema维护。
+
 ## kube-controller-manager
+
+### 配置和初始化
+
+### leader选举
+
+### 核心Controller
 
 ## kube-scheduler
 
+### 配置和初始化
+
+### leader选举
+
+### 资源调度
+
 ## kubelet
+
+### 配置和初始化
+
+### PLEG
+
+### 调用CRI接口
+
+### （间接）通过CNI接口管理网络
+
+### 通过CSI管理存储
+
+### 设备和资源管理
+
+#### 资源计算和预留
+
+#### Topology Manager
+
+#### CPU Manager
+
+#### Memory Manager
+
+#### Device Plugin
 
 # 备忘
 `kube-controller-manager`的默认配置在`kubernetes/pkg/controller/apis/config/v1alpha1/zz_generated.defaults.go`中`SetDefaults_KubeControllerManagerConfiguration()`设置。

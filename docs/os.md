@@ -472,6 +472,8 @@ HugePages_Surp        0      0      0      0      0
 
 ### 透明大页THP
 
+参见[文档](https://help.aliyun.com/document_detail/161963.html) 。
+
 ```bash
 # 关闭透明大页，执行如下命令，然后重启系统生效
 grubby --update-kernel=/boot/vmlinuz-`uname -r` --args="transparent_hugepage=never kpti=off"
@@ -482,8 +484,31 @@ grubby --info=/boot/vmlinuz-`uname -r`
 # 系统启动后查看是否开启了透明大页内存
 cat /sys/kernel/mm/transparent_hugepage/enabled
 
+# 系统启动后关闭透明大页内存
+echo never > /sys/kernel/mm/transparent_hugepage/enabled
+
+# 系统启动后开启透明大页内存
+echo always > /sys/kernel/mm/transparent_hugepage/enabled
+
 # 回退上述修改，重新开启透明大页
 grubby --update-kernel=/boot/vmlinuz-`uname -r` --remove-args="transparent_hugepage=never kpti=off"
+```
+
+查看某个进程使用的大页内存：
+```bash
+cat /proc/<pid>/smaps | grep AnonHugePages
+```
+
+碎片整理：
+```bash
+cat /sys/kernel/mm/transparent_hugepage/defrag
+
+cat /sys/kernel/mm/transparent_hugepage/khugepaged/defrag
+```
+
+每次遍历扫描的page数：
+```bash
+cat /sys/kernel/mm/transparent_hugepage/khugepaged/pages_to_scan
 ```
 
 ## NUMA
@@ -2573,27 +2598,6 @@ ProcessSizeMax=0
 
 
 
-## defunct进程
-在Linux中`defunct`和`zombie`进程是一回事儿，从`man ps`可知：
-> Processes marked `<defunct>` are dead processes (so-called "zombies") that remain because their parent has not destroyed them properly. These processes will be destroyed by init(8) if the parent process exits.
-
-```bash
-PROCESS STATE CODES
-    Here are the different values that the s, stat and state output specifiers (header "STAT" or "S") will display to describe the state of a process:
-    D    uninterruptible sleep (usually IO)
-    R    running or runnable (on run queue)
-    S    interruptible sleep (waiting for an event to complete)
-    T    stopped by job control signal
-    t    stopped by debugger during the tracing
-    W    paging (not valid since the 2.6.xx kernel)
-    X    dead (should never be seen)
-    Z    defunct ("zombie") process, terminated but not reaped by its parent
-```
-`defunct`进程已异常退出，但其`parent`进程未能正常处理/确认其退出。当这类进程的`parent`进程退出后，`init(8)`进程会彻底销毁它们。因此，只要`kill`掉`defunct`进程的`parent`即可。
-
-另一方面，当遇到`defunct`进程的父进程为`init(8)`时，目前唯一简便且可行的是重启节点。导致出现这类进程的原因多是IO或者系统调用（syscall）异常，可通过`lsof -p <pid of the zombie>`获取debug信息。
-
-
 ## 性能调优和问题定位
 
 ### CPU性能
@@ -2614,6 +2618,20 @@ modprobe -r pcc_cpufreq
 modprobe -r acpi_cpufreq
 echo "blacklist pcc-cpufreq" >> /etc/modprobe.d/cpufreq.conf
 echo "blacklist acpi-cpufreq" >> /etc/modprobe.d/cpufreq.conf
+```
+
+#### 长期测试CPU性能
+```bash
+for i in $(seq 0 99); do
+    echo -en [$(printf "%02d" $i)] $(date +"%Y-%m-%d %T") "\t"
+    echo -n $({ time python3 -c "2**1000000000"; } 2>&1 | grep -v ^$ | awk '{print $2}')
+    echo
+done
+```
+
+或者：
+```bash
+for i in $(seq 0 99); do     echo -en [$(printf "%02d" $i)] $(date +"%Y-%m-%d %T") "\t";     echo -n $({ time python3 -c "2**1000000000"; } 2>&1 | grep -v ^$ | awk '{print $2}');     echo; done | tee -a ./cpu-perf-test-$(hostname).log
 ```
 
 
@@ -2722,10 +2740,177 @@ docker run -d -m 100M --rm polinux/stress stress  --vm 1 --vm-bytes 128M --vm-ke
 cat messages | cut -c1-12 | uniq -c
 ```
 
+## 如何Debug程序和进程
+
+### softlockup告警
+打开`softlockup panic`，当遇到`softlockup`时直接打印堆栈并异常：
+```
+echo 1 > /proc/sys/kernel/softlockup_panic
+```
+配合上`kdump`服务，在panic时生成`vmcore`文件，用于定位。
+
+通过`virsh dump`也可直接获取虚机的`core dump`文件。
+
+### pmap分析内存使用
+
+```bash
+pmap -x pid     # 查看详细信息
+pmap -XX pid    # 查看kernel提供的所有信息
+```
+
+### strace查看进程调用链
+
+```bash
+strace -f -e trace=access curl 'https://10.100.0.1/'
+strace -fc -e trace=access curl -s 'https://10.100.0.1/' > /dev/null
+
+# 找配置文件的奇技淫巧
+strace -eopen pip 2>&1|grep pip.conf
+
+# 获取etcd每次写操作字节数，借此评估fio测试块大小  TODO
+strace -p $(pidof etcd) 2>&1 | grep -e  "\(write\|fdatasync\)\((12\|(18\)"
+
+# 查看系统调用和耗时的汇总信息，特别有助于分析性能问题
+strace -c -f -p <pid of process/thread>
+```
+
+### ftrace查看系统调用耗时
+安装`trace-cmd`
+
+### perf查看系统调用性能
+安装`perf`
+
+```bash
+perf record cat /sys/fs/cgroup/memory/memory.stat
+perf report
+perf top
+```
+
+#### 收集perf
+```bash
+while true; do
+    date
+    start=$(date +%s)
+    perf record -o perf-file.$start time python3 -c "2**1000000000"
+    end=$(date +%s)
+    elapse=$[${end} - ${start}]
+
+    if [[ ${elapse} -gt 19 ]]; then
+        echo elapse ${elapse} greater than 19s, perf file: perf-file.$start
+        break
+    fi
+    echo
+done
+```
+
+### pstack分析CPU异常高时堆栈信息
+
+```bash
+top                 #找到CPU占用率高的进程ID
+top -c -H -p <pid>  #找到CPU占用率最高的线程ID
+pstack <tid>        #查看该线程的调用栈
+pstack是gstack的链接，gstack是脚本，属于gdb这个package。
+```
+
+### abrtd自动报告bug
+
+abrtd是Redhat的Automatic bug reporting tool，相关的工具和命令包括：`abrt-auto-reporting`和`abrt-cli`。
+
+### scanelf获取运行时依赖（动态链接库）
+```bash
+scanelf --needed --nobanner --recursive /usr/local \
+      | awk '{ gsub(/,/, "\nso:", $2); print "so:" $2 }' \
+      | sort -u \
+      | xargs -r apk info --installed \
+      | sort -u
+```
+
+
+
+### time查看执行时间
+
+```bash
+[zy@m1 ~]$ time sleep 1s
+
+real    0m1.001s
+user    0m0.001s
+sys     0m0.000s
+```
+
+获取更详细的信息
+```bash
+# 安装
+yum install time -y
+
+# wrap time，输出更详细信息
+cat <<EOF >/tmp/xtime
+#!/bin/sh
+/usr/bin/time -f '%Uu %Ss %er %MkB %C' "\$@"
+EOF
+chmod a+x /tmp/xtime
+
+/tmp/xtime sleep 1s
+```
+
+
+### coredump分析
+
+查看Core Dump文件保存路径
+
+```bash
+cat /proc/sys/kernel/core_pattern
+```
+
+### /proc/<pid>/目录下文件说明
+TODO
+
+| 文件名称 | 说明 |
+| ------- | ---- |
+| cmdline | 命令行字符串 |
+| exe | |
+| stack | 进程堆栈信息 |
+| root | |
+| syscall | |
+
+### D状态进程的分析
+查看进程堆栈信息：
+```bash
+cat /proc/<pid>/stack
+```
+
+### defunct进程
+在Linux中`defunct`和`zombie`进程是一回事儿，从`man ps`可知：
+> Processes marked `<defunct>` are dead processes (so-called "zombies") that remain because their parent has not destroyed them properly. These processes will be destroyed by init(8) if the parent process exits.
+
+```bash
+PROCESS STATE CODES
+    Here are the different values that the s, stat and state output specifiers (header "STAT" or "S") will display to describe the state of a process:
+    D    uninterruptible sleep (usually IO)
+    R    running or runnable (on run queue)
+    S    interruptible sleep (waiting for an event to complete)
+    T    stopped by job control signal
+    t    stopped by debugger during the tracing
+    W    paging (not valid since the 2.6.xx kernel)
+    X    dead (should never be seen)
+    Z    defunct ("zombie") process, terminated but not reaped by its parent
+```
+`defunct`进程已异常退出，但其`parent`进程未能正常处理/确认其退出。当这类进程的`parent`进程退出后，`init(8)`进程会彻底销毁它们。因此，只要`kill`掉`defunct`进程的`parent`即可。
+
+另一方面，当遇到`defunct`进程的父进程为`init(8)`时，目前唯一简便且可行的是重启节点。导致出现这类进程的原因多是IO或者系统调用（syscall）异常，可通过`lsof -p <pid of the zombie>`获取debug信息。
+
+
+
+### objdump分析库和可执行文件
+```bash
+# 查看导出的符号表
+objdump -T vdso.so
+```
+
+
 
 ## 主机资源监控
 
-### vmstat
+### vmstat（内存）
 
 ```bash
 vmstat 3 100        #查看swap in/out
@@ -2734,14 +2919,14 @@ vmstat -s           #显示事件计数器和内存状态
 cat /proc/vmstat | grep 'pgpg\|pswp'     #查看page交换in/out的统计值
 ```
 
-### mpstat
+### mpstat（CPU）
 ```bash
 mpstat              # 查看资源使用率的【利器】，说明详见man mpstat
 mpstat.steal        # 检查vm的cpu资源是否被hypervisor挪用
 mpstat -P ALL 1     # 每个CPU核的使用率
 ```
 
-### pidstat
+### pidstat（进程）
 查看进程的状态详情
 ```bash
 # 进程上下文切换
@@ -2750,10 +2935,10 @@ pidstat -w 3 10
 pidstat -p <pid> -r 1 10
 ```
 
-### iftop
+### iftop（网络）
 监控网络接口
 
-### sar
+### sar（历史记录）
 
 #### 使能和配置sar
 ```bash
@@ -2783,25 +2968,94 @@ sar -n ALL
 sar -n keyword [,...]
 ```
 
-### 长期测试CPU性能
+### 打开文件数
 ```bash
-for i in $(seq 0 99); do
-    echo -en [$(printf "%02d" $i)] $(date +"%Y-%m-%d %T") "\t"
-    echo -n $({ time python3 -c "2**1000000000"; } 2>&1 | grep -v ^$ | awk '{print $2}')
-    echo
-done
+# 操作系统层面，最大打开文件/fd数
+cat /proc/sys/fs/file-max
+# 操作系统层面，当前打开文件连接数
+cat /proc/sys/fs/file-nr
+# 进程层面，最大打开文件/fd数，因此应该小于上述/proc/sys/fs/file-max的值
+ulimit -n
 ```
 
-或者：
+
+### lsof（文件和设备）
+
 ```bash
-for i in $(seq 0 99); do     echo -en [$(printf "%02d" $i)] $(date +"%Y-%m-%d %T") "\t";     echo -n $({ time python3 -c "2**1000000000"; } 2>&1 | grep -v ^$ | awk '{print $2}');     echo; done | tee ./cpu-perf-test-$(hostname).log
+# 统计打开文件数
+lsof -n | awk '{print $2}' | grep -v PID | sort | uniq -c | sort -n
+
+lsof /etc/passwd            #哪个进程打开了/etc/passwd文件
+lsof `which httpd`          #哪个进程在使用Apache可执行文件
+lsof -i:2375
+lsof -p pid                 #显示进程pid打开的文件，这种方式不会重复统计进程中线程的fd数量
+for i in $(ps -ef | grep shim | grep -v grep | grep -v "\-\-shim" | awk '{print $2}'); do echo $i $(lsof -p $i | wc -l); done
+
+# 统计、查看未关闭文件句柄的进程
+lsof 2>/dev/null | grep -i deleted | awk '{print $2}' | sort -n | uniq -c | sort -nr
+
+# 查看什么command打开的文件最多
+lsof 2>/dev/null | awk '{print $1}' | sort | uniq -c | sort -r -n | head
+
+# 查看nginx命令打开的文件数，输出打开文件TOP10的进程pid
+lsof 2>/dev/null | grep ^nginx | awk '{print $2}' | sort -n | uniq -c | sort -rn | head
 ```
+
+
+
+### fuser（文件和设备）
+
+当挂载点无法umount、提示“device is busy”时，能够使用fuser查找到谁在使用这个资源。
+
+```bash
+# 查找哪些用户和进程在使用该设备
+fuser -vam /dev/sdf
+```
+
+同时也能查看谁在占用端口：
+
+```bash
+# 查找哪些用户和程序使用tcp的80端口
+fuser -v -n tcp 80
+```
+
+
+### netstat（网络）
+
+常用操作：
+
+```bash
+#查看所有连接及其pid
+netstat -anp
+netstat -aonp
+
+netstat -ptn | grep 10257
+```
+
+
+### ss（网络）
+
+常用操作：
+
+```bash
+# 连接和端口打开信息
+ss -Htanop \( sport = 10257 \)
+
+#查看TCP已连接数
+ss state ESTABLISHED
+ss -s
+# 查看套接字 socket 连接信息，基本等同于 netstat -ptn
+ss -aonp
+ss -tpn dst :8080
+```
+
+
 
 ### 常用命令
 
 ```bash
-# 排查load average过高的可疑线程
-# milk-cdn服务产生很多Dl状态(不可中断线程)的线程，导致load average很高，重启服务后恢复正常。目前在持续观察这种情况如何产生。
+# 排查load-average过高的可疑线程
+# milk-cdn服务产生很多Dl状态(不可中断线程)的线程，导致load-average很高，重启服务后恢复正常。目前在持续观察这种情况如何产生。
 ps -eTo stat,pid,tid,ppid,comm --no-header | sed -e 's/^ \*//' | perl -nE 'chomp;say if (m!^S*[RD]+\S*!)'
 # 查看进程状态
 ps -e -o pid,stat,comm,lstart,wchan=WIDE-WCHAN-COLUMN
@@ -2884,87 +3138,6 @@ du -d 1 -h
 du -sh --exclude='lib/*' # 统计时排出lib目录下所有内容
 ```
 
-
-### 打开文件数
-```bash
-# 操作系统层面，最大打开文件/fd数
-cat /proc/sys/fs/file-max
-# 操作系统层面，当前打开文件连接数
-cat /proc/sys/fs/file-nr
-# 进程层面，最大打开文件/fd数，因此应该小于上述/proc/sys/fs/file-max的值
-ulimit -n
-```
-
-
-### lsof（文件和设备）
-
-```bash
-# 统计打开文件数
-lsof -n | awk '{print $2}' | grep -v PID | sort | uniq -c | sort -n
-
-lsof /etc/passwd            #哪个进程打开了/etc/passwd文件
-lsof `which httpd`          #哪个进程在使用Apache可执行文件
-lsof -i:2375
-lsof -p pid                 #显示进程pid打开的文件，这种方式不会重复统计进程中线程的fd数量
-for i in $(ps -ef | grep shim | grep -v grep | grep -v "\-\-shim" | awk '{print $2}'); do echo $i $(lsof -p $i | wc -l); done
-
-# 统计、查看未关闭文件句柄的进程
-lsof 2>/dev/null | grep -i deleted | awk '{print $2}' | sort -n | uniq -c | sort -nr
-
-# 查看什么command打开的文件最多
-lsof 2>/dev/null | awk '{print $1}' | sort | uniq -c | sort -r -n | head
-
-# 查看nginx命令打开的文件数，输出打开文件TOP10的进程pid
-lsof 2>/dev/null | grep ^nginx | awk '{print $2}' | sort -n | uniq -c | sort -rn | head
-```
-
-
-
-### fuser（文件和设备）
-
-当挂载点无法umount、提示“device is busy”时，能够使用fuser查找到谁在使用这个资源。
-
-```bash
-# 查找哪些用户和进程在使用该设备
-fuser -vam /dev/sdf
-```
-
-同时也能查看谁在占用端口：
-
-```bash
-# 查找哪些用户和程序使用tcp的80端口
-fuser -v -n tcp 80
-```
-
-
-### netstat（网络）
-
-常用操作：
-
-```bash
-#查看所有连接及其pid
-netstat -anp
-netstat -aonp
-
-netstat -ptn | grep 10257
-```
-
-
-### ss（网络）
-
-常用操作：
-
-```bash
-# 连接和端口打开信息
-ss -Htanop \( sport = 10257 \)
-
-#查看TCP已连接数
-ss state ESTABLISHED
-ss -s
-# 查看套接字 socket 连接信息，基本等同于 netstat -ptn
-ss -aonp
-ss -tpn dst :8080
-```
 
 
 ## 内存信息解读
@@ -3387,133 +3560,6 @@ ntpq -p   # 查看当前从谁那里同步时间
 对ntp的改良。
 
 
-
-## 如何Debug程序和进程
-
-### 分析softlockup
-打开`softlockup panic`，当遇到`softlockup`时直接打印堆栈并异常：
-```
-echo 1 > /proc/sys/kernel/softlockup_panic
-```
-配合上`kdump`服务，在panic时生成`vmcore`文件，用于定位。
-
-通过`virsh dump`也可直接获取虚机的`core dump`文件。
-
-### pmap分析内存使用
-
-```bash
-pmap -x pid     # 查看详细信息
-pmap -XX pid    # 查看kernel提供的所有信息
-```
-
-### strace查看进程调用链
-
-```bash
-strace -f -e trace=access curl 'https://10.100.0.1/'
-strace -fc -e trace=access curl -s 'https://10.100.0.1/' > /dev/null
-
-# 找配置文件的奇技淫巧
-strace -eopen pip 2>&1|grep pip.conf
-
-# 获取etcd每次写操作字节数，借此评估fio测试块大小  TODO
-strace -p $(pidof etcd) 2>&1 | grep -e  "\(write\|fdatasync\)\((12\|(18\)"
-
-# 查看系统调用和耗时的汇总信息，特别有助于分析性能问题
-strace -c -f -p <pid of process/thread>
-```
-
-### ftrace查看系统调用耗时
-安装`trace-cmd`
-
-### perf查看系统调用性能
-安装`perf`
-
-```bash
-perf record cat /sys/fs/cgroup/memory/memory.stat
-perf report
-perf top
-```
-
-### pstack分析CPU异常高时堆栈信息
-
-```bash
-top                 #找到CPU占用率高的进程ID
-top -c -H -p <pid>  #找到CPU占用率最高的线程ID
-pstack <tid>        #查看该线程的调用栈
-pstack是gstack的链接，gstack是脚本，属于gdb这个package。
-```
-
-### abrtd自动报告bug
-
-abrtd是Redhat的Automatic bug reporting tool，相关的工具和命令包括：`abrt-auto-reporting`和`abrt-cli`。
-
-### scanelf获取运行时依赖（动态链接库）
-```bash
-scanelf --needed --nobanner --recursive /usr/local \
-      | awk '{ gsub(/,/, "\nso:", $2); print "so:" $2 }' \
-      | sort -u \
-      | xargs -r apk info --installed \
-      | sort -u
-```
-
-
-
-### time查看执行时间
-
-```bash
-[zy@m1 ~]$ time sleep 1s
-
-real    0m1.001s
-user    0m0.001s
-sys     0m0.000s
-```
-
-获取更详细的信息
-```bash
-# 安装
-yum install time -y
-
-# wrap time，输出更详细信息
-cat <<EOF >/tmp/xtime
-#!/bin/sh
-/usr/bin/time -f '%Uu %Ss %er %MkB %C' "\$@"
-EOF
-chmod a+x /tmp/xtime
-
-/tmp/xtime sleep 1s
-```
-
-
-### coredump分析
-
-查看Core Dump文件保存路径
-
-```bash
-cat /proc/sys/kernel/core_pattern
-```
-
-### /proc/<pid>/目录下文件说明
-TODO
-
-| 文件名称 | 说明 |
-| ------- | ---- |
-| cmdline | 命令行字符串 |
-| exe | |
-| stack | 进程堆栈信息 |
-| root | |
-| syscall | |
-
-### D状态进程的分析
-查看进程堆栈信息：
-```bash
-cat /proc/<pid>/stack
-```
-
-### objdump分析库和可执行文件
-```bash
-# 查看导出的符号表
-objdump -T vdso.so
-```
 
 
 ## 动态链接库管理
