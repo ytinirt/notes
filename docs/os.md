@@ -1873,12 +1873,20 @@ iptables -A IN_public_allow -p tcp --dport 20048 -j ACCEPT
 ~~~
 
 
+### NFS客户端的sport源端口
+https://unix.stackexchange.com/questions/398152/why-is-nfs-client-using-low-numbered-ports
+```bash
+/sys/module/sunrpc/parameters/min_resvport
+/sys/module/sunrpc/parameters/max_resvport
+```
+
+或者*mount*增加参数`noresvport` 。
+
 ### nfs问题定位手段
 
 ```bash
 TODO
 ```
-
 
 
 ## webdav
