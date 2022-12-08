@@ -2731,6 +2731,9 @@ TODO
 # 1 for hard disks
 # 0 for SSD
 cat /sys/block/sda/queue/rotational
+
+# 或者如下方法，依然0表示ssd，1表示hdd
+lsblk -d -o name,rota
 ```
 注意，存在RAID控制器或者VM上，判断可能不准。
 参见[how-to-know-if-a-disk-is-an-ssd-or-an-hdd](https://unix.stackexchange.com/questions/65595/how-to-know-if-a-disk-is-an-ssd-or-an-hdd)。
