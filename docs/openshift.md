@@ -26,6 +26,24 @@
 
 # 常用操作
 
+## 检查被废弃API的使用情况
+参见[Navigating Kubernetes API deprecations and removals](https://access.redhat.com/articles/6955985) :
+```bash
+# 过滤出会被废弃的API
+oc get apirequestcounts \
+    -o jsonpath='{range .items[?(@.status.removedInRelease!="")]}{.status.removedInRelease}{"\t"}{.status.requestCount}{"\t"}{.metadata.name}{"\n"}{end}'
+
+# 过滤出谁在访问被废弃的API
+oc get apirequestcounts ingresses.v1beta1.networking.k8s.io \
+  -o jsonpath='{range .status.last24h..byUser[*]}{..byVerb[*].verb}{","}{.username}{","}{.userAgent}{"\n"}{end}' \
+  | sort -k 2 -t, -u | column -t -s, -NVERBS,USERNAME,USERAGENT
+```
+
+注意，如下用户可忽略，它们是内建用户、会遍历处理所有资源：
+- `system:serviceaccount:kube-system:generic-garbage-collector` 和 `system:serviceaccount:kube-system:namespace-controller` ，它们会遍历访问所有资源
+- `system:kube-controller-manager` 和 `system:cluster-policy-controller` ，它们会遍历处理所有资源
+
+
 ## 获取用户认证Token
 ### 使用whoami获取Token
 ```bash

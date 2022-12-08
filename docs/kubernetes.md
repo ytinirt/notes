@@ -777,6 +777,9 @@ kubectl get pod -A --field-selector spec.nodeName=$(hostname) -o jsonpath='{rang
 kubectl get nodes --selector='node-role.kubernetes.io/master' -o jsonpath='{.items[0].status.conditions[?(@.type=="Ready")].status}'
 kubectl get pod -o jsonpath='{.spec.containers[?(@.name=="dns")].image}'
 kubectl get pod -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}'
+kubectl get apirequestcounts -o jsonpath='{range .items[?(@.status.removedInRelease!="")]}{.status.removedInRelease}{"\t"}{.status.requestCount}{"\t"}{.metadata.name}{"\n"}{end}'
+kubectl get apirequestcounts ingresses.v1beta1.networking.k8s.io \
+  -o jsonpath='{range .status.last24h..byUser[*]}{..byVerb[*].verb}{","}{.username}{","}{.userAgent}{"\n"}{end}'
 # 查看所有Pod
 kubectl get pod | grep -v NAME | awk '{print $1}'      
 # 查看Pod的运行状态
@@ -1178,4 +1181,7 @@ GVK和资源model的对应关系，资源model的默认值，资源在不同版�
 #### Device Plugin
 
 # 备忘
+## k8s版本信息
+- [API Removal](https://kubernetes.io/docs/reference/using-api/deprecation-guide/)
+## 其它
 `kube-controller-manager`的默认配置在`kubernetes/pkg/controller/apis/config/v1alpha1/zz_generated.defaults.go`中`SetDefaults_KubeControllerManagerConfiguration()`设置。
