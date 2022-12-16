@@ -229,6 +229,7 @@
 
 ## 进程调度
 
+### migration
 migration是Linux内核进程，用于在core间分摊处理压力：
 
 ```bash
@@ -237,7 +238,15 @@ root         7     2  0 Feb02 ?        00:00:14 [migration/0]
 root        12     2  0 Feb02 ?        00:00:14 [migration/1]
 ```
 
+### 绑核和预留CPU
+```bash
+# 查看进程可以运行的cpu
+taskset -pc <pid>
 
+# grub参数配置isolcpus，预留CPU，避免除中断外的进程调度到预留的CPU上
+# cat /proc/cmdline
+... isolcpus=1,2,3,4 ...
+```
 
 ## 进程间通信
 
@@ -2916,6 +2925,9 @@ PROCESS STATE CODES
 ```bash
 # 查看导出的符号表
 objdump -T vdso.so
+
+# 查看section列表
+objdump -h binary
 ```
 
 

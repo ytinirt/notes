@@ -652,6 +652,7 @@ done
 ```bash
 kubectl get --raw /openapi/v2 | jq > openapi.json
 ```
+此后可用*swagger*打开api文档。
 
 ## 从secret中获取证书信息
 ```bash
@@ -1183,5 +1184,7 @@ GVK和资源model的对应关系，资源model的默认值，资源在不同版�
 # 备忘
 ## k8s版本信息
 - [API Removal](https://kubernetes.io/docs/reference/using-api/deprecation-guide/)
+- [API废弃策略](https://kubernetes.io/docs/reference/using-api/deprecation-policy/)
+
 ## 其它
 `kube-controller-manager`的默认配置在`kubernetes/pkg/controller/apis/config/v1alpha1/zz_generated.defaults.go`中`SetDefaults_KubeControllerManagerConfiguration()`设置。

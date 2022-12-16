@@ -104,6 +104,16 @@ go build -tags=linux,cgo
 go build -tags=linux -tags=cgo
 ```
 
+## buildinfo
+- fix: [cmd/go: do not include module info when -buildinfo=false](https://go-review.googlesource.com/c/go/+/376674)
+- issue: [cmd/go: no way to omit package information from binary](https://github.com/golang/go/issues/50501)
+
+## 常用命令
+```bash
+# 查看exec-binary-file中使用的mod的version
+go version -m exec-binary-file
+```
+
 # 如何Debug Golang程序
 
 ## 打印堆栈

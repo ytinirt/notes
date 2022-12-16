@@ -498,6 +498,7 @@ SELinux参照最小权限模型（the model of least-privilege）设计，与之
 但strict policy过于严格、不便使用，为此CentOS定义并默认采用基于目标的策略（the targeted policy），只针对选取的系统进程进行限制，这些进程（例如 httpd, named, dhcpd, mysqld）涉及敏感信息和操作。其它系统进程和用户进程则处于未限制域（unconfined domain）中，不由SELinux控制和保护。
 
 targeted policy有四种形式的访问控制：
+
 | 类型 | 描述 |
 | --- | --- |
 | Type Enforcement (TE) | Type Enforcement is the primary mechanism of access control used in the targeted policy |
