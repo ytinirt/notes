@@ -323,6 +323,17 @@ grep -r --exclude-dir="./*/.git" "string to search" <directory>
 ```
 
 ### sed
+```bash
+# 仅替换第一个匹配的内容
+sed -i '0,/foo/s//bar/' file-name
+
+# 仅替换第一行内容
+sed -i '1 s/foo/bar/g' file-name
+
+# 仅替换第一行匹配的第一项内容
+sed -i '1 s/foo/bar/' file-name
+
+```
 
 ### sort
 

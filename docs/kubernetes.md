@@ -265,6 +265,8 @@ done
 oc get --raw /debug/api_priority_and_fairness/dump_priority_levels
 ```
 
+# 以CRD方式扩展API
+https://kubernetes.io/docs/tasks/extend-kubernetes/custom-resources/custom-resource-definitions/
 
 # Pod调度如何感知volume的topology
 环境中有三个节点，类型为Controller：
@@ -1176,6 +1178,7 @@ GVK和资源model的对应关系，资源model的默认值，资源在不同版�
 #### Topology Manager
 
 #### CPU Manager
+
 
 #### Memory Manager
 
