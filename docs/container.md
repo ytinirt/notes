@@ -126,6 +126,54 @@ cgroup实现本质上是给系统进程挂上hooks，当task运行过程中涉�
 - [Linux cgroup资源隔离各个击破之 - cpu隔离1](https://developer.aliyun.com/article/54483)
 - [CFS Scheduler](https://www.kernel.org/doc/Documentation/scheduler/sched-design-CFS.txt)
 
+#### 根据pod的cpu request和limit如何设置cpu cgroup参数
+建一个测试Pod，其`resources`配置如下：
+```bash
+    resources:
+      requests:
+        cpu: 0
+      limits:
+        cpu: 1
+```
+
+创建Pod后可确认：
+* **调度效果**：对request没有要求，不会占节点的allocated request数。
+* **QoS类型**：Burstable
+
+进一步查看cpu cgroup参数：
+```bash
+# cat cpu.cfs_period_us
+100000
+# cat cpu.cfs_quota_us
+100000
+# cat cpu.shares
+2
+```
+* 可看到 _cpu.cfs_quota_us_ / _cpu.cfs_period_us_ 为1，这个是上限。
+* *cpu.shares*为2，而一个核的权重为1024，因此2/1024近乎为0，可看到下限配置很低，对应`request 0`。
+
+
+作为对比，更新测试Pod的`resources`配置如下：
+```bash
+    resources:
+      requests:
+        cpu: 0.5
+      limits:
+        cpu: 1.5
+```
+这时cpu cgroup参数如下：
+```bash
+# cat cpu.cfs_period_us
+100000
+# cat cpu.cfs_quota_us
+150000
+# cat cpu.shares
+512
+```
+* 可看到 _cpu.cfs_quota_us_ / _cpu.cfs_period_us_ 为1.5，这个是上限。
+* *cpu.shares* / 1024 为0.5，对应`request 0.5`。
+
+
 ## 挂载cgroupfs
 
 以cpuset子系统为例：
