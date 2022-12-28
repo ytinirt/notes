@@ -754,6 +754,75 @@ podman image unmount quay.io/openshift-scale/etcd-perf:latest
 cat /var/lib/containers/storage/overlay-images | jq
 ```
 
+# crictl
+_crictl_ 访问*cri server*，同kubelet的行为一致，因此常用于站在kubelet角度去debug容器运行时。
+
+## 直接创建容器
+_crictl_ 拉起容器比*podman*等CLI工具麻烦，需要编辑json或yaml格式的配置文件，再拉起容器。而且，其行为同kubelet一致，因此拉起容器前还需要创建pod sandbox容器。
+
+### 创建Pod Sandbox
+sandbox配置文件`sandbox.json`如下：
+```json
+{
+  "metadata": {
+    "name": "sandbox",
+    "namespace": "default",
+    "attempt": 1,
+    "uid": "xxx"
+  },
+  "hostname": "POD",
+  "log_directory": "/tmp",
+  "linux": {
+    "security_context": {
+      "privileged": true,
+      "namespace_options": {
+        "network": 2
+      }
+    }
+  }
+}
+```
+
+然后执行如下命令：
+```bash
+crictl runp sandbox.json
+```
+
+### 创建业务容器
+业务容器配置文件`container.json`如下：
+```json
+{
+    "metadata":{
+        "name":"container",
+        "attempt": 1
+    },
+    "image": {
+        "image": "centos:latest"
+    },
+    "args": [
+        "sleep", "inf"
+    ],
+    "mounts": [
+        {"container_path":"/dev", "host_path":"/dev"},
+        {"container_path":"/var/log", "host_path":"/var/log"}
+    ],
+    "log_path": "tmp.log",
+    "linux": {
+      "security_context": {
+        "privileged": true
+      }
+    }
+}
+```
+
+然后执行如下命令：
+```bash
+crictl create <sandbox-id> container.json sandbox.json
+```
+
+### 如何配置
+参见`vendor/k8s.io/cri-api/pkg/apis/runtime/v1/api.pb.go`中`PodSandboxConfig`和`ContainerConfig`结构体定义。
+
 # Docker
 
 ## 容器环境下的swap使用

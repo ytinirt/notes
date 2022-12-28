@@ -527,6 +527,10 @@ cat /sys/kernel/mm/transparent_hugepage/khugepaged/pages_to_scan
 
 ```bash
 numactl -H
+
+# 指定NUMA节点运行程序
+numactl -N 0 -m 0 ./test
+
 numastat
 ```
 
