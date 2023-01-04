@@ -239,6 +239,8 @@ root        12     2  0 Feb02 ?        00:00:14 [migration/1]
 ```
 
 ### 绑核和预留CPU
+
+#### 操作
 ```bash
 # 查看进程可以运行的cpu
 taskset -pc <pid>
@@ -246,6 +248,16 @@ taskset -pc <pid>
 # grub参数配置isolcpus，预留CPU，避免除中断外的进程调度到预留的CPU上
 # cat /proc/cmdline
 ... isolcpus=1,2,3,4 ...
+
+# 配置CPU隔离，重启节点生效
+grubby --update-kernel=ALL --args="isolcpus=3,4"
+# 此后查看是否生效
+
+# 能看到1号进程不会运行到3和4核上
+taskset -cp 1
+
+# 使用numactl将进程绑定到隔离的核上
+
 ```
 
 ## 进程间通信

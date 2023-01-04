@@ -852,6 +852,11 @@ jq '.[] | .string + ": " + (.number|tostring)'
 etcdctl get --prefix /leader-election -w json | jq .kvs[] | jq -s -c 'sort_by(.create_revision)[0] | .value' -r | base64 -d
 ```
 
+#### map对象添加kv
+```bash
+cat config.json | jq '.linux.resources.cpu += {"cpus": "4"}'
+```
+
 ### 常用操作
 
 使用jq格式化输出

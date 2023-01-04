@@ -638,6 +638,35 @@ runc --root /run/containerd/runc/k8s.io ps <cid>
 runc --root /run/containerd/runc/k8s.io exec -t <cid> bash
 ```
 
+# OCI
+## oci-hooks
+配置一个hook：
+```bash
+# cat /etc/containers/oci/hooks.d/hook.json
+{
+  "version": "1.0.0",
+  "hook": {
+    "path": "/root/runtime-hook.sh",
+    "args": ["runtime-hook.sh"]
+  },
+  "when": {
+    "annotations": {
+      "^ANNON\\.HEHE$": ".*"
+    }
+  },
+  "stages": ["prestart"]
+}
+```
+
+hook执行操作：
+```bash
+# cat /root/runtime-hook.sh
+#!/bin/bash
+
+echo "$@" >> /root/runtime-hook.log
+env >> /root/runtime-hook.log
+echo >> /root/runtime-hook.log
+```
 
 # Containerd
 ## 常用操作
