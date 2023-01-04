@@ -26,6 +26,9 @@
 
 # 常用操作
 
+## 配置审计日志策略
+[TODO](https://access.redhat.com/documentation/en-us/openshift_container_platform/4.10/html/security_and_compliance/audit-log-policy-config)
+
 ## 检查被废弃API的使用情况
 参见[Navigating Kubernetes API deprecations and removals](https://access.redhat.com/articles/6955985) :
 ```bash
