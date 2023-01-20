@@ -1781,7 +1781,8 @@ multipathd
 ```
 
 
-
+## Persistent Memory
+*PMEM*，TODO
 
 
 # File system
@@ -2775,6 +2776,16 @@ docker run -d -m 100M --rm polinux/stress stress  --vm 1 --vm-bytes 128M --vm-ke
 #### 既有日志统计
 ```bash
 cat messages | cut -c1-12 | uniq -c
+```
+
+## 系统配置收集
+```bash
+COLLECT_DIRECTORY="sys-config-$(hostname)"
+mkdir ${COLLECT_DIRECTORY}
+cp -r /etc ${COLLECT_DIRECTORY}/
+sysctl -a > ${COLLECT_DIRECTORY}/sysctl-a.conf
+dmidecode hardware > ${COLLECT_DIRECTORY}/dmidecode-hardware.conf
+tar -zcf ${COLLECT_DIRECTORY}.tar.gz ${COLLECT_DIRECTORY}
 ```
 
 ## 如何Debug程序和进程
@@ -3844,6 +3855,13 @@ logger -p user.info -t modname message
 
 
 ## 其它技巧
+打印头和尾日志：
+```bash
+cat file.log | (head -n1 && tail -n1)
+```
+
+
+
 tar解压时，保留owner的id：
 ```bash
 tar -zxf data.tar.gz --numeric-owner

@@ -737,7 +737,7 @@ function pid2pod {
       if [ "${result}" != "" ]; then
         echo "${result}"
       else
-        ctr c ls | grep ${cid} | awk '{print $2}' 2>/dev/null
+        ctr c ls 2>/dev/null | grep ${cid} 2>/dev/null | awk '{print $2}' 2>/dev/null
       fi
     fi
   fi
