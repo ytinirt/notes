@@ -256,6 +256,12 @@ grubby --update-kernel=ALL --args="isolcpus=3,4"
 # 能看到1号进程不会运行到3和4核上
 taskset -cp 1
 
+# 设置进程（及其线程）的cpu亲和性
+taskset -cap 0,9-24,33-48,57-72,81-95 <pid>
+
+# 查看进程跑在什么core上
+ps -eLo pid,psr,comm
+
 # 使用numactl将进程绑定到隔离的核上
 
 ```
@@ -2248,6 +2254,10 @@ ssh -Q kex    # 获取ssh客户端支持的加密算法
 ssh $node -C "/bin/bash" < local-scripts.sh     # 远程到节点上执行本地的脚本
 ```
 
+#### 永久跳过初次连接时host指纹检查提示
+```
+echo "StrictHostKeyChecking no" >> /etc/ssh/ssh_config
+```
 
 
 ### ssh免密登录

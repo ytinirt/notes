@@ -2663,6 +2663,12 @@ pipe字符(|)，可以换成(&#124;)
 
 ## 奇技淫巧
 
+### curl取代postman
+```
+curl -H 'Content-Type: application/json' -X POST -T file-name http://10.0.0.1:12345/path/to/api
+curl -H 'Content-Type: application/json' -X POST -d @file-name http://10.0.0.1:12345/path/to/api
+```
+
 ### atom超级好用的package
 - document-outline
 - markdown-writer
