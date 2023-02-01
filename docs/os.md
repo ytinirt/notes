@@ -474,7 +474,12 @@ vm.dirty_writeback_centisecs = 10
 参见资料[CONFIGURING HUGETLB HUGE PAGES](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/performance_tuning_guide/sect-red_hat_enterprise_linux-performance_tuning_guide-memory-configuring-huge-pages)
 
 #### 系统启动时分配大页内存
-TODO
+配置系统启动参数（注意重启节点生效）：
+```bash
+grubby --update-kernel=ALL --args="hugepagesz=2M"
+grubby --update-kernel=ALL --args="hugepages=65536"
+grubby --update-kernel=ALL --args="default_hugepagesz=2M"
+```
 
 #### 系统运行时分配大页内存
 通过 `/sys/devices/system/node/<node_id>/hugepages/hugepages-<size>/<nr_hugepages>` 指定NUMA节点`node_id`上分配页大小`hugepages-<size>`的大页内存`<nr_hugepages>`个。
@@ -2788,9 +2793,10 @@ docker run -d -m 100M --rm polinux/stress stress  --vm 1 --vm-bytes 128M --vm-ke
 cat messages | cut -c1-12 | uniq -c
 ```
 
-## 系统配置收集
+## 收集系统配置
 ```bash
-COLLECT_DIRECTORY="sys-config-$(hostname)"
+TS=$(date +"%y%m%d%H%M")
+COLLECT_DIRECTORY="sys-config-$(hostname)-$TS"
 mkdir ${COLLECT_DIRECTORY}
 cp -r /etc ${COLLECT_DIRECTORY}/
 sysctl -a > ${COLLECT_DIRECTORY}/sysctl-a.conf
