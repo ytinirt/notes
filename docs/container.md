@@ -5,6 +5,7 @@
    * [cgroup](#cgroup)
       * [cgroup子系统](#cgroup子系统)
          * [cpu和cpuacct cgroup](#cpu和cpuacct-cgroup)
+            * [根据pod的cpu request和limit如何设置cpu cgroup参数](#根据pod的cpu-request和limit如何设置cpu-cgroup参数)
       * [挂载cgroupfs](#挂载cgroupfs)
       * [判断是否为cgroupv2](#判断是否为cgroupv2)
       * [降级为cgroupv1](#降级为cgroupv1)
@@ -38,6 +39,8 @@
          * [为Pod/容器设置selinux label](#为pod容器设置selinux-label)
    * [容器运行时runc](#容器运行时runc)
       * [常用命令](#常用命令-1)
+   * [OCI](#oci)
+      * [oci-hooks](#oci-hooks)
    * [Containerd](#containerd)
       * [常用操作](#常用操作-2)
       * [如何编译containerd](#如何编译containerd)
@@ -47,6 +50,11 @@
    * [podman](#podman)
       * [使用podman查看cri创建的pod](#使用podman查看cri创建的pod)
       * [常用命令](#常用命令-2)
+   * [crictl](#crictl)
+      * [直接创建容器](#直接创建容器)
+         * [创建Pod Sandbox](#创建pod-sandbox)
+         * [创建业务容器](#创建业务容器)
+         * [如何配置](#如何配置)
    * [Docker](#docker)
       * [容器环境下的swap使用](#容器环境下的swap使用)
       * [深入docker stats命令](#深入docker-stats命令)
@@ -68,7 +76,7 @@
          * [容器文件系统使用率统计](#容器文件系统使用率统计)
          * [强制重启Docker服务](#强制重启docker服务)
 
-<!-- Added by: admin, at: 2022年12月 6日 21:41:58 -->
+<!-- Added by: admin, at: 2023年02月 7日 16:21:28 -->
 
 <!--te-->
 

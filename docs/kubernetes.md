@@ -13,6 +13,7 @@
       * [亲和性](#亲和性)
       * [自定义调度器](#自定义调度器)
    * [API优先级APIPriorityAndFaireness](#api优先级apipriorityandfaireness)
+   * [以CRD方式扩展API](#以crd方式扩展api)
    * [Pod调度如何感知volume的topology](#pod调度如何感知volume的topology)
    * [CPU资源高级管理](#cpu资源高级管理)
    * [kube-proxy集群内负载均衡](#kube-proxy集群内负载均衡)
@@ -33,12 +34,14 @@
    * [鉴权Authorization](#鉴权authorization)
    * [操作实例](#操作实例)
       * [便捷操作](#便捷操作)
+      * [event使用独立的etcd集群](#event使用独立的etcd集群)
       * [模拟list对kube-apiserver进行压测](#模拟list对kube-apiserver进行压测)
       * [获取openapi json](#获取openapi-json)
       * [从secret中获取证书信息](#从secret中获取证书信息)
       * [从KubeConfig文件中提取证书秘钥](#从kubeconfig文件中提取证书秘钥)
       * [debug和问题解决](#debug和问题解决)
       * [堆栈文件分析](#堆栈文件分析)
+      * [TODO: 根据sa生成kubeconfig](#todo-根据sa生成kubeconfig)
       * [常见操作](#常见操作)
       * [资源遍历](#资源遍历)
          * [遍历所有pod](#遍历所有pod)
@@ -88,8 +91,10 @@
             * [Memory Manager](#memory-manager)
             * [Device Plugin](#device-plugin)
    * [备忘](#备忘)
+      * [k8s版本信息](#k8s版本信息)
+      * [其它](#其它-1)
 
-<!-- Added by: admin, at: 2022年12月 6日 21:42:03 -->
+<!-- Added by: admin, at: 2023年02月 7日 16:21:34 -->
 
 <!--te-->
 
@@ -633,6 +638,11 @@ OAuth
       echo $b64 | base64 -d | openssl x509 -noout -text
   }
   ```
+
+## event使用独立的etcd集群
+```bash
+--etcd-servers-overrides="/events#https://1.2.3.1:2369;https://1.2.3.2:2369;https://1.2.3.3:2369"
+```
 
 ## 模拟list对kube-apiserver进行压测
 10qps:

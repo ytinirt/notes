@@ -14,6 +14,8 @@
          * [或](#或)
          * [非](#非)
          * [传tag](#传tag)
+      * [buildinfo](#buildinfo)
+      * [常用命令](#常用命令)
    * [如何Debug Golang程序](#如何debug-golang程序)
       * [打印堆栈](#打印堆栈)
       * [使用devle调试Go程序](#使用devle调试go程序)
@@ -26,7 +28,7 @@
       * [测试cpu性能](#测试cpu性能)
       * [代码实例](#代码实例)
 
-<!-- Added by: admin, at: 2022年12月 6日 21:42:00 -->
+<!-- Added by: admin, at: 2023年02月 7日 16:21:30 -->
 
 <!--te-->
 

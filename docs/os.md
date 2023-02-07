@@ -283,7 +283,8 @@ ipcmk -Q
 
 cat /proc/sys/kernel/sem
 echo 250 32000 100 128 > /proc/sys/kernel/sem
-ipcs -ls
+# 查看IPC工具信息和limit，包括：消息队列Message Queue、共享内存Shared Memory、信号量Semaphore
+ipcs -l
 sysctl -w kernel.sem="250 32000 100 128"
 echo "kernel.sem=250 32000 100 128" >> /etc/sysctl.conf
 ```
@@ -739,7 +740,7 @@ net.ipv4.ip_local_reserved_ports = 35357,12345
 | sysctl | kernel.core_uses_pid  |  ---- | ---- | ---- |
 | sysctl | net.bridge.bridge-nf-call-ip6tables<br>net.bridge.bridge-nf-call-iptables<br>net.bridge.bridge-nf-call-arptables  |  ---- | ---- | ---- |
 | sysctl | kernel.msgmnb<br>kernel.msgmax  |  ---- | ---- | ---- |
-| sysctl | kernel.shmmax<br>kernel.shmall  |  ---- | ---- | ---- |
+| sysctl | kernel.shmmax<br>kernel.shmall<br>kernel.shmmni  |  ---- | ---- | kernel.shmmni用来限制整个系统创建的共享内存总个数。假设限制为32，每个共享内存1M，那总共消耗的共享内存就是32 * 1M |
 | sysctl | net.ipv4.ip_local_port_range<br>net.ipv4.ip_local_reserved_ports  |  ---- | ---- | ---- |
 | sysctl | fs.aio-max-nr  |  ---- | ---- | ---- |
 | sysctl | fs.file-max  |  ---- | ---- | ---- |

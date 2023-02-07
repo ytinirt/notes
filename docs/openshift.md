@@ -3,6 +3,8 @@
 <!--ts-->
    * [TOC](#toc)
    * [常用操作](#常用操作)
+      * [配置审计日志策略](#配置审计日志策略)
+      * [检查被废弃API的使用情况](#检查被废弃api的使用情况)
       * [获取用户认证Token](#获取用户认证token)
          * [使用whoami获取Token](#使用whoami获取token)
          * [获取OAuth用户的Token](#获取oauth用户的token)
@@ -19,7 +21,7 @@
       * [OpenShift 3.x DNS介绍](#openshift-3x-dns介绍)
       * [深入OpenShift SDN网络](#深入openshift-sdn网络)
 
-<!-- Added by: admin, at: 2022年12月 6日 21:42:05 -->
+<!-- Added by: admin, at: 2023年02月 7日 16:21:36 -->
 
 <!--te-->
 

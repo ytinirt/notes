@@ -2698,3 +2698,5 @@ chrome浏览器访问https页面，如果遇到无法访问，提示“因为此
 1. 打开 `chrome://net-internals/#hsts` 页面
 2. 在 【Delete domain security policies】 栏，输入被block的页面的域名，然后点击`Delete`
 
+### 杂
+- [超立方体](https://www.gregegan.net/APPLETS/29/29.html)
