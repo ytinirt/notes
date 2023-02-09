@@ -2997,8 +2997,12 @@ mpstat -P ALL 1     # 每个CPU核的使用率
 ### pidstat（进程）
 查看进程的状态详情
 ```bash
-# 进程上下文切换
+# 查看进程上下文切换速度（通过 grep ctxt /proc/<pid>/status 也可查看）
+# cswch/s   为每秒资源切换次数，如果一个进程的自愿切换占多数，意味着它对CPU资源的需求不高。
+# nvcswch/s 为每秒强制切换次数，如果一个进程的强制切换占多数，意味着对它来说CPU资源可能是个瓶颈，需排除进程
+#           频繁调用sched_yield()导致强制切换的情况。
 pidstat -w 3 10
+
 # 查看页错误（page fault）和内存使用率
 pidstat -p <pid> -r 1 10
 ```
