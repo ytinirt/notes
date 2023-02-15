@@ -110,6 +110,18 @@ go build -tags=linux -tags=cgo
 - fix: [cmd/go: do not include module info when -buildinfo=false](https://go-review.googlesource.com/c/go/+/376674)
 - issue: [cmd/go: no way to omit package information from binary](https://github.com/golang/go/issues/50501)
 
+## 裁剪可执行文件中mod version信息
+### 方法一：关闭mod
+```bash
+# go build时关闭GO111MODULE
+GO111MODULE="off" go build xxx
+# 或者
+GO111MODULE="off" make xxx
+```
+
+### 方法二：build时不带mod version
+参见 [go/issues/50501](https://github.com/golang/go/issues/50501) ，已不支持去除mod信息。
+
 ## 常用命令
 ```bash
 # 查看exec-binary-file中使用的mod的version

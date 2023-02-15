@@ -591,6 +591,13 @@ OAuth
 
 # 操作实例
 
+## 在大规模集群中优雅的操作
+
+### 集群Pod总数
+```bash
+for n in $(kubectl get ns --no-headers | awk '{print $1}'); do kubectl get pod -n $n --ignore-not-found | wc -l; done | awk '{s+=$1} END {print s}'
+```
+
 ## 便捷操作
 * 清理`Completed`状态的Pod
   ```bash
