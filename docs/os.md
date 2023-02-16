@@ -4,6 +4,9 @@
    * [TOC](#toc)
    * [Kernel](#kernel)
       * [进程调度](#进程调度)
+         * [migration](#migration)
+         * [绑核和预留CPU](#绑核和预留cpu)
+            * [操作](#操作)
       * [进程间通信](#进程间通信)
          * [ipcs和ipcrm工具](#ipcs和ipcrm工具)
       * [IO调度器](#io调度器)
@@ -93,6 +96,7 @@
          * [targetcli设置iscsi本地调试环境](#targetcli设置iscsi本地调试环境)
       * [FC存储](#fc存储)
       * [存储多路径](#存储多路径)
+      * [Persistent Memory](#persistent-memory)
    * [File system](#file-system)
       * [内存文件系统](#内存文件系统)
       * [xfs文件系统](#xfs文件系统)
@@ -102,6 +106,7 @@
          * [通过客户端访问samba服务器](#通过客户端访问samba服务器)
       * [NFS](#nfs)
          * [搭建NFS测试环境](#搭建nfs测试环境)
+         * [NFS客户端的sport源端口](#nfs客户端的sport源端口)
          * [nfs问题定位手段](#nfs问题定位手段)
       * [webdav](#webdav)
    * [Operation &amp; Management](#operation--management)
@@ -122,6 +127,7 @@
          * [服务端sshd](#服务端sshd)
          * [使用ssh-keygen生成秘钥](#使用ssh-keygen生成秘钥)
          * [客户端ssh](#客户端ssh)
+            * [永久跳过初次连接时host指纹检查提示](#永久跳过初次连接时host指纹检查提示)
          * [ssh免密登录](#ssh免密登录)
          * [ssh隧道](#ssh隧道)
       * [使用gost配置隧道](#使用gost配置隧道)
@@ -154,6 +160,7 @@
          * [使用stress进行压力测试](#使用stress进行压力测试)
          * [messages日志统计](#messages日志统计)
             * [既有日志统计](#既有日志统计)
+      * [收集系统配置](#收集系统配置)
       * [如何Debug程序和进程](#如何debug程序和进程)
          * [softlockup告警](#softlockup告警)
          * [pmap分析内存使用](#pmap分析内存使用)
@@ -218,7 +225,6 @@
          * [shell脚本使用logger输出日志](#shell脚本使用logger输出日志)
       * [其它技巧](#其它技巧)
 
-<!-- Added by: admin, at: 2022年12月 6日 21:42:21 -->
 
 <!--te-->
 
@@ -1346,6 +1352,11 @@ No
 
 # 敲w和回车，保存上述修改
 w
+```
+
+或者使用`parted`：
+```bash
+parted /dev/sdc resizepart 3 100%
 ```
 
 操作实例（xfs文件系统）：

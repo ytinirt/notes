@@ -57,6 +57,7 @@
             * [查询k8s的events](#查询k8s的events)
             * [数字转string](#数字转string)
             * [排序](#排序)
+            * [map对象添加kv](#map对象添加kv)
          * [常用操作](#常用操作-2)
       * [base64](#base64)
       * [butane](#butane)
@@ -185,15 +186,17 @@
          * [时序图](#时序图)
          * [escaping转义](#escaping转义)
          * [图片配置大小](#图片配置大小)
+         * [调用github接口将md转换为html](#调用github接口将md转换为html)
       * [奇技淫巧](#奇技淫巧)
+         * [curl取代postman](#curl取代postman)
          * [atom超级好用的package](#atom超级好用的package)
          * [Azure镜像源](#azure镜像源)
          * [Office Word中打钩](#office-word中打钩)
          * [Chrome因证书问题打不开页面](#chrome因证书问题打不开页面)
             * [直接敲thisisunsafe](#直接敲thisisunsafe)
             * [管理HSTS](#管理hsts)
+         * [杂](#杂)
 
-<!-- Added by: admin, at: 2022年12月 6日 21:42:35 -->
 
 <!--te-->
 
@@ -2661,6 +2664,30 @@ pipe字符(|)，可以换成(&#124;)
 <img src="tls-validity-hard-code-24h.png" alt="tls-validity-hard-code-24h" width="800"/>
 ```
 
+### 调用github接口将md转换为html
+借助`api.github.com/markdown/raw`接口，完成 *.md* 向 *.html* 格式转换，操作示例如下：
+```bash
+cat << EEOOFF > /tmp/hehe.md
+# toc 1
+hehe
+## toc 1.1
+xixi
+# toc 2
+haha
+## toc 2.1
+wawa
+## toc 2.2
+kaka
+EEOOFF
+
+gh_file_md=/tmp/hehe.md
+URL=https://api.github.com/markdown/raw
+gh_toc_version="0.6.1"
+gh_user_agent="gh-md-toc v$gh_toc_version"
+
+curl -s --user-agent "$gh_user_agent" --data-binary @"$gh_file_md" -H "Content-Type:text/plain" $URL
+```
+
 ## 奇技淫巧
 
 ### curl取代postman
@@ -2700,3 +2727,4 @@ chrome浏览器访问https页面，如果遇到无法访问，提示“因为此
 
 ### 杂
 - [超立方体](https://www.gregegan.net/APPLETS/29/29.html)
+- [pdf转word](https://www.ilovepdf.com/pdf_to_word)

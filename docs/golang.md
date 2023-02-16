@@ -15,6 +15,9 @@
          * [非](#非)
          * [传tag](#传tag)
       * [buildinfo](#buildinfo)
+      * [裁剪可执行文件中mod version信息](#裁剪可执行文件中mod-version信息)
+         * [方法一：关闭mod](#方法一关闭mod)
+         * [方法二：build时不带mod version](#方法二build时不带mod-version)
       * [常用命令](#常用命令)
    * [如何Debug Golang程序](#如何debug-golang程序)
       * [打印堆栈](#打印堆栈)
@@ -28,7 +31,6 @@
       * [测试cpu性能](#测试cpu性能)
       * [代码实例](#代码实例)
 
-<!-- Added by: admin, at: 2023年02月 7日 16:21:30 -->
 
 <!--te-->
 

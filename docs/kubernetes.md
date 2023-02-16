@@ -33,6 +33,8 @@
       * [TODO](#todo)
    * [鉴权Authorization](#鉴权authorization)
    * [操作实例](#操作实例)
+      * [在大规模集群中优雅的操作](#在大规模集群中优雅的操作)
+         * [集群Pod总数](#集群pod总数)
       * [便捷操作](#便捷操作)
       * [event使用独立的etcd集群](#event使用独立的etcd集群)
       * [模拟list对kube-apiserver进行压测](#模拟list对kube-apiserver进行压测)
@@ -94,7 +96,6 @@
       * [k8s版本信息](#k8s版本信息)
       * [其它](#其它-1)
 
-<!-- Added by: admin, at: 2023年02月 7日 16:21:34 -->
 
 <!--te-->
 
