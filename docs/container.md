@@ -759,6 +759,15 @@ function pid2pod {
 crio-status config  | grep -i pid
 ```
 
+## 统计容器可读可写层存储用量
+```bash
+for config in $(ls /var/lib/containers/storage/overlay-containers/*/userdata/config.json)
+do
+  diff=$(cat $config | jq .root.path -r|sed 's/merged$/diff/g')
+  du -s $diff
+done | awk '{s+=$1} END {print s}'
+```
+
 ## 指定seccomp profile
 ```bash
 # /etc/crio/crio.conf
@@ -779,6 +788,10 @@ podman ps --all --external
 podman ps --all --storage
 ```
 
+## 容器镜像和overlay/layer对应关系
+1. `podman images`看到的镜像ID(`IMAGE ID`)即本地缓存镜像的id，具体对应于`/var/lib/containers/storage/overlay-images`目录下一个个文件夹
+2. `/var/lib/containers/storage/overlay-images/*/manifest`中有容器镜像的`layer`信息及每一层的大小
+3. ???
 
 ## 常用命令
 ```bash

@@ -415,6 +415,18 @@ dns.qry.name contains "devops"      # DNS请求过滤
 
 ### Bash实例
 
+#### 一行一行的读文件并分割处理每一行
+```bash
+POD_TEMP_RESULT_FILE=$(mktemp)
+kubectl get pod -n kube-system -o=custom-columns=name:.metadata.name,uid:.metadata.uid --no-headers > ${POD_TEMP_RESULT_FILE}
+while read -r name uid
+do
+    echo $name
+    echo $uid
+done < ${POD_TEMP_RESULT_FILE}
+rm -f ${POD_TEMP_RESULT_FILE}
+```
+
 #### 循环
 
 ```bash
@@ -491,9 +503,14 @@ IFS=' ' read -r -a MYSQL_PODS <<< $MYSQL_PODS
 
 #### trap
 
+```bash
+# 示例
 trap recovery RETURN
 
-
+# 退出时通过trap自动清理临时文件
+TEMP_RESULT_FILE=$(mktemp)
+trap 'rm -rf -- "$TEMP_RESULT_FILE"' EXIT
+```
 
 #### 字符串切片
 

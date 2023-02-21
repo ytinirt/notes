@@ -599,6 +599,11 @@ OAuth
 for n in $(kubectl get ns --no-headers | awk '{print $1}'); do kubectl get pod -n $n --ignore-not-found | wc -l; done | awk '{s+=$1} END {print s}'
 ```
 
+### 集群Event总数
+```bash
+for n in $(kubectl get ns --no-headers | awk '{print $1}'); do kubectl get event -n $n --ignore-not-found | wc -l; done | awk '{s+=$1} END {print s}'
+```
+
 ## 便捷操作
 * 清理`Completed`状态的Pod
   ```bash
@@ -773,6 +778,12 @@ clusters:
   " > sa.kubeconfig
 ```
 
+## 定制kubectl输出
+```bash
+# 定制输出
+kubectl get pod --sort-by=.status.startTime -o=custom-columns=name:.metadata.name,startTime:.status.startTime
+```
+
 ## 常见操作
 
 ```bash
@@ -785,8 +796,6 @@ function man_pull {
     done
 }
 
-# 定制输出
-kubectl get pod --sort-by=.status.startTime -o=custom-columns=name:.metadata.name,startTime:.status.startTime
 
 # 以创建时间排序
 kubectl get secret -A --sort-by .metadata.creationTimestamp
