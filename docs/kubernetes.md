@@ -35,6 +35,7 @@
    * [操作实例](#操作实例)
       * [在大规模集群中优雅的操作](#在大规模集群中优雅的操作)
          * [集群Pod总数](#集群pod总数)
+         * [集群Event总数](#集群event总数)
       * [便捷操作](#便捷操作)
       * [event使用独立的etcd集群](#event使用独立的etcd集群)
       * [模拟list对kube-apiserver进行压测](#模拟list对kube-apiserver进行压测)
@@ -44,6 +45,7 @@
       * [debug和问题解决](#debug和问题解决)
       * [堆栈文件分析](#堆栈文件分析)
       * [TODO: 根据sa生成kubeconfig](#todo-根据sa生成kubeconfig)
+      * [定制kubectl输出](#定制kubectl输出)
       * [常见操作](#常见操作)
       * [资源遍历](#资源遍历)
          * [遍历所有pod](#遍历所有pod)
@@ -96,6 +98,7 @@
       * [k8s版本信息](#k8s版本信息)
       * [其它](#其它-1)
 
+<!-- Added by: admin, at: 2023年02月21日 22:13:04 -->
 
 <!--te-->
 

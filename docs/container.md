@@ -46,9 +46,11 @@
       * [如何编译containerd](#如何编译containerd)
       * [根据进程pid查询pod](#根据进程pid查询pod)
    * [CRI-O](#cri-o)
+      * [统计容器可读可写层存储用量](#统计容器可读可写层存储用量)
       * [指定seccomp profile](#指定seccomp-profile)
    * [podman](#podman)
       * [使用podman查看cri创建的pod](#使用podman查看cri创建的pod)
+      * [容器镜像和overlay/layer对应关系](#容器镜像和overlaylayer对应关系)
       * [常用命令](#常用命令-2)
    * [crictl](#crictl)
       * [直接创建容器](#直接创建容器)
@@ -76,6 +78,7 @@
          * [容器文件系统使用率统计](#容器文件系统使用率统计)
          * [强制重启Docker服务](#强制重启docker服务)
 
+<!-- Added by: admin, at: 2023年02月21日 22:12:59 -->
 
 <!--te-->
 
