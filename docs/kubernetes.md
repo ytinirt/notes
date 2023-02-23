@@ -584,6 +584,12 @@ kubectl config use-context john
 ### 通过webhook对接外部认证提供商
 OAuth
 
+## 到达聚合apiserver的请求中如何携带用户信息
+文档 [Original Request Username and Group](https://kubernetes.io/docs/tasks/extend-kubernetes/configure-aggregation-layer/#original-request-username-and-group) 中描述了请求经过apiserver转发到聚合apiserver时，
+在请求扩展头中携带原始的用户和用户组信息，默认的：
+- `X-Remote-Group`扩展头部携带用户组
+- `X-Remote-User`扩展头部携带用户
+
 ## TODO
 - https://jimmysong.io/kubernetes-handbook/guide/authentication.html
 - https://learnk8s.io/auth-authz
@@ -1204,6 +1210,12 @@ type codec struct {
 参见[链接](https://cloud.tencent.com/developer/article/1902710) 。
 
 GVK和资源model的对应关系，资源model的默认值，资源在不同版本间转化的函数等，均由资源schema维护。
+
+### 健康检查/healthz
+检查三个方面：
+1. 初始配置时，增加默认检查方法，包括`k8s.io/apiserver/pkg/server/healthz`中`PingHealthz`和`LogHealthz`
+2. 检查存储后端（etcd）是否健康，使用`k8s.io/apiserver/pkg/storage/storagebackend/factory`中`CreateHealthCheck()`创建检查方法
+3. 若通过`--encryption-provider-config`配置KMS加密，使用`k8s.io/apiserver/pkg/server/options/encryptionconfig`中`GetKMSPluginHealthzCheckers()`创建检查方法
 
 ## kube-controller-manager
 

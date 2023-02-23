@@ -799,6 +799,9 @@ systemctl list-dependencies crio
 # 查看被谁依赖
 systemctl list-dependencies --reverse crio
 
+# 查看失败的服务
+systemctl --failed
+
 # 查看服务启动耗时
 systemd-analyze blame
 
@@ -1840,6 +1843,40 @@ tmpfs有如下特点：
 
 ### 配额管理
 通过`xfs`文件系统的`pquota`属性，可以实现文件夹级别的存储配额限制。
+
+具体来讲：
+1. 根分区，需设置内核启动参数xfs quota，重启生效
+   ```bash
+   grubby --update-kernel=ALL --args="rootflags=prjquota"
+   reboot
+   ```
+2. 其它分区，可修改`/etc/fstab`文件，加入`prjquota`挂载选项后，重新挂载即可
+3. 检查配置生效
+   ```bash
+   # 查看挂载点开启了pquota
+   xfs_quota -x -c print
+   # 查看分区详情，包括Project模式的配额详情
+   xfs_quota -x -c "state" /
+   ```
+
+示例：为日志目录增加配额
+```bash
+# 首先，定义目录对应的project，project id不能重复
+echo "1:/var/log" >> /etc/projects
+echo "Logs:1" >> /etc/projid
+
+# 然后，初始化project，其中 / 是日志目录的挂载点
+xfs_quota -x -c 'project -s Logs' /
+
+# 设置存储上限（除了大小，还可以设置inode上限）
+xfs_quota -x -c 'limit -p bsoft=80m bhard=100m Logs' /
+
+# 查看用量报告
+xfs_quota -xc 'report -pbih' /
+
+# 关闭配额
+xfs_quota -x -c 'limit -p bsoft=0 bhard=0 Logs' /
+```
 
 ### 常用操作
 命令 `xfs_info`。

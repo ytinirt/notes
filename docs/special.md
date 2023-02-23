@@ -344,6 +344,11 @@ sed -i '1 s/foo/bar/' file-name
 
 ### uniq
 
+### tr
+```bash
+tr '\n' ' ' # 将换行符修改为空格
+```
+
 ## Regex
 
 ### 实例
