@@ -250,6 +250,10 @@ go tool trace trace.out
 ## golang diagnostics
 TODO: https://golang.org/doc/diagnostics
 
+# Deep Dive系列
+## http.Transport中连接池管理
+`http.Transport`的`getConn()`方法，从连接池中获取空闲连接，或新建一个连接。
+
 
 # 通过goproxy代理解决package下载问题
 ```bash

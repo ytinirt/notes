@@ -229,6 +229,36 @@ cgdelete
 
 # namespaces
 
+进一步阅读:
+* [The 7 most used Linux namespaces](https://www.redhat.com/sysadmin/7-linux-namespaces)
+* [Building a Linux container by hand using namespaces](https://www.redhat.com/sysadmin/building-container-namespaces)
+
+## pid
+host上，查看进程的status文件，可看到其在容器内的pid：
+```bash
+# cat /proc/<pid>/status | grep NSpid
+NSpid:  12345   2
+```
+其中第1列是进程在host上的pid，第2列是容器内的pid。
+
+进一步阅读:
+* [Building containers by hand: The PID namespace](https://www.redhat.com/sysadmin/pid-namespace)
+
+### 找到一个pidns下的进程
+```bash
+# 找到一个process的pid命名空间(inode)，适用于容器内或者host上执行
+ls -Li /proc/<pid>/ns/pid
+# 也可以列出全部的pid命名空间
+lsns -t pid
+
+# host上遍历寻找所有该pid命名空间下的进程，其中xxxxxxxxxx是pidns的inode
+ps -eo pidns,pid,cmd | awk '$1==xxxxxxxxxx'
+```
+
+## mount
+进一步阅读:
+* [Building a container by hand using namespaces: The mount namespace](https://www.redhat.com/sysadmin/mount-namespaces)
+
 ## 常用命令
 ```bash
 # 查看ns的inode信息

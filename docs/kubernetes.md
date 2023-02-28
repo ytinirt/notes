@@ -613,6 +613,22 @@ for n in $(kubectl get ns --no-headers | awk '{print $1}'); do kubectl get pod -
 for n in $(kubectl get ns --no-headers | awk '{print $1}'); do kubectl get event -n $n --ignore-not-found | wc -l; done | awk '{s+=$1} END {print s}'
 ```
 
+### 筛选慢操作list all
+```bash
+_RESULT_FILE_NAME_=slow-response-kube-apiserver-$(date +"%Y%m%d%H%M%S").csv
+echo "count,verb,url,agent,client" >> ${_RESULT_FILE_NAME_}
+cat ./kube-apiserver.log* | grep "trace.go:116" | grep -v "ms):$\|etcd3\|cacher list" | sed 's/.*Trace\[.*\]: //g' | grep "/api/v1/events\|/api/v1/nodes,\|/api/v1/pods\|/api/v1/services\|/api/v1/endpoints" | while read -r line
+do
+    verb=$(echo $line | awk '{print $1}' | sed 's/"//g')
+    url=$(echo $line | grep -Eo "url:.*," | cut -d, -f1 | sed 's/url://g')
+    agent=$(echo $line | grep -Eo "user-agent:.*," | cut -d, -f1 | sed 's/user-agent://g' | awk '{print $1}')
+    client=$(echo $line | grep -Eo "client:.* \(s" | awk '{print $1}' | sed 's/client://g')
+    time=$(echo $line | awk '{print $NF}' | sed 's/)://g')
+
+    echo $verb $url $agent $client
+done | sort | uniq -c | sed 's/^[ ]*//g' | tr ' ' ',' >> ${_RESULT_FILE_NAME_}
+```
+
 ## 便捷操作
 * 清理`Completed`状态的Pod
   ```bash

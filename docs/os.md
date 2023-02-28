@@ -3088,6 +3088,10 @@ sar -u 3
 sar -q 3
 #查看网络统计信息
 sar -n ALL
+# paing信息
+sar -B
+# disk信息
+sar -d
 #关键字包括：DEV 网络设备信息；NFS 客户端统计信息；NFSD 服务端统计信息；SOCK 套接字信息；IP ipv4流量信息；ICMP；TCP；UDP...
 sar -n keyword [,...]
 ```

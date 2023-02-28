@@ -325,6 +325,10 @@ cmake ../mysql-server-mysql-5.7.20/ -LH
 # 搜索时，跳过一些文件
 grep -r --exclude-dir=".git;.svn" "string to search" <directory>
 grep -r --exclude-dir="./*/.git" "string to search" <directory>
+
+# 仅返回匹配值
+grep -Eo "mysql-node[0-9]+"
+
 ```
 
 ### sed
@@ -347,6 +351,12 @@ sed -i '1 s/foo/bar/' file-name
 ### tr
 ```bash
 tr '\n' ' ' # 将换行符修改为空格
+```
+
+### awk
+```bash
+ps -o pidns,pid,cmd | awk '$1==4026532661'
+cat id-list.log | awk '{s+=$1} END {print s}'
 ```
 
 ## Regex
