@@ -1133,6 +1133,9 @@ make WHAT=cmd/kubelet GOLDFLAGS=""
 ```bash
 # 从kubeconfig里拿ca.crt user.crt user.key
 curl --cacert ./ca.crt --cert ./user.crt --key ./user.key https://x.x.x.x:10257/metrics -k
+
+# kube-apiserver
+kubectl get --raw /metrics
 ```
 
 # Deep Dive系列
