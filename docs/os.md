@@ -2696,7 +2696,18 @@ Storage=none
 ProcessSizeMax=0
 ~~~
 
+## 主机性能测试
+### CPU性能测试
+使用unixbench工具。
 
+### 内存性能测试
+使用stream工具测试内存带宽基准性能：
+```bash
+# 首先，编译stream
+gcc -mtune=native -march=native -O3 -mcmodel=large  -fopenmp -DSTREAM_ARRAY_SIZE=100000000 -DNTIMES=50 stream.c -o stream
+# 然后，执行测试
+./stream
+```
 
 ## 性能调优和问题定位
 

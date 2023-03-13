@@ -342,6 +342,8 @@ sed -i '1 s/foo/bar/g' file-name
 # 仅替换第一行匹配的第一项内容
 sed -i '1 s/foo/bar/' file-name
 
+# 匹配并删除该行
+sed '/foo/d' file-name
 ```
 
 ### sort

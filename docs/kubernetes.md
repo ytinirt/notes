@@ -629,6 +629,12 @@ do
 done | sort | uniq -c | sed 's/^[ ]*//g' | tr ' ' ',' >> ${_RESULT_FILE_NAME_}
 ```
 
+### 筛选出最早创建的一组pod（用于onDelete策略的更新）
+```bash
+STEP=100
+kubectl get pod -n foo -l name=bar --sort-by=.status.startTime -owide --no-headers | head -n ${STEP}
+```
+
 ## 便捷操作
 * 清理`Completed`状态的Pod
   ```bash
@@ -812,6 +818,7 @@ kubectl get pod --sort-by=.status.startTime -o=custom-columns=name:.metadata.nam
 ## 常见操作
 
 ```bash
+# 手动拉取pod使用的容器镜像
 function man_pull {
     local ns=$1
     local pod=$2
@@ -821,6 +828,9 @@ function man_pull {
     done
 }
 
+# 停止一个节点上的容器服务和所有容器
+systemctl stop kubelet
+crictl ps -q | xargs crictl stop
 
 # 以创建时间排序
 kubectl get secret -A --sort-by .metadata.creationTimestamp
@@ -1138,6 +1148,12 @@ curl --cacert ./ca.crt --cert ./user.crt --key ./user.key https://x.x.x.x:10257/
 kubectl get --raw /metrics
 ```
 
+## kubeadm部署的集群的操作
+```bash
+# 从kubelet的metrics里，查看编译时用的golang版本：
+curl -sk https://127.0.0.1:10250/metrics --cacert /etc/kubernetes/pki/ca.crt --cert /etc/kubernetes/pki/apiserver-kubelet-client.crt --key /etc/kubernetes/pki/apiserver-kubelet-client.key | grep go_info
+```
+
 # Deep Dive系列
 ## kube-apiserver
 
@@ -1235,6 +1251,29 @@ GVK和资源model的对应关系，资源model的默认值，资源在不同版�
 1. 初始配置时，增加默认检查方法，包括`k8s.io/apiserver/pkg/server/healthz`中`PingHealthz`和`LogHealthz`
 2. 检查存储后端（etcd）是否健康，使用`k8s.io/apiserver/pkg/storage/storagebackend/factory`中`CreateHealthCheck()`创建检查方法
 3. 若通过`--encryption-provider-config`配置KMS加密，使用`k8s.io/apiserver/pkg/server/options/encryptionconfig`中`GetKMSPluginHealthzCheckers()`创建检查方法
+
+```
+[+]ping ok
+[+]log ok
+[-]etcd failed: reason withheld
+[+]poststarthook/start-kube-apiserver-admission-initializer ok
+[+]poststarthook/generic-apiserver-start-informers ok
+[+]poststarthook/start-apiextensions-informers ok
+[+]poststarthook/start-apiextensions-controllers ok
+[+]poststarthook/crd-informer-synced ok
+[+]poststarthook/bootstrap-controller ok
+[+]poststarthook/rbac/bootstrap-roles ok
+[+]poststarthook/scheduling/bootstrap-system-priority-classes ok
+[+]poststarthook/apiserver/bootstrap-system-flowcontrol-configuration ok
+[+]poststarthook/start-cluster-authentication-info-controller ok
+[+]poststarthook/start-kube-aggregator-informers ok
+[+]poststarthook/apiservice-registration-controller ok
+[+]poststarthook/apiservice-status-available-controller ok
+[+]poststarthook/kube-apiserver-autoregistration ok
+[+]autoregister-completion ok
+[+]poststarthook/apiservice-openapi-controller ok
+healthz check failed
+```
 
 ## kube-controller-manager
 
