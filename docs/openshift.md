@@ -45,8 +45,12 @@ restricted   false   <no value>      MustRunAs   MustRunAsRange     MustRunAs   
 
 预置的SCC中，*anyuid*具有最高优先级（PRIORITY），因此当用户有 *use scc/anyuid* 权限时（`oc adm policy who-can use securitycontextconstraints/anyuid`），会优先匹配到*anyuid*。
 
-除*anyuid*外，其余预置scc的优先级一样。这时按照资源/权限限制由**强**到**弱**排序，依次为pod匹配scc，按照*restricted*到*privileged*的排序。
+除*anyuid*外，其余预置scc的优先级一样。
+这时按照资源/权限限制由**强**到**弱**排序，依次为pod匹配scc，按照*restricted*到*privileged*的排序。
 实现详见`openshift/apiserver-library-go/pkg/securitycontextconstraints/sccadmission/admission.go`中`computeSecurityContext()`。
+
+注意，在为pod匹配scc时，需要创建pod的用户（例如deployment的pod最终由system:serviceaccount:kube-system:replicaset-controller创建）或者pod里的ServiceAccount具备*use*该scc资源的权限，否则跳过。
+这表明了在为sa赋予scc权限时，实际上就是为sa创建ClusterRoleBinding，让其能够访问scc/xxx资源。
 
 根据scc为pod和容器设置securityContext时，mcs标签、fsGroup、uid等信息从命名空间的注解取得，例如：
 ```
