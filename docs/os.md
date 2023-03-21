@@ -791,7 +791,22 @@ echo 1 > /sys/bus/pci/rescan
 
 # Systemd
 
-常用操作
+资料链接：
+* https://www.redhat.com/sysadmin/systemd-oneshot-service
+* https://unix.stackexchange.com/questions/714674/what-is-the-difference-between-systemds-service-and-service-and-daemon-and-syst
+* https://trstringer.com/simple-vs-oneshot-systemd-service/
+* https://stackoverflow.com/questions/39032100/what-is-the-difference-between-systemds-oneshot-and-simple-service-types
+
+关于service、unit的关系：
+1. service是一种unit，除了service，unit还有其它类型，例如device、mount、socket、scope、path、timer、target、slice等
+2. unit有`[Unit]`和`[Install]`段
+3. service除了有上述两段外，还有一个`[Service]`指定service的配置，该段配置详细指导可见*man systemd.service*、*man systemd.exec*和*man systemd.kill*
+
+## service的类型
+
+
+
+## 常用操作
 
 ```bash
 # 查看依赖的服务
@@ -824,6 +839,7 @@ systemctl list-dependencies etcd2
 systemctl list-dependencies etcd2 --reverse
 ```
 
+## 其它
 service文件中：
 
 ```bash

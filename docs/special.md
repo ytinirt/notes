@@ -999,6 +999,13 @@ helm template ./rancher-<VERSION>.tgz --output-dir . \  # 实例化helm chart
 3. 启动服务`docker run -p 8080:8080 -e SWAGGER_JSON=/hehe/swagger.yml -v /tmpfs:/hehe --name swagger-ui swaggerapi/swagger-ui`
 
 
+## GDB
+```bash
+# 查看什么命令生成了core文件
+gdb -c xx.core
+```
+
+
 # 容器网络
 
 ## Calico
@@ -2726,6 +2733,9 @@ curl -s --user-agent "$gh_user_agent" --data-binary @"$gh_file_md" -H "Content-T
 
 ## 奇技淫巧
 
+### goland
+* 文件过滤器： `*.go,!*test*.go`
+
 ### curl取代postman
 ```
 curl -H 'Content-Type: application/json' -X POST -T file-name http://10.0.0.1:12345/path/to/api
@@ -2740,6 +2750,9 @@ curl -H 'Content-Type: application/json' -X POST -d @file-name http://10.0.0.1:1
 
 ### Azure镜像源
 `mirror.azure.cn`
+
+### 容器镜像搬运工
+[Play with Docker](https://labs.play-with-docker.com/)
 
 ### Office Word中打钩
 ```

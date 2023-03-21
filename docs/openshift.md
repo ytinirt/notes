@@ -25,6 +25,48 @@
 
 <!--te-->
 
+# Deep Dive
+## SCC
+SCC基于admission control准入检查机制实现。
+代码详见 [openshift/apiserver-library-go](https://github.com/openshift/apiserver-library-go/pkg/securitycontextconstraints) 。
+
+OpenShift中预置的SCC：
+```
+# oc get scc
+NAME         PRIV    CAPS            SELINUX     RUNASUSER          FSGROUP     SUPGROUP    PRIORITY     READONLYROOTFS   VOLUMES
+anyuid       false   <no value>      MustRunAs   RunAsAny           RunAsAny    RunAsAny    10           false            ["configMap","downwardAPI","emptyDir","persistentVolumeClaim","projected","secret"]
+hostaccess   false   <no value>      MustRunAs   MustRunAsRange     MustRunAs   RunAsAny    <no value>   false            ["configMap","downwardAPI","emptyDir","hostPath","persistentVolumeClaim","projected","secret"]
+nonroot      false   <no value>      MustRunAs   MustRunAsNonRoot   RunAsAny    RunAsAny    <no value>   false            ["configMap","downwardAPI","emptyDir","persistentVolumeClaim","projected","secret"]
+...
+privileged   true    ["*"]           RunAsAny    RunAsAny           RunAsAny    RunAsAny    <no value>   false            ["*"]
+restricted   false   <no value>      MustRunAs   MustRunAsRange     MustRunAs   RunAsAny    <no value>   false            ["configMap","downwardAPI","emptyDir","persistentVolumeClaim","projected","secret"]
+```
+这些SCC由`kube-apiserver-operator`设置，详见实现`cluster-kube-apiserver-operator/bindata/bootkube/scc-manifests` 。
+
+预置的SCC中，*anyuid*具有最高优先级（PRIORITY），因此当用户有 *use scc/anyuid* 权限时（`oc adm policy who-can use securitycontextconstraints/anyuid`），会优先匹配到*anyuid*。
+
+除*anyuid*外，其余预置scc的优先级一样。这时按照资源/权限限制由**强**到**弱**排序，依次为pod匹配scc，按照*restricted*到*privileged*的排序。
+实现详见`openshift/apiserver-library-go/pkg/securitycontextconstraints/sccadmission/admission.go`中`computeSecurityContext()`。
+
+根据scc为pod和容器设置securityContext时，mcs标签、fsGroup、uid等信息从命名空间的注解取得，例如：
+```
+openshift.io/sa.scc.mcs: s0:c24,c9
+openshift.io/sa.scc.supplemental-groups: 1000570000/10000
+openshift.io/sa.scc.uid-range: 1000570000/10000
+```
+
+上述注解由*cluster-policy-controller*设置，其以容器方式运行在OpenShift的*pod/kube-controller-manager*中。扩展的控制器包括：
+```
+var ControllerInitializers = map[string]InitFunc{
+	"openshift.io/namespace-security-allocation":      RunNamespaceSecurityAllocationController,
+	"openshift.io/resourcequota":                      RunResourceQuotaManager,
+	"openshift.io/cluster-quota-reconciliation":       RunClusterQuotaReconciliationController,
+	"openshift.io/cluster-csr-approver":               RunCSRApproverController,
+	"openshift.io/podsecurity-admission-label-syncer": runPodSecurityAdmissionLabelSynchronizationController,
+}
+```
+代码详见 [cluster-policy-controller](https://github.com/openshift/cluster-policy-controller) 。
+
 
 # 常用操作
 
@@ -253,6 +295,12 @@ oc patch clusterversion version --type json -p "$(cat version-patch.yaml)"
 ## 也可以直接停掉CVO
 oc scale --replicas 0 -n openshift-cluster-version deployments/cluster-version-operator
 
+```
+
+## 更新
+### 强制更新
+```bash
+oc adm upgrade --to-image=release-image@sha256:xxx --force --allow-explicit-upgrade
 ```
 
 # 测试

@@ -599,6 +599,16 @@ OAuth
 
 # 鉴权Authorization
 
+## 判断我是否有权限
+```bash
+kubectl auth can-i --as=system:serviceaccount:kube-system:replicaset-controller use securitycontextconstraints/anyuid
+```
+
+## 判断谁有权限操作
+```bash
+oc adm policy who-can use securitycontextconstraints/anyuid
+```
+
 # 操作实例
 
 ## 在大规模集群中优雅的操作
