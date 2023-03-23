@@ -783,6 +783,9 @@ busctl
 echo 1 > /sys/bus/pci/rescan
 ```
 
+## 内核文件系统（/proc、/sys）
+一把大锁 *kernfs_rwsem* 。
+
 ## 周边知识
 ### vDSO机制
 `virtual dynamic share object`。
@@ -829,6 +832,8 @@ systemctl restart docker
 # Service会在设备上自动启用
 systemctl enable docker
 systemctl disable docker
+# 显示所有配置和属性
+systemctl show docker
 # 显示详细配置和属性
 systemctl show docker -p xxx
 systemctl show --property Environment docker
@@ -837,6 +842,11 @@ systemctl is-active kube-kubelet.service
 systemctl list-dependencies etcd2
 # 查看谁依赖“etcd2”
 systemctl list-dependencies etcd2 --reverse
+
+# 设置服务的资源限制
+systemctl set-property kubelet CPUShares=2048
+# 临时设置
+systemctl set-property --runtime kubelet CPUShares=2048
 ```
 
 ## 其它

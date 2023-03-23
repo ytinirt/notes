@@ -645,6 +645,16 @@ STEP=100
 kubectl get pod -n foo -l name=bar --sort-by=.status.startTime -owide --no-headers | head -n ${STEP}
 ```
 
+## 节点维护
+```bash
+# 排干节点
+kubectl drain ${node} --delete-local-data --ignore-daemonsets --force
+
+# 为节点打污点
+kubectl taint nodes worker foo:NoSchedule
+kubectl taint nodes worker foo=bar:NoExecute
+```
+
 ## 便捷操作
 * 清理`Completed`状态的Pod
   ```bash
