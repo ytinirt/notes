@@ -3029,6 +3029,11 @@ TODO
 cat /proc/<pid>/stack
 ```
 
+查看D住的进程/线程：
+```bash
+ps -eL -o stat,pid,comm,wchan=DD | grep ^D
+```
+
 ### defunct进程
 在Linux中`defunct`和`zombie`进程是一回事儿，从`man ps`可知：
 > Processes marked `<defunct>` are dead processes (so-called "zombies") that remain because their parent has not destroyed them properly. These processes will be destroyed by init(8) if the parent process exits.
