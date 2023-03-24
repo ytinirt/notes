@@ -1,40 +1,38 @@
 # TOC
 
-<!--ts-->
-   * [TOC](#toc)
-   * [开发](#开发)
-      * [网络编程](#网络编程)
-         * [http客户端超时和请求时context超时的区别](#http客户端超时和请求时context超时的区别)
-   * [常用操作](#常用操作)
-      * [避免1.17的编译注释被自动修改](#避免117的编译注释被自动修改)
-   * [编译构建](#编译构建)
-      * [build tag](#build-tag)
-         * [用法](#用法)
-         * [与](#与)
-         * [或](#或)
-         * [非](#非)
-         * [传tag](#传tag)
-      * [buildinfo](#buildinfo)
-      * [裁剪可执行文件中mod version信息](#裁剪可执行文件中mod-version信息)
-         * [方法一：关闭mod](#方法一关闭mod)
-         * [方法二：build时不带mod version](#方法二build时不带mod-version)
-      * [常用命令](#常用命令)
-   * [如何Debug Golang程序](#如何debug-golang程序)
-      * [打印堆栈](#打印堆栈)
-      * [使用devle调试Go程序](#使用devle调试go程序)
-      * [使用go tool trace追踪Go程序](#使用go-tool-trace追踪go程序)
-      * [使用pprof定位Go程序问题](#使用pprof定位go程序问题)
-      * [golang diagnostics](#golang-diagnostics)
-   * [通过goproxy代理解决package下载问题](#通过goproxy代理解决package下载问题)
-   * [示例](#示例)
-      * [启HTTP服务](#启http服务)
-      * [测试cpu性能](#测试cpu性能)
-      * [代码实例](#代码实例)
-
-<!-- Added by: admin, at: 2023年02月21日 22:13:01 -->
-
-<!--te-->
-
+<!-- TOC -->
+* [TOC](#toc)
+* [开发](#开发)
+  * [网络编程](#网络编程)
+    * [http客户端超时和请求时context超时的区别](#http客户端超时和请求时context超时的区别)
+* [常用操作](#常用操作)
+  * [避免1.17的编译注释被自动修改](#避免117的编译注释被自动修改)
+* [编译构建](#编译构建)
+  * [build tag](#build-tag)
+    * [用法](#用法)
+    * [与](#与)
+    * [或](#或)
+    * [非](#非)
+    * [传tag](#传tag)
+  * [buildinfo](#buildinfo)
+  * [裁剪可执行文件中mod version信息](#裁剪可执行文件中mod-version信息)
+    * [方法一：关闭mod](#方法一关闭mod)
+    * [方法二：build时不带mod version](#方法二build时不带mod-version)
+  * [常用命令](#常用命令)
+* [如何Debug Golang程序](#如何debug-golang程序)
+  * [打印堆栈](#打印堆栈)
+  * [使用devle调试Go程序](#使用devle调试go程序)
+  * [使用go tool trace追踪Go程序](#使用go-tool-trace追踪go程序)
+  * [使用pprof定位Go程序问题](#使用pprof定位go程序问题)
+  * [golang diagnostics](#golang-diagnostics)
+* [Deep Dive系列](#deep-dive系列)
+  * [http.Transport中连接池管理](#httptransport中连接池管理)
+* [通过goproxy代理解决package下载问题](#通过goproxy代理解决package下载问题)
+* [示例](#示例)
+  * [启HTTP服务](#启http服务)
+  * [测试cpu性能](#测试cpu性能)
+  * [代码实例](#代码实例)
+<!-- TOC -->
 
 # 开发
 ## 网络编程

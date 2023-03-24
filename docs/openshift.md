@@ -1,29 +1,30 @@
 # TOC
 
-<!--ts-->
-   * [TOC](#toc)
-   * [常用操作](#常用操作)
-      * [配置审计日志策略](#配置审计日志策略)
-      * [检查被废弃API的使用情况](#检查被废弃api的使用情况)
-      * [获取用户认证Token](#获取用户认证token)
-         * [使用whoami获取Token](#使用whoami获取token)
-         * [获取OAuth用户的Token](#获取oauth用户的token)
-         * [从ServiceAccount中获取Token](#从serviceaccount中获取token)
-   * [测试](#测试)
-      * [执行内容查询](#执行内容查询)
-      * [UT](#ut)
-      * [IT](#it)
-      * [组件e2e](#组件e2e)
-      * [版本e2e](#版本e2e)
-   * [OpenShift3 and OKD](#openshift3-and-okd)
-      * [常用操作](#常用操作-1)
-      * [官方yum源](#官方yum源)
-      * [OpenShift 3.x DNS介绍](#openshift-3x-dns介绍)
-      * [深入OpenShift SDN网络](#深入openshift-sdn网络)
-
-<!-- Added by: admin, at: 2023年02月21日 22:13:07 -->
-
-<!--te-->
+<!-- TOC -->
+* [TOC](#toc)
+* [Deep Dive](#deep-dive)
+  * [SCC](#scc)
+* [常用操作](#常用操作)
+  * [配置审计日志策略](#配置审计日志策略)
+  * [检查被废弃API的使用情况](#检查被废弃api的使用情况)
+  * [获取用户认证Token](#获取用户认证token)
+    * [使用whoami获取Token](#使用whoami获取token)
+    * [获取OAuth用户的Token](#获取oauth用户的token)
+    * [从ServiceAccount中获取Token](#从serviceaccount中获取token)
+  * [更新](#更新)
+    * [强制更新](#强制更新)
+* [测试](#测试)
+  * [执行内容查询](#执行内容查询)
+  * [UT](#ut)
+  * [IT](#it)
+  * [组件e2e](#组件e2e)
+  * [版本e2e](#版本e2e)
+* [OpenShift3 and OKD](#openshift3-and-okd)
+  * [常用操作](#常用操作-1)
+  * [官方yum源](#官方yum源)
+  * [OpenShift 3.x DNS介绍](#openshift-3x-dns介绍)
+  * [深入OpenShift SDN网络](#深入openshift-sdn网络)
+<!-- TOC -->
 
 # Deep Dive
 ## SCC
