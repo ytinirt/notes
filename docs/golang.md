@@ -24,6 +24,7 @@
   * [使用devle调试Go程序](#使用devle调试go程序)
   * [使用go tool trace追踪Go程序](#使用go-tool-trace追踪go程序)
   * [使用pprof定位Go程序问题](#使用pprof定位go程序问题)
+    * [示例：使用pprof定位kubelet](#示例使用pprof定位kubelet)
   * [golang diagnostics](#golang-diagnostics)
 * [Deep Dive系列](#deep-dive系列)
   * [http.Transport中连接池管理](#httptransport中连接池管理)
