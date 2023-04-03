@@ -198,6 +198,8 @@ go tool pprof /path/to/pprof.kube-apiserver.goroutine.001.pb.gz
 # 当通过web可视化访问时，可能提示“Failed to execute dot. Is Graphviz installed?”，需要安装graphviz
 # 命令如下，参见链接 https://graphviz.org/download/
 yum install graphviz
+# windows从 https://graphviz.org/download/#windows 下载并安装
+# 然后设置PATH，将graphviz的bin（默认C:\Program Files\Graphviz\bin）添加到PATH环境变量中
 
 # 内存heap信息
 go tool pprof http://127.0.0.1:8001/debug/pprof/heap
@@ -244,6 +246,27 @@ go tool trace trace.out
 - TODO https://go.dev/blog/pprof
 - TODO https://github.com/rsc/benchgraffiti
 
+
+### 示例：使用pprof定位kubelet
+```bash
+# 开启debug代理
+kubectl proxy
+
+node=<问题节点>
+
+# 动态调整kubelet日志级别
+curl -X PUT http://127.0.0.1:8001/api/v1/nodes/${node}/proxy/debug/flags/v -d "4"
+
+# 收集pprof
+wget -o profile http://127.0.0.1:8001/api/v1/nodes/${node}/proxy/debug/pprof/profile
+wget -o heap http://127.0.0.1:8001/api/v1/nodes/${node}/proxy/debug/pprof/heap
+curl http://127.0.0.1:8001/api/v1/nodes/${node}/proxy/debug/pprof/goroutine?debug=1 >> debug1
+curl http://127.0.0.1:8001/api/v1/nodes/${node}/proxy/debug/pprof/goroutine?debug=2 >> debug2
+
+# 打开pprof
+go tool pprof -http :8080 ./<heap 文件>
+go tool pprof -http :8080 ./<profile 文件>
+```
 
 ## golang diagnostics
 TODO: https://golang.org/doc/diagnostics

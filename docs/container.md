@@ -909,6 +909,8 @@ crictl create <sandbox-id> container.json sandbox.json
 ### 如何配置
 参见`vendor/k8s.io/cri-api/pkg/apis/runtime/v1/api.pb.go`中`PodSandboxConfig`和`ContainerConfig`结构体定义。
 
+**注意**和OCI的区别[opencontainers/runtime-spec](github.com/opencontainers/runtime-spec/specs-go/config.go) 。
+
 # Docker
 
 ## 容器环境下的swap使用

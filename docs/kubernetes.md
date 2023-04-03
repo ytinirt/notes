@@ -660,6 +660,11 @@ kubectl taint nodes worker foo=bar:NoExecute
 ```
 
 ## 便捷操作
+* 查询Pod的uid
+  ```bash
+  kubectl get pod -A -o custom-columns=NS:.metadata.namespace,NAME:.metadata.name,UID:.metadata.uid
+  ```
+
 * 清理`Completed`状态的Pod
   ```bash
   kubectl delete pod --field-selector=status.phase==Succeeded --all-namespaces
