@@ -55,6 +55,7 @@
       * [简单示例](#简单示例)
       * [实用例子](#实用例子)
       * [操作说明](#操作说明)
+      * [slash字符转义](#slash字符转义)
     * [jq工具](#jq工具)
       * [过滤带有特殊注解的k8s资源](#过滤带有特殊注解的k8s资源)
       * [查询k8s的events](#查询k8s的events)
@@ -865,6 +866,9 @@ curl -H "Content-Type:application/json-patch+json" --request PATCH "http://127.0
 > Tests that the specified value is set in the document. If the test fails, then the patch as a whole should not apply.
 
 参见[jsonpatch](http://jsonpatch.com)。
+
+#### slash字符转义
+参见[JSON Pointer](https://jsonpatch.com/#json-pointer) ，使用`~1`替代字符串中的`/`，使用`~0`替代字符串中的`~`。
 
 ### jq工具
 
