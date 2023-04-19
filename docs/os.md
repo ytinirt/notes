@@ -815,6 +815,9 @@ echo 1 > /sys/bus/pci/rescan
 ## 常用操作
 
 ```bash
+# 配置CPU亲和性（绑核），详见 man systemd-system.conf
+systemd-system.conf 中设置 CPUAffinity= 可以将所有 systemd 服务启动的进程绑核
+
 # 查看依赖的服务
 systemctl list-dependencies crio
 # 查看被谁依赖

@@ -235,6 +235,10 @@ git push
 ### 常用操作
 
 ```bash
+# Windows环境下git clone遇到"Filename too long"的问题
+# 参见 https://stackoverflow.com/questions/22575662/filename-too-long-in-git-for-windows
+git config --system core.longpaths true
+
 # 撤销add的修改
 git reset --mixed
 
