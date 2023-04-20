@@ -1258,6 +1258,14 @@ volumes:
 histogram_quantile(0.99, rate(etcd_network_peer_round_trip_time_seconds_bucket[2m]))
 ```
 
+### etcd网络指标中peer_round_trip_time实现细节
+通过GET调用如下接口，计算和peer的rtt时间：
+```
+https://<peer-ip>:2380/raft/probing
+```
+实现详见 `github.com/xiang90/probing/prober.go` 中 `AddHTTP` 。
+
+
 ### kube-apiserver的etcd-quorum-read调查
 目前从一致性考虑，`kube-apiserver`已强制开启`etcd-quorum-read`选项。
 

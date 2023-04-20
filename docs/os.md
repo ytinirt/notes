@@ -158,6 +158,9 @@
       * [解决pcc和acpi的bug导致的CPU降频问题](#解决pcc和acpi的bug导致的cpu降频问题)
       * [长期测试CPU性能](#长期测试cpu性能)
     * [网络性能](#网络性能)
+      * [主机网络指标](#主机网络指标)
+      * [iperf测试网络性能](#iperf测试网络性能)
+      * [暴力ping](#暴力ping)
     * [IO性能](#io性能)
       * [iostat判断io瓶颈](#iostat判断io瓶颈)
       * [ionice修改io优先级](#ionice修改io优先级)
@@ -2781,18 +2784,34 @@ for i in $(seq 0 99); do     echo -en [$(printf "%02d" $i)] $(date +"%Y-%m-%d %T
 
 ### 网络性能
 
-使用`iperf`测试网络性能：
+#### 主机网络指标
+```bash
+# 查看和分析240秒内网络包量、流量、错包、丢包，重传率时RetransSegs/OutSegs
+cat /proc/net/snmp
+```
+
+#### iperf测试网络性能
+使用`iperf3`测试网络性能：
 
 ```bash
 # 服务端执行
-iperf -s
+iperf3 -s
 # 客户端执行
-iperf -c <serverIP>
+iperf3 -c <serverIP>
 # 测试示例
-iperf3 -c <serverIP>  -t 30   -b 100M  -P 4
+iperf3 -c <serverIP> -t 30 -b 100M -P 4
+iperf3 -c <serverIP> -M 4000
 ```
 
+#### 暴力ping
+在ping的时候：
+* **_-s_**指定最大的*packet size*为65507（ *IP报文最大总长度65535* - *IP头部长度20* - *ICMP头部长度8* ）
+* **_-A_**指定为*Adaptive*模式，即收到回报时立刻发下一个包
 
+能够验证目的节点的网卡/驱动是否存在异常、性能瓶颈，特别是处理分片报文上。
+```
+ping -A -s 65507 <dst-ip-addr>
+```
 
 ### IO性能
 
@@ -3295,7 +3314,6 @@ ps -eo min_flt,maj_flt,cmd,pid    #查看 page faults 统计信息，有Minor、
 slabtop -s c        #查看slabinfo信息
 pmstat              #查看系统全局性能  high-level system performance overview
 watch -d more /proc/net/dev    #定位丢包情况
-cat /proc/net/snmp  #查看和分析240秒内网络包量、流量、错包、丢包，重传率时RetransSegs/OutSegs
 dig @127.0.0.1 -4 masternode  #查看域名解析地址，其中指定server为127.0.0.1，且仅查询A记录（ipv4）
 # 正向解析
 dig @<nameserver_ip> api.ocp4.ytinirt.cn
