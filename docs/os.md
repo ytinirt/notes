@@ -454,7 +454,10 @@ swapon /swapfile
 >
 >Because this is a nondestructive operation and dirty objects are not freeable, the user should run sync(8) first.
 
-
+当需要sudo时，执行：
+```bash
+sudo sh -c "echo 3 > /proc/sys/vm/drop_caches"
+```
 
 ### 更加积极的脏页缓存刷新
 
@@ -797,6 +800,9 @@ echo 1 > /sys/bus/pci/rescan
 `virtual dynamic share object`。
 
 [安全：人见人爱的vDSO机制，如今也靠不住了](https://cloud.tencent.com/developer/article/1073909)
+
+# D-Bus
+[链接](https://www.freedesktop.org/wiki/Software/dbus/)
 
 # Systemd
 
@@ -2805,8 +2811,8 @@ iperf3 -c <serverIP> -M 4000
 
 #### 暴力ping
 在ping的时候：
-* **_-s_**指定最大的*packet size*为65507（ *IP报文最大总长度65535* - *IP头部长度20* - *ICMP头部长度8* ）
-* **_-A_**指定为*Adaptive*模式，即收到回报时立刻发下一个包
+* **-s** 指定最大的*packet size*为65507（ *IP报文最大总长度65535* - *IP头部长度20* - *ICMP头部长度8* ）
+* **-A** 指定为*Adaptive*模式，即收到回报时立刻发下一个包
 
 能够验证目的节点的网卡/驱动是否存在异常、性能瓶颈，特别是处理分片报文上。
 ```

@@ -50,7 +50,8 @@
   * [从KubeConfig文件中提取证书秘钥](#从kubeconfig文件中提取证书秘钥)
   * [debug和问题解决](#debug和问题解决)
   * [堆栈文件分析](#堆栈文件分析)
-  * [TODO: 根据sa生成kubeconfig](#todo--根据sa生成kubeconfig)
+  * [根据sa生成kubeconfig](#根据sa生成kubeconfig)
+  * [kubeconfig跳过服务端证书校验](#kubeconfig跳过服务端证书校验)
   * [定制kubectl输出](#定制kubectl输出)
   * [常见操作](#常见操作)
   * [资源遍历](#资源遍历)
@@ -805,7 +806,7 @@ curl -k https://127.0.0.1:10250/metrics --cacert /etc/kubernetes/pki/ca.crt --ce
 # goroutine统计
 grep ^goroutine xxx-goroutine-9.log -A 1 | grep -v "^goroutine\|^--" | sort | less
 ```
-## TODO: 根据sa生成kubeconfig
+## 根据sa生成kubeconfig
 ```bash
 # your server name goes here
 server=https://localhost:8443
@@ -836,6 +837,16 @@ clusters:
   user:
   token: ${token}
   " > sa.kubeconfig
+```
+
+## kubeconfig跳过服务端证书校验
+```bash
+clusters:
+- cluster:
+    server: https://foo.bar:6443
+    insecure-skip-tls-verify: true
+  name: hehecluster
+...
 ```
 
 ## 定制kubectl输出
