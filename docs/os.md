@@ -44,6 +44,7 @@
   * [内核文件系统（/proc、/sys）](#内核文件系统procsys)
   * [周边知识](#周边知识)
     * [vDSO机制](#vdso机制)
+* [D-Bus](#d-bus-1)
 * [Systemd](#systemd)
   * [service的类型](#service的类型)
   * [常用操作](#常用操作)
@@ -114,41 +115,6 @@
     * [nfs问题定位手段](#nfs问题定位手段)
   * [webdav](#webdav)
 * [Operation & Management](#operation--management)
-  * [loop设备](#loop设备)
-  * [用户管理](#用户管理)
-  * [audit系统审计](#audit系统审计)
-  * [HTPasswd认证](#htpasswd认证)
-  * [系统资源限制](#系统资源限制)
-    * [limits.conf资源限制](#limitsconf资源限制)
-    * [systemd资源限制](#systemd资源限制)
-  * [openssl和证书](#openssl和证书)
-    * [生成根证书](#生成根证书)
-    * [签发自签名证书](#签发自签名证书)
-    * [极简命令操作](#极简命令操作)
-    * [自动化操作](#自动化操作)
-    * [根证书缺失导致TLS通信失败](#根证书缺失导致tls通信失败)
-  * [远程安全终端openssh](#远程安全终端openssh)
-    * [服务端sshd](#服务端sshd)
-    * [使用ssh-keygen生成秘钥](#使用ssh-keygen生成秘钥)
-    * [客户端ssh](#客户端ssh)
-      * [永久跳过初次连接时host指纹检查提示](#永久跳过初次连接时host指纹检查提示)
-    * [ssh免密登录](#ssh免密登录)
-    * [ssh隧道](#ssh隧道)
-  * [使用gost配置隧道](#使用gost配置隧道)
-  * [Alpine](#alpine)
-    * [使用镜像源](#使用镜像源)
-    * [下载软件包及其依赖到本地](#下载软件包及其依赖到本地)
-    * [安装本地软件包](#安装本地软件包)
-  * [Debian](#debian)
-    * [添加仓库](#添加仓库)
-  * [CentOS](#centos)
-    * [常用操作](#常用操作-6)
-    * [NetworkManager网络管理](#networkmanager网络管理)
-      * [配置全局域名解析服务器](#配置全局域名解析服务器)
-      * [不去override更新resolv.conf文件](#不去override更新resolvconf文件)
-    * [获取RPM包的源码](#获取rpm包的源码)
-    * [构建自定义的CentOS内核](#构建自定义的centos内核)
-    * [关闭coredump](#关闭coredump)
   * [主机性能测试](#主机性能测试)
     * [CPU性能测试](#cpu性能测试)
     * [内存性能测试](#内存性能测试)
@@ -221,6 +187,41 @@
       * [ntp服务自我保护](#ntp服务自我保护)
       * [常用命令和工具](#常用命令和工具)
     * [chronyd](#chronyd)
+  * [loop设备](#loop设备)
+  * [用户管理](#用户管理)
+  * [audit系统审计](#audit系统审计)
+  * [HTPasswd认证](#htpasswd认证)
+  * [系统资源限制](#系统资源限制)
+    * [limits.conf资源限制](#limitsconf资源限制)
+    * [systemd资源限制](#systemd资源限制)
+  * [openssl和证书](#openssl和证书)
+    * [生成根证书](#生成根证书)
+    * [签发自签名证书](#签发自签名证书)
+    * [极简命令操作](#极简命令操作)
+    * [自动化操作](#自动化操作)
+    * [根证书缺失导致TLS通信失败](#根证书缺失导致tls通信失败)
+  * [远程安全终端openssh](#远程安全终端openssh)
+    * [服务端sshd](#服务端sshd)
+    * [使用ssh-keygen生成秘钥](#使用ssh-keygen生成秘钥)
+    * [客户端ssh](#客户端ssh)
+      * [永久跳过初次连接时host指纹检查提示](#永久跳过初次连接时host指纹检查提示)
+    * [ssh免密登录](#ssh免密登录)
+    * [ssh隧道](#ssh隧道)
+  * [使用gost配置隧道](#使用gost配置隧道)
+  * [Alpine](#alpine)
+    * [使用镜像源](#使用镜像源)
+    * [下载软件包及其依赖到本地](#下载软件包及其依赖到本地)
+    * [安装本地软件包](#安装本地软件包)
+  * [Debian](#debian)
+    * [添加仓库](#添加仓库)
+  * [CentOS](#centos)
+    * [常用操作](#常用操作-6)
+    * [NetworkManager网络管理](#networkmanager网络管理)
+      * [配置全局域名解析服务器](#配置全局域名解析服务器)
+      * [不去override更新resolv.conf文件](#不去override更新resolvconf文件)
+    * [获取RPM包的源码](#获取rpm包的源码)
+    * [构建自定义的CentOS内核](#构建自定义的centos内核)
+    * [关闭coredump](#关闭coredump)
   * [动态链接库管理](#动态链接库管理)
   * [文本、字节流编辑](#文本字节流编辑)
   * [L2TP without IPsec配置](#l2tp-without-ipsec配置)
@@ -2023,720 +2024,6 @@ TODO
 
 # Operation & Management
 
-## loop设备
-```bash
-dd if=/dev/zero of=loopfile-1G.img bs=1G count=1
-mkfs.ext4 loopfile-1G.img
-file loopfile-1G.img
-mkdir /mnt/loopdevmnt
-mount loopfile-1G.img /mnt/loopdevmnt/
-```
-
-## 用户管理
-
-```bash
-groupadd                # 创建新的组
-useradd -U zy           # 创建新的用户
-passwd zy               # 创建（修改）用户密码
-usermod -aG wheel zy    # 将新建的用户加入wheel组，成为sudoer
-su - zy                 # 切换用户，推荐带上'--login'（缩写'-'），以确保像是一次真正的login
-su [-] nova
-usermod -s /bin/bash nova
-```
-
-
-## audit系统审计
-```bash
-ausearch
-auditctl -a exit,always -F arch=b64 -F exe!=/usr/bin/nice&&/usr/bin/du -S execve
-```
-
-TODO: [参见资料](https://www.cyberciti.biz/tips/linux-audit-files-to-see-who-made-changes-to-a-file.html)
-
-## HTPasswd认证
-在RHEL/CentOS上，htpasswd来自httpd-tools包。
-```bash
-# 创建flat文件，并新增一个用户user1
-htpasswd -c -B -b /path/to/users.htpasswd user1 MyPassword!
-
-# 新增一个用户user2
-htpasswd -B -b /path/to/users.htpasswd user2 MyPassword@
-```
-
-
-## 系统资源限制
-
-通过`/proc/<pid>/limits`查看进程（线程）的资源限制。
-
-### limits.conf资源限制
-
-路径为`/etc/security/limits.conf`，详见`man limits.conf`。
-增大open file限制
-
-```bash
-*          soft    nofile     204800
-*          hard    nofile     204800
-```
-增大进程（线程）数限制
-```bash
-*          soft    nproc      59742
-*          hard    nproc      59742
-```
-注意，`/etc/security/limits.d/20-nproc.conf`会覆盖 `/etc/security/limits.conf`中相同配置项的值，启机时读取顺序是先limits.conf再是`limits.d/*`下文件。
-
-### systemd资源限制
-
-详见 `man systemd-system.conf`
-涉及文件 `/etc/systemd/system.conf` 和 `/etc/systemd/user.conf`
-
-```bash
-DefaultLimitCORE=infinity
-DefaultLimitNOFILE=102400
-DefaultLimitNPROC=102400
-```
-
-
-
-## openssl和证书
-
-常用命令
-
-~~~bash
-# tls建连，获取server端证书信息
-openssl s_client -host 10.0.0.100 -port 2379 -msg -state -showcerts -tls1_2
-openssl s_client -showcerts -timeout -connect 1.2.3.4:8443 2>/dev/null | grep -i notafter
-
-# 读取x509证书的信息
-openssl x509 -in xxx.crt -text -noout
-openssl x509 -dates  -noout  -in kube-apiserver-localhost-server.crt
-# 证书有效期起始时间
-openssl x509 -in ${cert} -noout -dates | grep notBefore | awk -F"=" '{print $2}'
-openssl x509 -enddate -noout -in file.pem
-# 证书有效期截止时间
-openssl x509 -in ${cert} -noout -dates | grep notAfter | awk -F"=" '{print $2}'
-# certificate signing request (csr)
-openssl req -new -out server.csr -config server.conf
-
-# 检查证书链是否正确，其中ca.pem是启动server（例如这里rancher.yourdomain.com）指定的CA
-openssl s_client -CAfile ca.pem -connect rancher.yourdomain.com:443
-
-# print csr
-openssl req -in server.csr -noout -text
-
-# sign a certificate
-openssl x509 \
-        -req \
-        -days 3650 \
-        -in server.csr \
-        -CA ca.crt \
-        -CAkey ca.key \
-        -CAcreateserial \
-        -out server.crt \
-        -extensions harbor_extensions \
-        -extfile ext.cnf
-
-# print singed certificate
-openssl x509 -in server.crt -noout -text
-
-# 检查认证链（certificate chain）是否有效，设置SSL_CERT_DIR为dummy以防止使用系统安装的默认证书
-SSL_CERT_DIR=/dummy SSL_CERT_FILE=/dummy openssl verify -CAfile ca.crt server.crt
-SSL_CERT_DIR=/dummy SSL_CERT_FILE=/dummy openssl verify -CAfile ca.crt -untrusted server.crt
-
-
-# 创建K8s用户的key和csr文件
-openssl req -newkey rsa:4096 \
-           -keyout user.key \
-           -nodes \
-           -out user.csr \
-           -subj "/CN=user/O=hehe-company"
-# 使用K8s的CA去签发证书
-openssl x509 -req -in user.csr \
-                  -CA /etc/kubernetes/pki/ca.crt \
-                  -CAkey /etc/kubernetes/pki/ca.key \
-                  -CAcreateserial \
-                  -out user.crt \
-                  -days 365
-~~~
-
-### 生成根证书
-
-```bash
-openssl genrsa -des3 -out cacerts.key 2048
-openssl req -x509 -new -nodes -key cacerts.key -sha256 -days 3650 -out cacerts.pem
-```
-
-### 签发自签名证书
-
-使用上述生成的根证书，签发自签名证书：
-
-```bash
-# 生成私有密钥
-openssl genrsa -out key.pem 2048
-# 生成csr
-openssl req -new -key key.pem -out csr.epm
-# 生成csr的另外一个例子，其对应的kubernetes客户端名称为jbeda，所属Group为app1和app2
-openssl req -new -key jbeda.pem -out jbeda-csr.pem -subj "/CN=jbeda/O=app1/O=app2"
-# TODO
-```
-
-### 极简命令操作
-
-```bash
-# Generate the CA cert and private key
-openssl req -nodes -new -x509 -keyout ca.key -out ca.crt -subj "/CN=Admission Controller Webhook Demo CA" -days 3650
-# Generate the private key for the webhook server
-openssl genrsa -out webhook-server-tls.key 2048
-# Generate a Certificate Signing Request (CSR) for the private key, and sign it with the private key of the CA.
-openssl req -new -key webhook-server-tls.key -subj "/CN=webhook-server.webhook-demo.svc" \
-    | openssl x509 -req -CA ca.crt -CAkey ca.key -CAcreateserial -out webhook-server-tls.crt -days 3650
-```
-
-
-### 自动化操作
-
-```bash
-# Country Name
-CN="\r"
-# State or Province Name
-STATE="\r"
-# cality Name
-LN="\r"
-# Organization Name
-ON="\r"
-# Organizational Unit Name
-OUN="\r"
-# Email Address
-EA="\r"
-# default null
-DEFAULTNULL="\r"
-# An optional company name
-COMPANY="\r"
-#
-HOSTNAME='server.domain'
-PASSWD='123456'
-
-# 生成私有CA的证书ca.crt和秘钥ca.key
-expect<<-EOF
-set timeout 20
-spawn openssl req -newkey rsa:4096 -nodes -sha256 -keyout ca.key -x509 -days 3650 -out ca.crt
-expect "Country Name"
-send ${CN}
-expect "State or Province Name"
-send ${STATE}
-expect "Locality Name"
-send ${LN}
-expect "Organization Name"
-send ${ON}
-expect "Organizational Unit Name"
-send ${OUN}
-expect "Common Name"
-send "${DEFAULTNULL}\r"
-expect "Email Address"
-send ${EA}
-expect eof
-EOF
-
-# 生成key和csr，以用于签发证书
-expect<<-EOF
-set timeout 20
-spawn openssl req -newkey rsa:4096 -nodes -sha256 -keyout server.key -out server.csr
-expect "Country Name"
-send ${CN}
-expect "State or Province Name"
-send ${STATE}
-expect "Locality Name"
-send ${LN}
-expect "Organization Name"
-send ${ON}
-expect "Organizational Unit Name"
-send ${OUN}
-expect "Common Name"
-send "${HOSTNAME}\r"
-expect "Email Address"
-send ${EA}
-expect "A challenge password"
-send "${PASSWD}\r"
-expect "An optional company name"
-send "${COMPANY}\r"
-expect "eof"
-EOF
-
-cat > ext.cnf << EOF
-[ extensions ]
-basicConstraints=CA:FALSE
-subjectAltName=@subject_alt_names
-subjectKeyIdentifier=hash
-keyUsage=nonRepudiation,digitalSignature,keyEncipherment
-
-[ subject_alt_names ]
-DNS.1 = ${HOSTNAME}
-IP.1 = 1.2.3.4
-EOF
-
-openssl x509 -req -days 3650 -in server.csr -CA ca.crt -CAkey ca.key -CAcreateserial  -extfile ext.cnf  -out server.crt
-
-```
-
-
-
-### 根证书缺失导致TLS通信失败
-
-以docker服务访问为例，当遇到如下问题时，可考虑由缺乏签发Server证书的根证书（CA Cert）导致：
-
-```
-Error response from daemon: Get https://registry-1.docker.io/v2/: x509: certificate signed by unknown authority
-```
-
-要解决上述问题，需添加CA根证书：
-
-```bash
-# 将知名的CA根证书拷贝到 /etc/pki/ca-trust/source/anchors 路径下，执行如下更新命令
-update-ca-trust extract
-# 重启docker服务
-systemctl restart docker
-```
-
-同时，还存在如下**临时方案**：
-
-```bash
-openssl s_client -connect docker-registry:443 -showcerts </dev/null 2>/dev/null | openssl x509 -outform PEM | tee /etc/pki/ca-trust/source/anchors/docker-registry.crt
-update-ca-trust
-```
-
-
-
-
-
-
-
-## 远程安全终端openssh
-
-### 服务端sshd
-
-必须带全路径才能启动sshd，例如`/usr/bin/sshd`。
-
-若启动时提示
-* /etc/ssh/ssh_host_dsa_key
-* /etc/ssh/ssh_host_ecdsa_key
-* /etc/ssh/ssh_host_ed25519_key
-* /etc/ssh/ssh_host_rsa_key
-
-找不到，则需要使用`ssh-keygen`命令，生成上述key文件
-
-```bash
-ssh-keygen -t dsa -f /etc/ssh/ssh_host_dsa_key
-```
-
-常用命令：
-
-```bash
-sshd -T | grep kex    # 获取sshd服务端支持的加密算法
-```
-
-### 使用ssh-keygen生成秘钥
-```bash
-# 增加comment
-ssh-keygen -C dev@ytinirt.cn
-```
-
-### 客户端ssh
-
-常用命令：
-
-```bash
-ssh root@172.25.19.117 ps -ef | grep kube-controller | grep -v grep     # 远程到某节点执行命令，然后直接在本地返回执行结果
-ssh -o StrictHostKeyChecking=no op-s1 ls        # 初次连接，跳过恼人的主机host fingerprint检查
-ssh -Q kex    # 获取ssh客户端支持的加密算法
-ssh $node -C "/bin/bash" < local-scripts.sh     # 远程到节点上执行本地的脚本
-```
-
-#### 永久跳过初次连接时host指纹检查提示
-```
-echo "StrictHostKeyChecking no" >> /etc/ssh/ssh_config
-```
-
-
-### ssh免密登录
-
-服务端（被连接者）中`~/.ssh/authorized_keys`加入客户端（连接发起者）的公钥。
-注意，客户端的`~/.ssh/`中需要有与该公钥对应的私钥。
-
-如何定位免密登录问题：
-
-```bash
-ssh -v master           # 查看客户端操作详细信息
-journalctl -u sshd      # 查看服务端日志，必要情况下可增加'-d'选项查看更详细的debug信息
-```
-
-
-### ssh隧道
-ssh隧道或称ssh端口转发，常用于解决跳板访问。
-
-有实例，在`10.254.7.2`节点上执行如下命令，把`10.254.7.2`的`48080`端口转发到`10.0.46.10`节点`8080`端口：
-```bash
-ssh -L 10.254.7.2:48080:10.0.46.10:8080 root@10.0.46.10
-```
-
-
-## 使用gost配置隧道
-
-项目地址`https://github.com/ginuerzh/gost`
-
-```bash
-# Windows跳板机上创建proxy.bat批处理文件，其执行如下内容
-gost -D -L=http://:8080/ -F=http://<代理服务器地址>:<代理服务器端口>/
-```
-
-
-
-## Alpine
-
-### 使用镜像源
-
-```bash
-echo "http://mirrors.aliyun.com/alpine/v3.6/main/" > /etc/apk/repositories && \
-echo "http://mirrors.aliyun.com/alpine/v3.6/community" >> /etc/apk/repositories
-```
-
-### 下载软件包及其依赖到本地
-
-```bash
-apk fetch -R python
-```
-
-### 安装本地软件包
-
-```bash
-apk add --allow-untrusted /gdbm-1.12-r0.apk
-```
-
-
-
-## Debian
-
-```bash
-# 设置仓库
-update-command-not-found
-deb http://1.2.3.4/debian/ jessie main contrib non-free
-apt-get update
-
-# 安装单个deb包
-dpkg -i path_to_deb_package.deb
-
-# 修理安装deb包引起的依赖问题
-apt-get -f install
-
-# apt下载的deb包的缓存
-/var/cache/apt/archive
-```
-
-### 添加仓库
-
-依赖包： software-properties-common 和 python-software-properties
-
-```bash
-add-apt-repository ppa:nhandler/ppa
-```
-
-## CentOS
-
-### 常用操作
-CentOS7使用阿里的yum源：
-```bash
-wget -O /etc/yum.repos.d/CentOS-Base.repo https://mirrors.aliyun.com/repo/Centos-7.repo
-```
-
-使用ISO作为yum源：
-```
-[appstream]
-name=local-yum
-baseurl=file:///mnt/AppStream/
-enabled=1
-gpgcheck=0
-
-[base]
-name=local-yum-base
-baseurl=file:///mnt/BaseOS/
-enabled=1
-gpgcheck=0
-
-```
-
-
-获取yum repo中的变量值
-```bash
-# CentOS 8
-/usr/libexec/platform-python -c 'import dnf, json; db = dnf.dnf.Base(); print(json.dumps(db.conf.substitutions, indent=2))'
-```
-
-
-解决CentOS 8安装软件时，源报错的问题：
-```bash
-# 将 mirror.centos.org 改为 vault.centos.org
-sed -i 's|baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/*
-# 同时，不再使用mirrorlist
-```
-
-
-CentOS 8安装EPEL仓库
-```
-dnf install epel-release -y
-```
-
-
-删除老的、不用的内核Kernel
-
-```bash
-rpm -q kernel # 查询有哪些kernel
-package-cleanup --oldkernels --count=2   # 删除老的不用的kernel，并保留最近2个kernel
-```
-
-查看系统可用内核的索引值
-
-```bash
-awk -F\' '$1=="menuentry " {print i++ " : " $2}' /etc/grub2.cfg
-```
-
-修改默认引导的内核
-
-```bash
-grub2-editenv list
-grub2-set-default 1
-grub2-editenv list
-```
-
-升级内核前若替换了reboot和shutdown命令，升级内核后节点将无法reboot或shutdown
-
-```
-升级内核会重新生成initramfs.img，该镜像负责最后重启关机工作。
-升级前若替换了reboot和shutdown命令，则替换后的命令会被打进新的initramfs.img，最终影响重启关机操作。
-解决办法是升级内核前将reboot和shutdown命令替换回系统初始状态，待升级后再恢复。
-```
-
-新增内核模块
-
-```bash
-# 降低新编译内核模块的大小
-strip --strip-debug drbd.ko
-# 复制新增内核模块到指定位置
-cp drbd.ko /lib/modules/${uname -r}/extra/
-# 更新内核模块依赖信息
-depmod -a
-```
-
-查看CentOS版本信息
-
-```bash
-hostnamectl
-rpm --query centos-release
-cat /etc/*-release
-```
-
-安装和运行GNOME桌面
-
-```bash
-yum -y groups install "GNOME Desktop"
-startx
-```
-
-默认启动图形化界面
-
-```bash
-systemctl set-default graphical.target
-```
-
-使用GNOME Shell
-
-```bash
-echo "exec gnome-session" >> ~/.xinitrc
-startx
-```
-
-### NetworkManager网络管理
-**注意**，要使用`NetworkManager`管理`OVS`，需安装`NetworkManager-ovs`包。
-
-命令行工具
-```bash
-# 查看连接信息
-nmcli connection show
-nmcli connection show br-ex
-nmcli --get-values ipv4.dhcp-client-id conn show 0ae83f63-5be5-3002-a6b0-1295ec3b55c4
-nmcli --get-values ipv6.dhcp-duid conn show 0ae83f63-5be5-3002-a6b0-1295ec3b55c4
-nmcli --get-values ipv6.addr-gen-mode conn show 0ae83f63-5be5-3002-a6b0-1295ec3b55c4
-nmcli --get-values connection.type conn show 0ae83f63-5be5-3002-a6b0-1295ec3b55c4
-
-# 新建连接
-nmcli c add type ovs-bridge con-name br-ex conn.interface br-ex 802-3-ethernet.mtu 1500 ipv4.route-metric 49 ipv6.route-metric 49 ipv6.addr-gen-mode eui64
-# 使能连接
-nmcli conn up br-ex
-```
-
-#### 配置全局域名解析服务器
-```bash
-cat <<EOF > /etc/NetworkManager/conf.d/dns-servers.conf
-[global-dns-domain-*]
-servers=10.253.15.120,223.5.5.5
-EOF
-```
-
-#### 不去override更新resolv.conf文件
-修改`NetworkManager`配置，在`[main]`段增加`dns=none`，具体：
-```bash
-if [ $(cat /etc/NetworkManager/NetworkManager.conf | grep -c "^dns=none") -eq 0 ]; then
-    sed -i "/^\[main\]/a\dns=none" /etc/NetworkManager/NetworkManager.conf
-    systemctl reload NetworkManager
-fi
-```
-
-### 获取RPM包的源码
-以yum源上docker为例，docker属于CentOS-extras仓库，获取其相关信息：
-```bash
-# To search everything 'docker' related
-yum search docker
-# Once found interresting package..
-yum infos docker
-```
-其中能获知docker在`extras`仓库，然后下载源码：
-```bash
-# Disable all repos, enable the one we have eyes on, set 'source only' and download
-yumdownloader --disablerepo=\* --enablerepo=extras --source docker
-```
-
-详见[where-can-i-find-the-souce-code-of-docker-rpm-in-centos](https://stackoverflow.com/questions/57144507/where-can-i-find-the-souce-code-of-docker-rpm-in-centos)
-
-### 构建自定义的CentOS内核
-参考[https://wiki.centos.org/HowTos/Custom_Kernel](https://wiki.centos.org/HowTos/Custom_Kernel)
-
-安装构建依赖包
-```bash
-[root@workstation ~]# yum groupinstall "Development Tools"
-[root@workstation ~]# yum install rpm-build redhat-rpm-config asciidoc hmaccalc perl-ExtUtils-Embed pesign xmlto -y
-[root@workstation ~]# yum install audit-libs-devel binutils-devel elfutils-devel elfutils-libelf-devel java-devel ncurses-devel -y
-[root@workstation ~]# yum install newt-devel numactl-devel pciutils-devel python-devel zlib-devel openssl-devel bc -y
-```
-
-获取内核源码
-**警告**，必须以非root用户执行
-```bash
-[zy@workstation ~]$ mkdir -p ~/rpmbuild/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
-[zy@workstation ~]$ echo '%_topdir %(echo $HOME)/rpmbuild' > ~/.rpmmacros
-[zy@workstation ~]$ rpm -i http://vault.centos.org/7.5.1804/updates/Source/SPackages/kernel-3.10.0-862.9.1.el7.src.rpm 2>&1 | grep -v exist
-[zy@workstation SPECS]$ cd ~/rpmbuild/SPECS
-[zy@workstation SPECS]$ rpmbuild -bp --target=$(uname -m) kernel.spec
-```
-操作完成后，内核源码在`~/rpmbuild/BUILD/kernel*/linux*/`路径下。
-需要说明的是第3行中`http://vault.centos.org/7.5.1804/updates/Source/SPackages/kernel-3.10.0-862.9.1.el7.src.rpm`是内核源码包的网络地址，当无法直接访问互联网时可准备好内核源码包后指定本地文件路径，例如：
-```bash
-[zy@workstation ~]$ ...
-[zy@workstation ~]$ ...
-[zy@workstation ~]$ rpm -i ~/download/kernel-3.10.0-693.21.1.el7.src.rpm 2>&1 | grep -v exist
-```
-同时，也请根据需要选择内核源码包版本，建议与当前系统的内核版本保持一致。
-
-配置内核
-**警告**，必须以非root用户执行
-```bash
-[zy@workstation ~]$ cd ~/rpmbuild/BUILD/kernel*/linux*/
-[zy@workstation linux-3.10.0-862.9.1.el7.ctt.x86_64]$ cp /boot/config-$(uname -r) .config
-[zy@workstation linux-3.10.0-862.9.1.el7.ctt.x86_64]$ make oldconfig
-[zy@workstation linux-3.10.0-862.9.1.el7.ctt.x86_64]$ make menuconfig
-[zy@workstation linux-3.10.0-862.9.1.el7.ctt.x86_64]$ vim .config # 将'# x86_64'添加到.config头部
-[zy@workstation linux-3.10.0-862.9.1.el7.ctt.x86_64]$ cp .config configs/kernel-3.10.0-$(uname -m).config
-[zy@workstation linux-3.10.0-862.9.1.el7.ctt.x86_64]$ cp configs/* ~/rpmbuild/SOURCES
-```
-需要说明的：
-* 第2和第3行操作，将系统当前运行内核的配置拷贝到内核源码路径下，保证新构建出来的内核同当前运行内核配置一致。
-* 第4行操作进行内核配置，完成后记得Save保存配置。
-* 第5行操作，在.config头部添加注释行表明系统架构，系统架构信息为$(uname -m)。
-
-Kernel ABI一致性检查
-在后面的rpmbuild构建内核包时，增加`--without kabichk`能避免ABI一致性检查，绕过ABI兼容性错误。详细信息请见文末参考文档。
-目前看，取消`kernel memory accounting`配置后，必须关闭ABI一致性检查，才能编译内核。
-
-修改内核SPEC文件
-**警告**，必须以非root用户(non-root)执行
-```bash
-[zy@workstation ~]$ cd ~/rpmbuild/SPECS/
-[zy@workstation SPECS]$ cp kernel.spec kernel.spec.distro
-[zy@workstation SPECS]$ vim kernel.spec
-```
-第3行编辑kernel.spec文件时，需自定义内核buildid，做到新构建的内核不能与已安装的同名。
-具体做法是去掉buildid定义前的'#'，并设置自己的id，注意%与define间不能有空格。
-
-有任何patch补丁文件，请放到`~/rpmbuild/SOURCES/`目录下。
-需要打补丁时：
-1. 找到kernel.spec的'# empty final patch to facilitate testing of kernel patches'位置，在其下以40000开头声明patch
-2. 找到kernel.spec的'ApplyOptionalPatch linux-kernel-test.patch'，在其前面加入patch
-
-附打patch的方法
-```bash
-# TODO: diff -Nurp a/drivers/block/nbd.c b/drivers/block/nbd.c
-[zy@workstation ~]$ diff -Naur orig_src_root_dir my_src_root_dir > my-custom-kernel.patch
-```
-
-构建新内核
-**警告**，必须以非root用户(non-root)执行。
-终于，我们来到了编译和打包内核的阶段。常用的命令如下
-```bash
-[zy@workstation SPECS]$ rpmbuild -bb --target=$(uname -m) kernel.spec 2> build-err.log | tee build-out.log
-```
-一切顺利的话，构建好的内核在~/rpmbuild/RPMS/$(uname -m)/目录下。
-需要说明的是：上述命令构建的内核包含debug信息、size很大；另一方面，由于修改内核配置，很可能遇到KABI检查失败的情况。因此推荐使用如下命令构建：
-```bash
-[zy@workstation SPECS]$ rpmbuild -bb --with baseonly --without debug --without debuginfo --without kabichk --target=$(uname -m) kernel.spec 2> build-err.log | tee build-out.log
-```
-
-安装新内核
-将构建好的内核rpm包，全部拷贝到待更新内核的节点上，进入内核rpm包目录，执行
-```bash
-[root@workstation x86_64]# yum localinstall kernel-*.rpm
-```
-或者
-```bash
-[root@workstation x86_64]# rpm -ivh kernel-*.rpm   # 当涉及降级时，增加--oldpackage选项
-```
-注意，构建新内核时可能会产出其它不以'kernel-'开头的包（例如perf-3.10.0-327.22.2.el7.ctt.x86_64.rpm），上述安装步骤将会略过这些包，得根据自己需要判断是否安装这些rpm包。
-
-附通过内核符号，判断对内核的修改生效
-```bash
-# 读取 /proc/kallsyms 文件，查看是否有修改/新增的内核符号
-[root@zy-super-load proc]# less /proc/kallsyms
-```
-
-### 关闭coredump
-
-**普通进程**
-
-参考[文档](https://linux-audit.com/understand-and-configure-core-dumps-work-on-linux/)
-
-1. 配置文件`/etc/security/limits.conf`中增加：
-~~~
-* hard core 0
-~~~
-2. 配置文件`/etc/sysctl.conf`中增加：
-~~~
-fs.suid_dumpable = 0
-~~~
-并执行`sysctl -p`是配置立即生效。
-3. 配置文件`/etc/profile`中增加：
-~~~
-ulimit -S -c 0 > /dev/null 2>&1
-~~~
-
-上述操作，在用户重新登录后生效。
-
-**systemd服务**
-
-*验证无效，即使重启节点。*
-
-修改配置文件`/etc/systemd/coredump.conf`：
-~~~
-[Coredump]
-
-Storage=none
-ProcessSizeMax=0
-~~~
-
 ## 主机性能测试
 ### CPU性能测试
 使用unixbench工具。
@@ -3759,6 +3046,720 @@ ntpq -p   # 查看当前从谁那里同步时间
 
 对ntp的改良。
 
+
+## loop设备
+```bash
+dd if=/dev/zero of=loopfile-1G.img bs=1G count=1
+mkfs.ext4 loopfile-1G.img
+file loopfile-1G.img
+mkdir /mnt/loopdevmnt
+mount loopfile-1G.img /mnt/loopdevmnt/
+```
+
+## 用户管理
+
+```bash
+groupadd                # 创建新的组
+useradd -U zy           # 创建新的用户
+passwd zy               # 创建（修改）用户密码
+usermod -aG wheel zy    # 将新建的用户加入wheel组，成为sudoer
+su - zy                 # 切换用户，推荐带上'--login'（缩写'-'），以确保像是一次真正的login
+su [-] nova
+usermod -s /bin/bash nova
+```
+
+
+## audit系统审计
+```bash
+ausearch
+auditctl -a exit,always -F arch=b64 -F exe!=/usr/bin/nice&&/usr/bin/du -S execve
+```
+
+TODO: [参见资料](https://www.cyberciti.biz/tips/linux-audit-files-to-see-who-made-changes-to-a-file.html)
+
+## HTPasswd认证
+在RHEL/CentOS上，htpasswd来自httpd-tools包。
+```bash
+# 创建flat文件，并新增一个用户user1
+htpasswd -c -B -b /path/to/users.htpasswd user1 MyPassword!
+
+# 新增一个用户user2
+htpasswd -B -b /path/to/users.htpasswd user2 MyPassword@
+```
+
+
+## 系统资源限制
+
+通过`/proc/<pid>/limits`查看进程（线程）的资源限制。
+
+### limits.conf资源限制
+
+路径为`/etc/security/limits.conf`，详见`man limits.conf`。
+增大open file限制
+
+```bash
+*          soft    nofile     204800
+*          hard    nofile     204800
+```
+增大进程（线程）数限制
+```bash
+*          soft    nproc      59742
+*          hard    nproc      59742
+```
+注意，`/etc/security/limits.d/20-nproc.conf`会覆盖 `/etc/security/limits.conf`中相同配置项的值，启机时读取顺序是先limits.conf再是`limits.d/*`下文件。
+
+### systemd资源限制
+
+详见 `man systemd-system.conf`
+涉及文件 `/etc/systemd/system.conf` 和 `/etc/systemd/user.conf`
+
+```bash
+DefaultLimitCORE=infinity
+DefaultLimitNOFILE=102400
+DefaultLimitNPROC=102400
+```
+
+
+
+## openssl和证书
+
+常用命令
+
+~~~bash
+# tls建连，获取server端证书信息
+openssl s_client -host 10.0.0.100 -port 2379 -msg -state -showcerts -tls1_2
+openssl s_client -showcerts -timeout -connect 1.2.3.4:8443 2>/dev/null | grep -i notafter
+
+# 读取x509证书的信息
+openssl x509 -in xxx.crt -text -noout
+openssl x509 -dates  -noout  -in kube-apiserver-localhost-server.crt
+# 证书有效期起始时间
+openssl x509 -in ${cert} -noout -dates | grep notBefore | awk -F"=" '{print $2}'
+openssl x509 -enddate -noout -in file.pem
+# 证书有效期截止时间
+openssl x509 -in ${cert} -noout -dates | grep notAfter | awk -F"=" '{print $2}'
+# certificate signing request (csr)
+openssl req -new -out server.csr -config server.conf
+
+# 检查证书链是否正确，其中ca.pem是启动server（例如这里rancher.yourdomain.com）指定的CA
+openssl s_client -CAfile ca.pem -connect rancher.yourdomain.com:443
+
+# print csr
+openssl req -in server.csr -noout -text
+
+# sign a certificate
+openssl x509 \
+        -req \
+        -days 3650 \
+        -in server.csr \
+        -CA ca.crt \
+        -CAkey ca.key \
+        -CAcreateserial \
+        -out server.crt \
+        -extensions harbor_extensions \
+        -extfile ext.cnf
+
+# print singed certificate
+openssl x509 -in server.crt -noout -text
+
+# 检查认证链（certificate chain）是否有效，设置SSL_CERT_DIR为dummy以防止使用系统安装的默认证书
+SSL_CERT_DIR=/dummy SSL_CERT_FILE=/dummy openssl verify -CAfile ca.crt server.crt
+SSL_CERT_DIR=/dummy SSL_CERT_FILE=/dummy openssl verify -CAfile ca.crt -untrusted server.crt
+
+
+# 创建K8s用户的key和csr文件
+openssl req -newkey rsa:4096 \
+           -keyout user.key \
+           -nodes \
+           -out user.csr \
+           -subj "/CN=user/O=hehe-company"
+# 使用K8s的CA去签发证书
+openssl x509 -req -in user.csr \
+                  -CA /etc/kubernetes/pki/ca.crt \
+                  -CAkey /etc/kubernetes/pki/ca.key \
+                  -CAcreateserial \
+                  -out user.crt \
+                  -days 365
+~~~
+
+### 生成根证书
+
+```bash
+openssl genrsa -des3 -out cacerts.key 2048
+openssl req -x509 -new -nodes -key cacerts.key -sha256 -days 3650 -out cacerts.pem
+```
+
+### 签发自签名证书
+
+使用上述生成的根证书，签发自签名证书：
+
+```bash
+# 生成私有密钥
+openssl genrsa -out key.pem 2048
+# 生成csr
+openssl req -new -key key.pem -out csr.epm
+# 生成csr的另外一个例子，其对应的kubernetes客户端名称为jbeda，所属Group为app1和app2
+openssl req -new -key jbeda.pem -out jbeda-csr.pem -subj "/CN=jbeda/O=app1/O=app2"
+# TODO
+```
+
+### 极简命令操作
+
+```bash
+# Generate the CA cert and private key
+openssl req -nodes -new -x509 -keyout ca.key -out ca.crt -subj "/CN=Admission Controller Webhook Demo CA" -days 3650
+# Generate the private key for the webhook server
+openssl genrsa -out webhook-server-tls.key 2048
+# Generate a Certificate Signing Request (CSR) for the private key, and sign it with the private key of the CA.
+openssl req -new -key webhook-server-tls.key -subj "/CN=webhook-server.webhook-demo.svc" \
+    | openssl x509 -req -CA ca.crt -CAkey ca.key -CAcreateserial -out webhook-server-tls.crt -days 3650
+```
+
+
+### 自动化操作
+
+```bash
+# Country Name
+CN="\r"
+# State or Province Name
+STATE="\r"
+# cality Name
+LN="\r"
+# Organization Name
+ON="\r"
+# Organizational Unit Name
+OUN="\r"
+# Email Address
+EA="\r"
+# default null
+DEFAULTNULL="\r"
+# An optional company name
+COMPANY="\r"
+#
+HOSTNAME='server.domain'
+PASSWD='123456'
+
+# 生成私有CA的证书ca.crt和秘钥ca.key
+expect<<-EOF
+set timeout 20
+spawn openssl req -newkey rsa:4096 -nodes -sha256 -keyout ca.key -x509 -days 3650 -out ca.crt
+expect "Country Name"
+send ${CN}
+expect "State or Province Name"
+send ${STATE}
+expect "Locality Name"
+send ${LN}
+expect "Organization Name"
+send ${ON}
+expect "Organizational Unit Name"
+send ${OUN}
+expect "Common Name"
+send "${DEFAULTNULL}\r"
+expect "Email Address"
+send ${EA}
+expect eof
+EOF
+
+# 生成key和csr，以用于签发证书
+expect<<-EOF
+set timeout 20
+spawn openssl req -newkey rsa:4096 -nodes -sha256 -keyout server.key -out server.csr
+expect "Country Name"
+send ${CN}
+expect "State or Province Name"
+send ${STATE}
+expect "Locality Name"
+send ${LN}
+expect "Organization Name"
+send ${ON}
+expect "Organizational Unit Name"
+send ${OUN}
+expect "Common Name"
+send "${HOSTNAME}\r"
+expect "Email Address"
+send ${EA}
+expect "A challenge password"
+send "${PASSWD}\r"
+expect "An optional company name"
+send "${COMPANY}\r"
+expect "eof"
+EOF
+
+cat > ext.cnf << EOF
+[ extensions ]
+basicConstraints=CA:FALSE
+subjectAltName=@subject_alt_names
+subjectKeyIdentifier=hash
+keyUsage=nonRepudiation,digitalSignature,keyEncipherment
+
+[ subject_alt_names ]
+DNS.1 = ${HOSTNAME}
+IP.1 = 1.2.3.4
+EOF
+
+openssl x509 -req -days 3650 -in server.csr -CA ca.crt -CAkey ca.key -CAcreateserial  -extfile ext.cnf  -out server.crt
+
+```
+
+
+
+### 根证书缺失导致TLS通信失败
+
+以docker服务访问为例，当遇到如下问题时，可考虑由缺乏签发Server证书的根证书（CA Cert）导致：
+
+```
+Error response from daemon: Get https://registry-1.docker.io/v2/: x509: certificate signed by unknown authority
+```
+
+要解决上述问题，需添加CA根证书：
+
+```bash
+# 将知名的CA根证书拷贝到 /etc/pki/ca-trust/source/anchors 路径下，执行如下更新命令
+update-ca-trust extract
+# 重启docker服务
+systemctl restart docker
+```
+
+同时，还存在如下**临时方案**：
+
+```bash
+openssl s_client -connect docker-registry:443 -showcerts </dev/null 2>/dev/null | openssl x509 -outform PEM | tee /etc/pki/ca-trust/source/anchors/docker-registry.crt
+update-ca-trust
+```
+
+
+
+
+
+
+
+## 远程安全终端openssh
+
+### 服务端sshd
+
+必须带全路径才能启动sshd，例如`/usr/bin/sshd`。
+
+若启动时提示
+* /etc/ssh/ssh_host_dsa_key
+* /etc/ssh/ssh_host_ecdsa_key
+* /etc/ssh/ssh_host_ed25519_key
+* /etc/ssh/ssh_host_rsa_key
+
+找不到，则需要使用`ssh-keygen`命令，生成上述key文件
+
+```bash
+ssh-keygen -t dsa -f /etc/ssh/ssh_host_dsa_key
+```
+
+常用命令：
+
+```bash
+sshd -T | grep kex    # 获取sshd服务端支持的加密算法
+```
+
+### 使用ssh-keygen生成秘钥
+```bash
+# 增加comment
+ssh-keygen -C dev@ytinirt.cn
+```
+
+### 客户端ssh
+
+常用命令：
+
+```bash
+ssh root@172.25.19.117 ps -ef | grep kube-controller | grep -v grep     # 远程到某节点执行命令，然后直接在本地返回执行结果
+ssh -o StrictHostKeyChecking=no op-s1 ls        # 初次连接，跳过恼人的主机host fingerprint检查
+ssh -Q kex    # 获取ssh客户端支持的加密算法
+ssh $node -C "/bin/bash" < local-scripts.sh     # 远程到节点上执行本地的脚本
+```
+
+#### 永久跳过初次连接时host指纹检查提示
+```
+echo "StrictHostKeyChecking no" >> /etc/ssh/ssh_config
+```
+
+
+### ssh免密登录
+
+服务端（被连接者）中`~/.ssh/authorized_keys`加入客户端（连接发起者）的公钥。
+注意，客户端的`~/.ssh/`中需要有与该公钥对应的私钥。
+
+如何定位免密登录问题：
+
+```bash
+ssh -v master           # 查看客户端操作详细信息
+journalctl -u sshd      # 查看服务端日志，必要情况下可增加'-d'选项查看更详细的debug信息
+```
+
+
+### ssh隧道
+ssh隧道或称ssh端口转发，常用于解决跳板访问。
+
+有实例，在`10.254.7.2`节点上执行如下命令，把`10.254.7.2`的`48080`端口转发到`10.0.46.10`节点`8080`端口：
+```bash
+ssh -L 10.254.7.2:48080:10.0.46.10:8080 root@10.0.46.10
+```
+
+
+## 使用gost配置隧道
+
+项目地址`https://github.com/ginuerzh/gost`
+
+```bash
+# Windows跳板机上创建proxy.bat批处理文件，其执行如下内容
+gost -D -L=http://:8080/ -F=http://<代理服务器地址>:<代理服务器端口>/
+```
+
+
+
+## Alpine
+
+### 使用镜像源
+
+```bash
+echo "http://mirrors.aliyun.com/alpine/v3.6/main/" > /etc/apk/repositories && \
+echo "http://mirrors.aliyun.com/alpine/v3.6/community" >> /etc/apk/repositories
+```
+
+### 下载软件包及其依赖到本地
+
+```bash
+apk fetch -R python
+```
+
+### 安装本地软件包
+
+```bash
+apk add --allow-untrusted /gdbm-1.12-r0.apk
+```
+
+
+
+## Debian
+
+```bash
+# 设置仓库
+update-command-not-found
+deb http://1.2.3.4/debian/ jessie main contrib non-free
+apt-get update
+
+# 安装单个deb包
+dpkg -i path_to_deb_package.deb
+
+# 修理安装deb包引起的依赖问题
+apt-get -f install
+
+# apt下载的deb包的缓存
+/var/cache/apt/archive
+```
+
+### 添加仓库
+
+依赖包： software-properties-common 和 python-software-properties
+
+```bash
+add-apt-repository ppa:nhandler/ppa
+```
+
+## CentOS
+
+### 常用操作
+CentOS7使用阿里的yum源：
+```bash
+wget -O /etc/yum.repos.d/CentOS-Base.repo https://mirrors.aliyun.com/repo/Centos-7.repo
+```
+
+使用ISO作为yum源：
+```
+[appstream]
+name=local-yum
+baseurl=file:///mnt/AppStream/
+enabled=1
+gpgcheck=0
+
+[base]
+name=local-yum-base
+baseurl=file:///mnt/BaseOS/
+enabled=1
+gpgcheck=0
+
+```
+
+
+获取yum repo中的变量值
+```bash
+# CentOS 8
+/usr/libexec/platform-python -c 'import dnf, json; db = dnf.dnf.Base(); print(json.dumps(db.conf.substitutions, indent=2))'
+```
+
+
+解决CentOS 8安装软件时，源报错的问题：
+```bash
+# 将 mirror.centos.org 改为 vault.centos.org
+sed -i 's|baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/*
+# 同时，不再使用mirrorlist
+```
+
+
+CentOS 8安装EPEL仓库
+```
+dnf install epel-release -y
+```
+
+
+删除老的、不用的内核Kernel
+
+```bash
+rpm -q kernel # 查询有哪些kernel
+package-cleanup --oldkernels --count=2   # 删除老的不用的kernel，并保留最近2个kernel
+```
+
+查看系统可用内核的索引值
+
+```bash
+awk -F\' '$1=="menuentry " {print i++ " : " $2}' /etc/grub2.cfg
+```
+
+修改默认引导的内核
+
+```bash
+grub2-editenv list
+grub2-set-default 1
+grub2-editenv list
+```
+
+升级内核前若替换了reboot和shutdown命令，升级内核后节点将无法reboot或shutdown
+
+```
+升级内核会重新生成initramfs.img，该镜像负责最后重启关机工作。
+升级前若替换了reboot和shutdown命令，则替换后的命令会被打进新的initramfs.img，最终影响重启关机操作。
+解决办法是升级内核前将reboot和shutdown命令替换回系统初始状态，待升级后再恢复。
+```
+
+新增内核模块
+
+```bash
+# 降低新编译内核模块的大小
+strip --strip-debug drbd.ko
+# 复制新增内核模块到指定位置
+cp drbd.ko /lib/modules/${uname -r}/extra/
+# 更新内核模块依赖信息
+depmod -a
+```
+
+查看CentOS版本信息
+
+```bash
+hostnamectl
+rpm --query centos-release
+cat /etc/*-release
+```
+
+安装和运行GNOME桌面
+
+```bash
+yum -y groups install "GNOME Desktop"
+startx
+```
+
+默认启动图形化界面
+
+```bash
+systemctl set-default graphical.target
+```
+
+使用GNOME Shell
+
+```bash
+echo "exec gnome-session" >> ~/.xinitrc
+startx
+```
+
+### NetworkManager网络管理
+**注意**，要使用`NetworkManager`管理`OVS`，需安装`NetworkManager-ovs`包。
+
+命令行工具
+```bash
+# 查看连接信息
+nmcli connection show
+nmcli connection show br-ex
+nmcli --get-values ipv4.dhcp-client-id conn show 0ae83f63-5be5-3002-a6b0-1295ec3b55c4
+nmcli --get-values ipv6.dhcp-duid conn show 0ae83f63-5be5-3002-a6b0-1295ec3b55c4
+nmcli --get-values ipv6.addr-gen-mode conn show 0ae83f63-5be5-3002-a6b0-1295ec3b55c4
+nmcli --get-values connection.type conn show 0ae83f63-5be5-3002-a6b0-1295ec3b55c4
+
+# 新建连接
+nmcli c add type ovs-bridge con-name br-ex conn.interface br-ex 802-3-ethernet.mtu 1500 ipv4.route-metric 49 ipv6.route-metric 49 ipv6.addr-gen-mode eui64
+# 使能连接
+nmcli conn up br-ex
+```
+
+#### 配置全局域名解析服务器
+```bash
+cat <<EOF > /etc/NetworkManager/conf.d/dns-servers.conf
+[global-dns-domain-*]
+servers=10.253.15.120,223.5.5.5
+EOF
+```
+
+#### 不去override更新resolv.conf文件
+修改`NetworkManager`配置，在`[main]`段增加`dns=none`，具体：
+```bash
+if [ $(cat /etc/NetworkManager/NetworkManager.conf | grep -c "^dns=none") -eq 0 ]; then
+    sed -i "/^\[main\]/a\dns=none" /etc/NetworkManager/NetworkManager.conf
+    systemctl reload NetworkManager
+fi
+```
+
+### 获取RPM包的源码
+以yum源上docker为例，docker属于CentOS-extras仓库，获取其相关信息：
+```bash
+# To search everything 'docker' related
+yum search docker
+# Once found interresting package..
+yum infos docker
+```
+其中能获知docker在`extras`仓库，然后下载源码：
+```bash
+# Disable all repos, enable the one we have eyes on, set 'source only' and download
+yumdownloader --disablerepo=\* --enablerepo=extras --source docker
+```
+
+详见[where-can-i-find-the-souce-code-of-docker-rpm-in-centos](https://stackoverflow.com/questions/57144507/where-can-i-find-the-souce-code-of-docker-rpm-in-centos)
+
+### 构建自定义的CentOS内核
+参考[https://wiki.centos.org/HowTos/Custom_Kernel](https://wiki.centos.org/HowTos/Custom_Kernel)
+
+安装构建依赖包
+```bash
+[root@workstation ~]# yum groupinstall "Development Tools"
+[root@workstation ~]# yum install rpm-build redhat-rpm-config asciidoc hmaccalc perl-ExtUtils-Embed pesign xmlto -y
+[root@workstation ~]# yum install audit-libs-devel binutils-devel elfutils-devel elfutils-libelf-devel java-devel ncurses-devel -y
+[root@workstation ~]# yum install newt-devel numactl-devel pciutils-devel python-devel zlib-devel openssl-devel bc -y
+```
+
+获取内核源码
+**警告**，必须以非root用户执行
+```bash
+[zy@workstation ~]$ mkdir -p ~/rpmbuild/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
+[zy@workstation ~]$ echo '%_topdir %(echo $HOME)/rpmbuild' > ~/.rpmmacros
+[zy@workstation ~]$ rpm -i http://vault.centos.org/7.5.1804/updates/Source/SPackages/kernel-3.10.0-862.9.1.el7.src.rpm 2>&1 | grep -v exist
+[zy@workstation SPECS]$ cd ~/rpmbuild/SPECS
+[zy@workstation SPECS]$ rpmbuild -bp --target=$(uname -m) kernel.spec
+```
+操作完成后，内核源码在`~/rpmbuild/BUILD/kernel*/linux*/`路径下。
+需要说明的是第3行中`http://vault.centos.org/7.5.1804/updates/Source/SPackages/kernel-3.10.0-862.9.1.el7.src.rpm`是内核源码包的网络地址，当无法直接访问互联网时可准备好内核源码包后指定本地文件路径，例如：
+```bash
+[zy@workstation ~]$ ...
+[zy@workstation ~]$ ...
+[zy@workstation ~]$ rpm -i ~/download/kernel-3.10.0-693.21.1.el7.src.rpm 2>&1 | grep -v exist
+```
+同时，也请根据需要选择内核源码包版本，建议与当前系统的内核版本保持一致。
+
+配置内核
+**警告**，必须以非root用户执行
+```bash
+[zy@workstation ~]$ cd ~/rpmbuild/BUILD/kernel*/linux*/
+[zy@workstation linux-3.10.0-862.9.1.el7.ctt.x86_64]$ cp /boot/config-$(uname -r) .config
+[zy@workstation linux-3.10.0-862.9.1.el7.ctt.x86_64]$ make oldconfig
+[zy@workstation linux-3.10.0-862.9.1.el7.ctt.x86_64]$ make menuconfig
+[zy@workstation linux-3.10.0-862.9.1.el7.ctt.x86_64]$ vim .config # 将'# x86_64'添加到.config头部
+[zy@workstation linux-3.10.0-862.9.1.el7.ctt.x86_64]$ cp .config configs/kernel-3.10.0-$(uname -m).config
+[zy@workstation linux-3.10.0-862.9.1.el7.ctt.x86_64]$ cp configs/* ~/rpmbuild/SOURCES
+```
+需要说明的：
+* 第2和第3行操作，将系统当前运行内核的配置拷贝到内核源码路径下，保证新构建出来的内核同当前运行内核配置一致。
+* 第4行操作进行内核配置，完成后记得Save保存配置。
+* 第5行操作，在.config头部添加注释行表明系统架构，系统架构信息为$(uname -m)。
+
+Kernel ABI一致性检查
+在后面的rpmbuild构建内核包时，增加`--without kabichk`能避免ABI一致性检查，绕过ABI兼容性错误。详细信息请见文末参考文档。
+目前看，取消`kernel memory accounting`配置后，必须关闭ABI一致性检查，才能编译内核。
+
+修改内核SPEC文件
+**警告**，必须以非root用户(non-root)执行
+```bash
+[zy@workstation ~]$ cd ~/rpmbuild/SPECS/
+[zy@workstation SPECS]$ cp kernel.spec kernel.spec.distro
+[zy@workstation SPECS]$ vim kernel.spec
+```
+第3行编辑kernel.spec文件时，需自定义内核buildid，做到新构建的内核不能与已安装的同名。
+具体做法是去掉buildid定义前的'#'，并设置自己的id，注意%与define间不能有空格。
+
+有任何patch补丁文件，请放到`~/rpmbuild/SOURCES/`目录下。
+需要打补丁时：
+1. 找到kernel.spec的'# empty final patch to facilitate testing of kernel patches'位置，在其下以40000开头声明patch
+2. 找到kernel.spec的'ApplyOptionalPatch linux-kernel-test.patch'，在其前面加入patch
+
+附打patch的方法
+```bash
+# TODO: diff -Nurp a/drivers/block/nbd.c b/drivers/block/nbd.c
+[zy@workstation ~]$ diff -Naur orig_src_root_dir my_src_root_dir > my-custom-kernel.patch
+```
+
+构建新内核
+**警告**，必须以非root用户(non-root)执行。
+终于，我们来到了编译和打包内核的阶段。常用的命令如下
+```bash
+[zy@workstation SPECS]$ rpmbuild -bb --target=$(uname -m) kernel.spec 2> build-err.log | tee build-out.log
+```
+一切顺利的话，构建好的内核在~/rpmbuild/RPMS/$(uname -m)/目录下。
+需要说明的是：上述命令构建的内核包含debug信息、size很大；另一方面，由于修改内核配置，很可能遇到KABI检查失败的情况。因此推荐使用如下命令构建：
+```bash
+[zy@workstation SPECS]$ rpmbuild -bb --with baseonly --without debug --without debuginfo --without kabichk --target=$(uname -m) kernel.spec 2> build-err.log | tee build-out.log
+```
+
+安装新内核
+将构建好的内核rpm包，全部拷贝到待更新内核的节点上，进入内核rpm包目录，执行
+```bash
+[root@workstation x86_64]# yum localinstall kernel-*.rpm
+```
+或者
+```bash
+[root@workstation x86_64]# rpm -ivh kernel-*.rpm   # 当涉及降级时，增加--oldpackage选项
+```
+注意，构建新内核时可能会产出其它不以'kernel-'开头的包（例如perf-3.10.0-327.22.2.el7.ctt.x86_64.rpm），上述安装步骤将会略过这些包，得根据自己需要判断是否安装这些rpm包。
+
+附通过内核符号，判断对内核的修改生效
+```bash
+# 读取 /proc/kallsyms 文件，查看是否有修改/新增的内核符号
+[root@zy-super-load proc]# less /proc/kallsyms
+```
+
+### 关闭coredump
+
+**普通进程**
+
+参考[文档](https://linux-audit.com/understand-and-configure-core-dumps-work-on-linux/)
+
+1. 配置文件`/etc/security/limits.conf`中增加：
+~~~
+* hard core 0
+~~~
+2. 配置文件`/etc/sysctl.conf`中增加：
+~~~
+fs.suid_dumpable = 0
+~~~
+并执行`sysctl -p`是配置立即生效。
+3. 配置文件`/etc/profile`中增加：
+~~~
+ulimit -S -c 0 > /dev/null 2>&1
+~~~
+
+上述操作，在用户重新登录后生效。
+
+**systemd服务**
+
+*验证无效，即使重启节点。*
+
+修改配置文件`/etc/systemd/coredump.conf`：
+~~~
+[Coredump]
+
+Storage=none
+ProcessSizeMax=0
+~~~
 
 
 
