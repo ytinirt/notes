@@ -87,6 +87,7 @@
     * [常见操作](#常见操作)
     * [如何判断Disk性能满足Etcd运行要求](#如何判断disk性能满足etcd运行要求)
     * [如何判断Network性能满足Etcd运行要求](#如何判断network性能满足etcd运行要求)
+    * [etcd网络指标中peer_round_trip_time实现细节](#etcd网络指标中peerroundtriptime实现细节)
     * [kube-apiserver的etcd-quorum-read调查](#kube-apiserver的etcd-quorum-read调查)
     * [v3常见操作](#v3常见操作)
     * [v2 API](#v2-api)
@@ -192,6 +193,7 @@
     * [escaping转义](#escaping转义)
     * [图片配置大小](#图片配置大小)
     * [调用github接口将md转换为html](#调用github接口将md转换为html)
+  * [WSL](#wsl)
   * [奇技淫巧](#奇技淫巧)
     * [goland](#goland)
     * [curl取代postman](#curl取代postman)
@@ -2747,6 +2749,22 @@ gh_user_agent="gh-md-toc v$gh_toc_version"
 
 curl -s --user-agent "$gh_user_agent" --data-binary @"$gh_file_md" -H "Content-Type:text/plain" $URL
 ```
+
+## WSL
+```bash
+# PowerShell启动wsl
+wsl
+
+# 后台启动dockerd服务
+nohup dockerd  >/dev/null 2>&1 &
+```
+
+Windows访问wsl数据目录，在explorer里访问：
+```
+\\wsl$
+```
+
+docker-engine的wsl默认数据目录`C:\Users\admin\AppData\Local\Docker\wsl` 。
 
 ## 奇技淫巧
 

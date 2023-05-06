@@ -127,6 +127,7 @@
       * [主机网络指标](#主机网络指标)
       * [iperf测试网络性能](#iperf测试网络性能)
       * [暴力ping](#暴力ping)
+      * [dperf](#dperf)
     * [IO性能](#io性能)
       * [iostat判断io瓶颈](#iostat判断io瓶颈)
       * [ionice修改io优先级](#ionice修改io优先级)
@@ -2105,6 +2106,10 @@ iperf3 -c <serverIP> -M 4000
 ```
 ping -A -s 65507 <dst-ip-addr>
 ```
+
+#### dperf
+dperf基于dpdk，提供100Gbps级别的网络性能和压测功能，项目地址[baidu/dperf](https://github.com/baidu/dperf) 。
+
 
 ### IO性能
 

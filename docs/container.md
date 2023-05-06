@@ -251,7 +251,7 @@ ls -Li /proc/<pid>/ns/pid
 lsns -t pid
 
 # host上遍历寻找所有该pid命名空间下的进程，其中xxxxxxxxxx是pidns的inode
-ps -eo pidns,pid,cmd | awk '$1==xxxxxxxxxx'
+ps -eo pidns,pid,lwp,cmd | awk '$1==xxxxxxxxxx'
 ```
 
 ## mount
