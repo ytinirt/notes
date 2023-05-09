@@ -105,6 +105,7 @@
       * [Device Plugin](#device-plugin)
 * [备忘](#备忘)
   * [k8s版本信息](#k8s版本信息)
+  * [修改结构体定义后更新api-rules校验](#修改结构体定义后更新api-rules校验)
   * [其它](#其它-1)
 <!-- TOC -->
 
@@ -1360,6 +1361,13 @@ healthz check failed
 ## k8s版本信息
 - [API Removal](https://kubernetes.io/docs/reference/using-api/deprecation-guide/)
 - [API废弃策略](https://kubernetes.io/docs/reference/using-api/deprecation-policy/)
+
+## 修改结构体定义后更新api-rules校验
+在修改源码中结构体定义后，需要执行如下命令，更新排除api校验规则的文件`api/api-rules/violation_exceptions.list` ：
+```bash
+FORCE_HOST_GO=1 make generated_files UPDATE_API_KNOWN_VIOLATIONS=true
+```
+其中`FORCE_HOST_GO=1`强制使用主机上的go，否则默认使用`.go-version`定义的版本。
 
 ## 其它
 `kube-controller-manager`的默认配置在`kubernetes/pkg/controller/apis/config/v1alpha1/zz_generated.defaults.go`中`SetDefaults_KubeControllerManagerConfiguration()`设置。

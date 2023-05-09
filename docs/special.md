@@ -48,6 +48,7 @@
       * [判断一个文件夹是否为空](#判断一个文件夹是否为空)
       * [使用cat生成文件](#使用cat生成文件)
       * [运算](#运算)
+    * [double dash](#double-dash)
     * [其它记录](#其它记录)
   * [YAML](#yaml)
   * [JSON](#json)
@@ -770,6 +771,15 @@ cell_num=997; tmp=$[ ( ${cell_num} - 1 ) % 3 ]; echo $tmp
 ```
 
 
+### double dash
+通过`--`将命令和参数区分开，在`--`后的都不是命令的参数。
+
+例如需要在一个文件里搜索`-v`字段，这时：
+```bash
+grep -- -v file
+```
+
+详见链接[what-does-double-dash-mean](https://unix.stackexchange.com/questions/11376/what-does-double-dash-mean) 。
 
 ### 其它记录
 
