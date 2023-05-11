@@ -40,8 +40,10 @@
     * [一次完整的报错分析](#一次完整的报错分析)
     * [常用操作](#常用操作-1)
     * [为Pod/容器设置selinux label](#为pod容器设置selinux-label)
-* [容器运行时runc](#容器运行时runc)
-  * [常用命令](#常用命令-1)
+* [容器运行时](#容器运行时)
+  * [runc](#runc)
+    * [常用命令](#常用命令-1)
+  * [crun](#crun)
 * [OCI](#oci)
   * [oci-hooks](#oci-hooks)
 * [Containerd](#containerd)
@@ -668,16 +670,26 @@ securityContext:
 注意，一旦为Pod设置了MCS label，其它所有相同label的pod均可访问该Pod的volume。
 
 
-# 容器运行时runc
-## 常用命令
+# 容器运行时
+## runc
+### 常用命令
 ```bash
+# 查看容器列表
+runc --root=/run/containerd/runc/k8s.io list
+
 # 查看容器进程信息
 # 其中<cid>可以通过 ctr -n k8s.io c ls | grep <image-name> 获取
 runc --root /run/containerd/runc/k8s.io ps <cid>
 
 # 进入容器执行命令
 runc --root /run/containerd/runc/k8s.io exec -t <cid> bash
+
+# 使用resume命令，解除paused状态
+runc --root=/run/containerd/runc/k8s.io resume <container-id>
 ```
+
+## crun
+C语言实现的容器运行时。
 
 # OCI
 ## oci-hooks

@@ -60,6 +60,7 @@
     * [veth接口速率speed](#veth接口速率speed)
     * [veth接口的hairpin模式](#veth接口的hairpin模式)
     * [如何找到容器对应的veth接口](#如何找到容器对应的veth接口)
+    * [检查veth残留](#检查veth残留)
   * [容器网络](#容器网络)
   * [iptables](#iptables)
     * [预置的chains](#预置的chains)
@@ -1051,7 +1052,10 @@ bash-4.4# exit
 ```
 找到对应的接口为veth88a3f539。
 
-
+### 检查veth残留
+```bash
+ls /sys/devices/virtual/net/
+```
 
 ## 容器网络
 - https://unix.stackexchange.com/questions/283854/what-is-the-network-connection-speed-between-two-containers-communicating-via-a
