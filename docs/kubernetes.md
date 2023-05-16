@@ -49,6 +49,10 @@
   * [从secret中获取证书信息](#从secret中获取证书信息)
   * [从KubeConfig文件中提取证书秘钥](#从kubeconfig文件中提取证书秘钥)
   * [debug和问题解决](#debug和问题解决)
+    * [kube-apiserver](#kube-apiserver)
+    * [kubelet](#kubelet)
+    * [kube-controller-manager](#kube-controller-manager)
+    * [kube-scheduler](#kube-scheduler)
   * [堆栈文件分析](#堆栈文件分析)
   * [根据sa生成kubeconfig](#根据sa生成kubeconfig)
   * [kubeconfig跳过服务端证书校验](#kubeconfig跳过服务端证书校验)
@@ -71,8 +75,11 @@
   * [编译kubelet](#编译kubelet)
   * [获取k8s控制面组件指标](#获取k8s控制面组件指标)
   * [kubeadm部署的集群的操作](#kubeadm部署的集群的操作)
+* [性能调优](#性能调优)
+  * [读懂监控指标](#读懂监控指标)
+    * [kube-apiserver监控指标](#kube-apiserver监控指标)
 * [Deep Dive系列](#deep-dive系列)
-  * [kube-apiserver](#kube-apiserver)
+  * [kube-apiserver](#kube-apiserver-1)
     * [服务启动流程](#服务启动流程)
     * [REST Storage](#rest-storage)
     * [安装API及其REST Storage](#安装api及其rest-storage)
@@ -83,15 +90,15 @@
       * [codec和codec factory](#codec和codec-factory)
     * [资源schema](#资源schema)
     * [健康检查/healthz](#健康检查healthz)
-  * [kube-controller-manager](#kube-controller-manager)
+  * [kube-controller-manager](#kube-controller-manager-1)
     * [配置和初始化](#配置和初始化)
     * [leader选举](#leader选举)
     * [核心Controller](#核心controller)
-  * [kube-scheduler](#kube-scheduler)
+  * [kube-scheduler](#kube-scheduler-1)
     * [配置和初始化](#配置和初始化-1)
     * [leader选举](#leader选举-1)
     * [资源调度](#资源调度)
-  * [kubelet](#kubelet)
+  * [kubelet](#kubelet-1)
     * [配置和初始化](#配置和初始化-2)
     * [PLEG](#pleg)
     * [调用CRI接口](#调用cri接口)
@@ -105,6 +112,7 @@
       * [Device Plugin](#device-plugin)
 * [备忘](#备忘)
   * [k8s版本信息](#k8s版本信息)
+  * [从源码编译kubernetes时版本信息](#从源码编译kubernetes时版本信息)
   * [修改结构体定义后更新api-rules校验](#修改结构体定义后更新api-rules校验)
   * [其它](#其它-1)
 <!-- TOC -->
@@ -783,6 +791,8 @@ kill -s SIGQUIT <pid-of-kubelet>
 kill -SIGABRT <pid-of-kubelet>
 # 收集heap信息
 wget -O kubelet-heap.out http://127.0.0.1:8001/api/v1/nodes/node-x/proxy/debug/pprof/heap
+# 收集profile信息
+wget -O kubelet-profile.out http://127.0.0.1:8001/api/v1/nodes/node-x/proxy/debug/pprof/profile
 
 # kubelet健康检查
 curl 127.0.0.1:10248/healthz
@@ -801,6 +811,19 @@ curl -k https://127.0.0.1:10250/metrics --cacert /etc/kubernetes/pki/ca.crt --ce
 /metrics/resource
 
 ```
+
+### kube-apiserver
+```bash
+# 动态调整kube-apiserver日志级别
+curl -X PUT http://127.0.0.1:8001/debug/flags/v -d "4"
+```
+
+### kubelet
+TODO
+
+### kube-controller-manager
+
+### kube-scheduler
 
 ## 堆栈文件分析
 ```bash
@@ -1195,6 +1218,11 @@ kubectl get --raw /metrics
 curl -sk https://127.0.0.1:10250/metrics --cacert /etc/kubernetes/pki/ca.crt --cert /etc/kubernetes/pki/apiserver-kubelet-client.crt --key /etc/kubernetes/pki/apiserver-kubelet-client.key | grep go_info
 ```
 
+# 性能调优
+## 读懂监控指标
+### kube-apiserver监控指标
+
+
 # Deep Dive系列
 ## kube-apiserver
 
@@ -1361,6 +1389,9 @@ healthz check failed
 ## k8s版本信息
 - [API Removal](https://kubernetes.io/docs/reference/using-api/deprecation-guide/)
 - [API废弃策略](https://kubernetes.io/docs/reference/using-api/deprecation-policy/)
+
+## 从源码编译kubernetes时版本信息
+`hack/print-workspace-status.sh`
 
 ## 修改结构体定义后更新api-rules校验
 在修改源码中结构体定义后，需要执行如下命令，更新排除api校验规则的文件`api/api-rules/violation_exceptions.list` ：

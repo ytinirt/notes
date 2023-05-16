@@ -250,19 +250,19 @@ go tool trace trace.out
 
 ### 示例：使用pprof定位kubelet
 ```bash
-# 开启debug代理
+# master节点上，开启debug代理
 kubectl proxy
 
 node=<问题节点>
 
-# 动态调整kubelet日志级别
+# 【可选】动态调整kubelet日志级别
 curl -X PUT http://127.0.0.1:8001/api/v1/nodes/${node}/proxy/debug/flags/v -d "4"
 
 # 收集pprof
-wget -o profile http://127.0.0.1:8001/api/v1/nodes/${node}/proxy/debug/pprof/profile
-wget -o heap http://127.0.0.1:8001/api/v1/nodes/${node}/proxy/debug/pprof/heap
-curl http://127.0.0.1:8001/api/v1/nodes/${node}/proxy/debug/pprof/goroutine?debug=1 >> debug1
-curl http://127.0.0.1:8001/api/v1/nodes/${node}/proxy/debug/pprof/goroutine?debug=2 >> debug2
+wget -O ${node}-profile-$(date +"%y%m%d%H%M") http://127.0.0.1:8001/api/v1/nodes/${node}/proxy/debug/pprof/profile
+wget -O ${node}-heap-$(date +"%y%m%d%H%M") http://127.0.0.1:8001/api/v1/nodes/${node}/proxy/debug/pprof/heap
+curl http://127.0.0.1:8001/api/v1/nodes/${node}/proxy/debug/pprof/goroutine?debug=1 >> ${node}-goroutine-debug1-$(date +"%y%m%d%H%M")
+curl http://127.0.0.1:8001/api/v1/nodes/${node}/proxy/debug/pprof/goroutine?debug=2 >> ${node}-goroutine-debug2-$(date +"%y%m%d%H%M")
 
 # 打开pprof
 go tool pprof -http :8080 ./<heap 文件>

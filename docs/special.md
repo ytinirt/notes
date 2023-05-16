@@ -242,6 +242,13 @@ git push
 # 参见 https://stackoverflow.com/questions/22575662/filename-too-long-in-git-for-windows
 git config --system core.longpaths true
 
+# 获取当前最新commit的ID
+git rev-parse "HEAD^{commit}"
+KUBE_GIT_COMMIT=$(git rev-parse "HEAD^{commit}")
+
+# 查询描述信息
+git describe --tags --match='v*' --abbrev=14 "${KUBE_GIT_COMMIT}^{commit}"
+
 # 撤销add的修改
 git reset --mixed
 
@@ -2775,6 +2782,9 @@ Windows访问wsl数据目录，在explorer里访问：
 ```
 
 docker-engine的wsl默认数据目录`C:\Users\admin\AppData\Local\Docker\wsl` 。
+
+限制WSL使用的内存：
+* https://zhuanlan.zhihu.com/p/345645621
 
 ## 奇技淫巧
 

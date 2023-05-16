@@ -691,6 +691,10 @@ runc --root=/run/containerd/runc/k8s.io resume <container-id>
 ## crun
 C语言实现的容器运行时。
 
+资料：
+* [introduction](https://www.redhat.com/sysadmin/introduction-crun)
+* [fedora-31-control-group-v2](https://www.redhat.com/sysadmin/fedora-31-control-group-v2)
+
 # OCI
 ## oci-hooks
 配置一个hook：

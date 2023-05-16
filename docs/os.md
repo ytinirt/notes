@@ -2450,11 +2450,11 @@ systemctl status sysstat-collect.timer
 #### 操作实例
 ```bash
 #查看内存使用情况（不包括swap）来自package: pcp-import-sar2pcp
-sar -r 3
+sar -r
 #查看CPU消耗情况
-sar -u 3
+sar -u
 #查看CPU load，可以查看到历史CPU/系统负载
-sar -q 3
+sar -q
 #查看网络统计信息
 sar -n ALL
 # paing信息
@@ -4258,6 +4258,8 @@ mtr # 比 traceroute 更好用的路由追踪工具
 ps -ax --width 100000   # 通过ps查看进程的执行命令和参数时，若遇到被截断，可指定--width显示完整的命令和参数信息
 # 打印进程间父子关系
 ps -afx
+# 常用时间戳，用于文件名
+$(date +"%y%m%d%H%M")
 date +"%Y-%m-%d %T"
 date +"%F %T.%3N"
 date +"%Y%m%d%H%M%S.%N"                        # date输出普通时间戳
