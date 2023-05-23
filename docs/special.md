@@ -69,6 +69,7 @@
   * [Helm](#helm)
     * [背后的思路](#背后的思路)
     * [常用命令](#常用命令)
+    * [对接OCI仓库管理chart包](#对接oci仓库管理chart包)
   * [Swagger](#swagger)
     * [使用swagger-ui](#使用swagger-ui)
   * [GDB](#gdb)
@@ -1017,6 +1018,15 @@ helm template ./rancher-<VERSION>.tgz --output-dir . \  # 实例化helm chart
     --set ingress.tls.source=secret
 ```
 
+### 对接OCI仓库管理chart包
+参考链接[docker hub以OCI接口存取制品](https://docs.docker.com/docker-hub/oci-artifacts/) 。
+
+示例：
+```bash
+helm registry login registry-1.docker.io -u ytinirt
+helm push demo-0.1.0.tgz oci://registry-1.docker.io/ytinirt
+helm show all oci://registry-1.docker.io/ytinirt/demo
+```
 
 ## Swagger
 

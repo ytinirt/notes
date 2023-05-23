@@ -6,6 +6,7 @@
   * [cgroup子系统](#cgroup子系统)
     * [cpu和cpuacct cgroup](#cpu和cpuacct-cgroup)
       * [根据pod的cpu request和limit如何设置cpu cgroup参数](#根据pod的cpu-request和limit如何设置cpu-cgroup参数)
+    * [memory](#memory)
   * [挂载cgroupfs](#挂载cgroupfs)
   * [判断是否为cgroupv2](#判断是否为cgroupv2)
   * [降级为cgroupv1](#降级为cgroupv1)
@@ -184,6 +185,14 @@ cgroup实现本质上是给系统进程挂上hooks，当task运行过程中涉�
 * 可看到 _cpu.cfs_quota_us_ / _cpu.cfs_period_us_ 为1.5，这个是上限。
 * *cpu.shares* / 1024 为0.5，对应`request 0.5`。
 
+
+### memory
+TODO: cgroup v1的oom，文件缓存*file_dirty* 和 *file_writeback* 的内存用量，这部分也记到容器内存，可能导致oom。
+参见链接[cgroup-v2](https://docs.kernel.org/admin-guide/cgroup-v2.html) 。
+
+其它相关内容：
+* 系统参数`vm.dirty*`，参见[更加积极的脏页缓存刷新](./special.md#更加积极的脏页缓存刷新)
+* 读写文件时*Direct I/O*参数，即`O_DIRECT`标识，避免文件系统缓存
 
 ## 挂载cgroupfs
 
