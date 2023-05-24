@@ -13,6 +13,8 @@
     * [从ServiceAccount中获取Token](#从serviceaccount中获取token)
   * [更新](#更新)
     * [强制更新](#强制更新)
+  * [修改节点kubelet配置](#修改节点kubelet配置)
+  * [让cvo不要调谐资源](#让cvo不要调谐资源)
 * [测试](#测试)
   * [执行内容查询](#执行内容查询)
   * [UT](#ut)
@@ -306,6 +308,51 @@ oc scale --replicas 0 -n openshift-cluster-version deployments/cluster-version-o
 ### 强制更新
 ```bash
 oc adm upgrade --to-image=release-image@sha256:xxx --force --allow-explicit-upgrade
+```
+
+## 修改节点kubelet配置
+通过`kubeletConfig`修改节点kubelet配置：
+```yaml
+apiVersion: machineconfiguration.openshift.io/v1
+kind: KubeletConfig
+metadata:
+  name: set-node-lease-duration-worker
+spec:
+  machineConfigPoolSelector:
+    matchLabels:
+      pools.operator.machineconfiguration.openshift.io/worker: ""
+  kubeletConfig:
+    nodeLeaseDurationSeconds: 15
+```
+
+## 让cvo不要调谐资源
+```bash
+# 当新增override项
+cat <<EOF >patch.yaml
+- op: add
+  path: /spec/overrides
+  value:
+  - kind: Deployment
+    group: apps
+    name: foo
+    namespace: bar
+    unmanaged: true
+EOF
+
+# 当更新override项
+cat <<EOF >patch.yaml
+- op: add
+  path: /spec/overrides/-
+  value:
+    kind: Deployment
+    group: apps
+    name: foo
+    namespace: bar
+    unmanaged: true
+EOF
+
+# 给clusterversion打patch
+oc patch clusterversion version --type json -p "$(cat patch.yaml)"
 ```
 
 # 测试
