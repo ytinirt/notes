@@ -242,6 +242,7 @@ git push
 # Windows环境下git clone遇到"Filename too long"的问题
 # 参见 https://stackoverflow.com/questions/22575662/filename-too-long-in-git-for-windows
 git config --system core.longpaths true
+# 也可直接修改 C:/Program Files/Git/etc/gitconfig 文件，在core段增加 longpaths = true
 
 # 获取当前最新commit的ID
 git rev-parse "HEAD^{commit}"

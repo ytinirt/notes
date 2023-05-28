@@ -865,6 +865,9 @@ podman image unmount quay.io/openshift-scale/etcd-perf:latest
 
 # 查看镜像详情
 cat /var/lib/containers/storage/overlay-images | jq
+
+# 调整日志级别
+podman pull --authfile /path/to/config.json <image> --log-level debug
 ```
 
 # crictl
