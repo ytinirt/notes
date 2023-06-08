@@ -680,6 +680,11 @@ kubectl taint nodes worker foo=bar:NoExecute
   kubectl delete pod --field-selector=status.phase==Succeeded --all-namespaces
   ```
 
+* 清理`Error`状态的Pod
+  ```bash
+  kubectl delete pod --field-selector=status.phase==Failed --all-namespaces
+  ```
+
 * 找到master节点
   ```bash
   kubectl get node -l node-role.kubernetes.io/master= -o json | jq '.items[].status.addresses[] | select(.type == "InternalIP") | .address' -r
