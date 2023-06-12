@@ -808,14 +808,15 @@ curl -k https://127.0.0.1:10250/healthz --cacert /etc/kubernetes/pki/ca.crt --ce
 
 # kubelet的metrics
 curl -k https://127.0.0.1:10250/metrics --cacert /etc/kubernetes/pki/ca.crt --cert /etc/kubernetes/pki/apiserver-kubelet-client.crt --key /etc/kubernetes/pki/apiserver-kubelet-client.key
-
-/metrics
-/metrics/cadvisor
-/metrics/probes
-
-/metrics/resource
-
 ```
+
+| 路径                | 说明             |
+|-------------------|----------------|
+| /metrics          | kubelet自己的指标   |
+| /metrics/cadvisor | 容器监控指标         |
+| /metrics/probes   | Pod的Prober指标   |
+| /metrics/resource | Pod的CPU和内存资源开销 |
+
 
 ### kube-apiserver
 ```bash
@@ -839,33 +840,35 @@ grep ^goroutine xxx-goroutine-9.log -A 1 | grep -v "^goroutine\|^--" | sort | le
 ```bash
 # your server name goes here
 server=https://localhost:8443
-# the name of the secret containing the service account token goes here
-name=default-token-sg96k
 
-ca=$(kubectl get secret/$name -o jsonpath='{.data.ca\.crt}')
-token=$(kubectl get secret/$name -o jsonpath='{.data.token}' | base64 --decode)
-namespace=$(kubectl get secret/$name -o jsonpath='{.data.namespace}' | base64 --decode)
+# sa ns and name
+sa_ns=kube-system
+sa_name=admin
+# the name of the secret containing the service account token goes here
+secret_name=$(kubectl get sa -n $sa_ns $sa_name -o json | jq .secrets[] -r | grep -- "-token-" | awk '{print $2}' | tr -d '"')
+
+ca=$(kubectl get -n $sa_ns secret/$secret_name -o jsonpath='{.data.ca\.crt}')
+token=$(kubectl get -n $sa_ns secret/$secret_name -o jsonpath='{.data.token}' | base64 --decode)
 
 echo "
 apiVersion: v1
 kind: Config
 clusters:
-- name: default-cluster
-  cluster:
-  certificate-authority-data: ${ca}
-  server: ${server}
-  contexts:
-- name: default-context
-  context:
-  cluster: default-cluster
-  namespace: default
-  user: default-user
-  current-context: default-context
-  users:
-- name: default-user
-  user:
-  token: ${token}
-  " > sa.kubeconfig
+  - name: default-cluster
+    cluster:
+      certificate-authority-data: ${ca}
+      server: ${server}
+contexts:
+  - name: default-context
+    context:
+      cluster: default-cluster
+      namespace: default
+      user: default-user
+current-context: default-context
+users:
+  - name: default-user
+    user:
+      token: ${token}" > sa.kubeconfig
 ```
 
 ## kubeconfig跳过服务端证书校验
@@ -1368,6 +1371,7 @@ healthz check failed
 ## kubelet
 
 ### 配置和初始化
+`kubeletConfiguration v1beta1`的默认配置在*pkg/kubelet/apis/config/v1beta1/defaults.go* 中 *SetDefaults_KubeletConfiguration()* 设置。
 
 ### PLEG
 

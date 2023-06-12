@@ -404,6 +404,8 @@ iptables -A INPUT -p tcp --dport 10443 -j ACCEPT
 ```bash
 # 用户登录
 oc login https://vip.cluster.local:8443 -u system:admin
+# 或跳过服务端证书校验
+oc login https://vip.cluster.local:8443 -u system:admin --insecure-skip-tls-verify
 
 # 日志查看
 master-logs api api     # 查看apiserver的日志
