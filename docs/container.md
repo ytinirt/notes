@@ -6,6 +6,7 @@
   * [cgroup子系统](#cgroup子系统)
     * [cpu和cpuacct cgroup](#cpu和cpuacct-cgroup)
       * [根据pod的cpu request和limit如何设置cpu cgroup参数](#根据pod的cpu-request和limit如何设置cpu-cgroup参数)
+    * [cpuset](#cpuset)
     * [memory](#memory)
   * [挂载cgroupfs](#挂载cgroupfs)
   * [判断是否为cgroupv2](#判断是否为cgroupv2)
@@ -41,9 +42,9 @@
     * [一次完整的报错分析](#一次完整的报错分析)
     * [常用操作](#常用操作-1)
     * [为Pod/容器设置selinux label](#为pod容器设置selinux-label)
-* [容器运行时](#容器运行时)
-  * [runc](#runc)
-    * [常用命令](#常用命令-1)
+    * [根据审计日志设置selinux规则](#根据审计日志设置selinux规则)
+* [根据审计日志，查找被拦截的操作，并生成允许的规则](#根据审计日志查找被拦截的操作并生成允许的规则)
+* [设置selinux，放开拦截](#设置selinux放开拦截)
   * [crun](#crun)
 * [OCI](#oci)
   * [oci-hooks](#oci-hooks)
@@ -58,7 +59,7 @@
 * [podman](#podman)
   * [使用podman查看cri创建的pod](#使用podman查看cri创建的pod)
   * [容器镜像和overlay/layer对应关系](#容器镜像和overlaylayer对应关系)
-  * [常用命令](#常用命令-2)
+  * [常用命令](#常用命令-1)
 * [crictl](#crictl)
   * [直接创建容器](#直接创建容器)
     * [创建Pod Sandbox](#创建pod-sandbox)
@@ -186,6 +187,11 @@ cgroup实现本质上是给系统进程挂上hooks，当task运行过程中涉�
 * 可看到 _cpu.cfs_quota_us_ / _cpu.cfs_period_us_ 为1.5，这个是上限。
 * *cpu.shares* / 1024 为0.5，对应`request 0.5`。
 
+### cpuset
+遍历所有kubernetes pod的cpu亲和性：
+```bash
+for f in $(find /sys/fs/cgroup/cpuset -name "cpuset.cpus"); do printf "%-220s %s\n" $f $(cat $f); done
+```
 
 ### memory
 TODO: cgroup v1的oom，文件缓存*file_dirty* 和 *file_writeback* 的内存用量，这部分也记到容器内存，可能导致oom。
@@ -680,6 +686,19 @@ securityContext:
 其中seLinuxOptions施加到volume上。一般情况下，只需设置level，其为Pod及其volumes设置Multi-Category Security (MCS) label。
 注意，一旦为Pod设置了MCS label，其它所有相同label的pod均可访问该Pod的volume。
 
+### 根据审计日志设置selinux规则
+若遇到selinux拦截操作，例如:
+```
+SELinux is preventing /usr/sbin/lldpad from sendto access on the unix_dgram_socket ...
+```
+
+可以使用如下命令放开拦截：
+``bash
+# 根据审计日志，查找被拦截的操作，并生成允许的规则
+ausearch -c 'lldpad' --raw | audit2allow -M my-lldpad
+# 设置selinux，放开拦截
+semodule -X 300 -i my-lldpad.pp
+```
 
 # 容器运行时
 ## runc

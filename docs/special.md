@@ -63,6 +63,7 @@
       * [数字转string](#数字转string)
       * [排序](#排序)
       * [map对象添加kv](#map对象添加kv)
+      * [更新字段](#更新字段)
     * [常用操作](#常用操作-2)
   * [base64](#base64)
   * [butane](#butane)
@@ -924,6 +925,20 @@ etcdctl get --prefix /leader-election -w json | jq .kvs[] | jq -s -c 'sort_by(.c
 #### map对象添加kv
 ```bash
 cat config.json | jq '.linux.resources.cpu += {"cpus": "4"}'
+```
+
+#### 更新字段
+```bash
+# echo '{ "foo": "bar" }' | jq '.foo |= "baz"'
+{
+  "foo": "baz"
+}
+
+# hehe=xixi
+# echo '{ "foo": "bar" }' | jq ".foo |= \"$hehe\""
+{
+  "foo": "xixi"
+}
 ```
 
 ### 常用操作

@@ -3082,6 +3082,11 @@ usermod -s /bin/bash nova
 ```bash
 ausearch
 auditctl -a exit,always -F arch=b64 -F exe!=/usr/bin/nice&&/usr/bin/du -S execve
+
+# 监控文件修改
+auditctl -w /sys/fs/cgroup/devices/devices.deny -p wrxa -k cgmonitor-t
+# 检查配置是否成功
+auditctl -l
 ```
 
 TODO: [参见资料](https://www.cyberciti.biz/tips/linux-audit-files-to-see-who-made-changes-to-a-file.html)
@@ -3605,6 +3610,11 @@ nmcli --get-values connection.type conn show 0ae83f63-5be5-3002-a6b0-1295ec3b55c
 nmcli c add type ovs-bridge con-name br-ex conn.interface br-ex 802-3-ethernet.mtu 1500 ipv4.route-metric 49 ipv6.route-metric 49 ipv6.addr-gen-mode eui64
 # 使能连接
 nmcli conn up br-ex
+
+# 修改IP地址
+nmcli connection modify eth0 ipv4.addresses 1.2.3.4/24 ipv4.gateway 1.2.3.5 ipv4.method manual
+nmcli connection down eth0
+nmcli connection up eth0
 ```
 
 #### 配置全局域名解析服务器
