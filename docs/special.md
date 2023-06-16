@@ -363,6 +363,9 @@ sed -i '1 s/foo/bar/' file-name
 
 # 匹配并删除该行
 sed '/foo/d' file-name
+
+# 替换word，其中"\b"表示word的边界
+echo "bar embarassment" | sed "s/\bbar\b/no bar/g"
 ```
 
 ### sort
@@ -925,6 +928,8 @@ etcdctl get --prefix /leader-election -w json | jq .kvs[] | jq -s -c 'sort_by(.c
 #### map对象添加kv
 ```bash
 cat config.json | jq '.linux.resources.cpu += {"cpus": "4"}'
+
+oc get infrastructure/cluster -o json | jq '.metadata += {"annotations": {"foo": "bar"}}'
 ```
 
 #### 更新字段
