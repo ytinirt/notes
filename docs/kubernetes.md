@@ -110,6 +110,9 @@
       * [CPU Manager](#cpu-manager)
       * [Memory Manager](#memory-manager)
       * [Device Plugin](#device-plugin)
+  * [库函数和实操](#库函数和实操)
+    * [处理runtime.Object](#处理runtimeobject)
+      * [获取meta.Object信息](#获取metaobject信息)
 * [备忘](#备忘)
   * [k8s版本信息](#k8s版本信息)
   * [从源码编译kubernetes时版本信息](#从源码编译kubernetes时版本信息)
@@ -1393,6 +1396,46 @@ healthz check failed
 #### Memory Manager
 
 #### Device Plugin
+
+## 库函数和实操
+### 处理runtime.Object
+#### 获取meta.Object信息
+方法1，将 *runtime.Object* 转成 *unstructured.Unstructured* :
+```golang
+import (
+    "k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+    "k8s.io/apimachinery/pkg/runtime"
+)
+
+func xxx() {
+    var obj runtime.Object
+    ...
+    innerObj, err := runtime.DefaultUnstructuredConverter.ToUnstructured(obj)
+    if err == nil {
+        u := &unstructured.Unstructured{Object: innerObj}
+        klog.Infof("%s %s", u.GroupVersionKind(), klog.KObj(u))
+    } else {
+        klog.Infof("%v", obj)
+    }
+    ...
+}
+```
+
+方法2，使用*k8s.io/apimachinery/pkg/api/meta*的*NewAccessor()* :
+```golang
+import (
+    "k8s.io/apimachinery/pkg/api/meta"
+    "k8s.io/apimachinery/pkg/runtime"
+)
+
+func xxx() {
+    var obj runtime.Object
+    ...
+    accessor := meta.NewAccessor()
+    kind, _ := accessor.Kind(obj)
+    ...
+}
+```
 
 # 备忘
 ## k8s版本信息

@@ -197,6 +197,7 @@
     * [limits.conf资源限制](#limitsconf资源限制)
     * [systemd资源限制](#systemd资源限制)
   * [openssl和证书](#openssl和证书)
+    * [常用命令](#常用命令-3)
     * [生成根证书](#生成根证书)
     * [签发自签名证书](#签发自签名证书)
     * [极简命令操作](#极简命令操作)
@@ -3137,9 +3138,12 @@ DefaultLimitNPROC=102400
 
 ## openssl和证书
 
-常用命令
+### 常用命令
 
 ~~~bash
+# 查看文件里所有证书信息
+openssl storeutl -noout -text -certs  ca-bundle.crt
+
 # 查看SAN信息
 openssl x509 -noout -ext subjectAltName
 

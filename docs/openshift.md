@@ -5,6 +5,8 @@
 * [Deep Dive](#deep-dive)
   * [SCC](#scc)
 * [常用操作](#常用操作)
+  * [Operator关键行为](#operator关键行为)
+    * [rollout新版本](#rollout新版本)
   * [配置审计日志策略](#配置审计日志策略)
   * [检查被废弃API的使用情况](#检查被废弃api的使用情况)
   * [获取用户认证Token](#获取用户认证token)
@@ -76,6 +78,12 @@ var ControllerInitializers = map[string]InitFunc{
 
 
 # 常用操作
+
+## Operator关键行为
+### rollout新版本
+```bash
+oc logs -n openshift-kube-apiserver-operator kube-apiserver-operator-xxx | grep triggered
+```
 
 ## 配置审计日志策略
 [TODO](https://access.redhat.com/documentation/en-us/openshift_container_platform/4.10/html/security_and_compliance/audit-log-policy-config)

@@ -58,6 +58,7 @@
       * [操作说明](#操作说明)
       * [slash字符转义](#slash字符转义)
     * [jq工具](#jq工具)
+      * [过滤出configmap的所有data端](#过滤出configmap的所有data端)
       * [过滤带有特殊注解的k8s资源](#过滤带有特殊注解的k8s资源)
       * [查询k8s的events](#查询k8s的events)
       * [数字转string](#数字转string)
@@ -342,7 +343,7 @@ cmake ../mysql-server-mysql-5.7.20/ -LH
 ### grep
 ```bash
 # 搜索时，跳过一些文件
-grep -r --exclude-dir=".git;.svn" "string to search" <directory>
+grep -r --exclude-dir={.git,.svn} "string to search" <directory>
 grep -r --exclude-dir="./*/.git" "string to search" <directory>
 
 # 仅返回匹配值
@@ -900,6 +901,11 @@ curl -H "Content-Type:application/json-patch+json" --request PATCH "http://127.0
 参见[JSON Pointer](https://jsonpatch.com/#json-pointer) ，使用`~1`替代字符串中的`/`，使用`~0`替代字符串中的`~`。
 
 ### jq工具
+
+#### 过滤出configmap的所有data端
+```bash
+kubectl get cm -A -o json | jq '.items[]| select(.data != null) | .data| . |= keys []' -r
+```
 
 #### 过滤带有特殊注解的k8s资源
 ```bash
