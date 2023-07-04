@@ -25,6 +25,7 @@
     * [tcpdump和libpcap常用规则](#tcpdump和libpcap常用规则)
   * [Shell和Bash](#shell和bash)
     * [Bash实例](#bash实例)
+      * [简写的if和if-else判断](#简写的if和if-else判断)
       * [一行一行的读文件并分割处理每一行](#一行一行的读文件并分割处理每一行)
       * [循环](#循环)
       * [一次创建多个文件](#一次创建多个文件)
@@ -457,6 +458,14 @@ dns.qry.name contains "devops"      # DNS请求过滤
 
 ### Bash实例
 
+#### 简写的if和if-else判断
+```bash
+# if
+[[ 1 -eq 1 ]] && echo "do it"
+# if-else
+[[ 1 -eq 1 ]] && echo "true" || echo "false"
+```
+
 #### 一行一行的读文件并分割处理每一行
 ```bash
 POD_TEMP_RESULT_FILE=$(mktemp)
@@ -467,6 +476,12 @@ do
     echo $uid
 done < ${POD_TEMP_RESULT_FILE}
 rm -f ${POD_TEMP_RESULT_FILE}
+```
+
+```bash
+while IFS= read -r line; do
+    echo $line
+done < path-to-file
 ```
 
 #### 循环
