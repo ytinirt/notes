@@ -18,6 +18,7 @@
   * [裁剪可执行文件中mod version信息](#裁剪可执行文件中mod-version信息)
     * [方法一：关闭mod](#方法一关闭mod)
     * [方法二：build时不带mod version](#方法二build时不带mod-version)
+  * [通过ldflags在编译阶段设置变量值](#通过ldflags在编译阶段设置变量值)
   * [常用命令](#常用命令)
 * [如何Debug Golang程序](#如何debug-golang程序)
   * [打印堆栈](#打印堆栈)
@@ -123,6 +124,18 @@ GO111MODULE="off" make xxx
 
 ### 方法二：build时不带mod version
 参见 [go/issues/50501](https://github.com/golang/go/issues/50501) ，已不支持去除mod信息。
+
+## 通过ldflags在编译阶段设置变量值
+例如在 *pkg/version/version.go* 中定义有变量：
+```golang
+var BuildVersion = "xxxx"
+```
+
+编译时，通过`-ldflags`设置`BuildVersion`变量值：
+```bash
+GLDFLAGS="-X ${REPO}/pkg/version.Raw=${VERSION_OVERRIDE} -X ${REPO}/pkg/version.BuildVersion=${BUILD_VERSION}"
+go build -ldflags "${GLDFLAGS}" ...
+```
 
 ## 常用命令
 ```bash
