@@ -106,6 +106,7 @@
     * [通过CSI管理存储](#通过csi管理存储)
     * [设备和资源管理](#设备和资源管理)
       * [资源计算和预留](#资源计算和预留)
+        * [为容器进程设置oom_score_adj](#为容器进程设置oomscoreadj)
       * [Topology Manager](#topology-manager)
       * [CPU Manager](#cpu-manager)
       * [Memory Manager](#memory-manager)
@@ -1387,6 +1388,18 @@ healthz check failed
 ### 设备和资源管理
 
 #### 资源计算和预留
+
+##### 为容器进程设置oom_score_adj
+针对不同服务质量和优先级的pod，在创建容器（拉起进程时）kubelet会设置不同的*oom_score_adj*，具体的：
+* *Guaranteed* 为 -997
+* *BestEffort* 为 1000
+* *Burstable* 根据公式 `min(max(2, 1000 - (1000 * memoryRequestBytes) / machineMemoryCapacityBytes), 999)` 计算得出
+* *system-node-critical* 优先级的Pod，也设置为 -997
+
+进一步阅读:
+* [Node out of memory behavior](https://kubernetes.io/docs/concepts/scheduling-eviction/node-pressure-eviction/#node-out-of-memory-behavior)
+* [代码GetContainerOOMScoreAdjust()](https://github.com/kubernetes/kubernetes/blob/fa88c0b7796170eeff5686ae1d7d0f2f3f0df5de/pkg/kubelet/qos/policy.go#L43)
+
 
 #### Topology Manager
 
