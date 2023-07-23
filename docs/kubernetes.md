@@ -12,7 +12,7 @@
 * [Kubernetes高级调度特性](#kubernetes高级调度特性)
   * [亲和性](#亲和性)
   * [自定义调度器](#自定义调度器)
-* [API优先级APIPriorityAndFaireness](#api优先级apipriorityandfaireness)
+* [API优先级APIPriorityAndFairness](#api优先级apipriorityandfairness)
 * [以CRD方式扩展API](#以crd方式扩展api)
 * [Pod调度如何感知volume的topology](#pod调度如何感知volume的topology)
 * [CPU资源高级管理](#cpu资源高级管理)
@@ -287,7 +287,7 @@ done
 自定义调度器就是一个“controller”，不停的“reconcile”。
 
 
-# API优先级APIPriorityAndFaireness
+# API优先级APIPriorityAndFairness
 ```bash
 # https://www.yisu.com/zixun/523074.html
 oc get --raw /debug/api_priority_and_fairness/dump_priority_levels
