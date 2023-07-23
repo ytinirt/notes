@@ -75,6 +75,8 @@
   * [编译kubelet](#编译kubelet)
   * [获取k8s控制面组件指标](#获取k8s控制面组件指标)
   * [kubeadm部署的集群的操作](#kubeadm部署的集群的操作)
+* [最佳实践](#最佳实践)
+  * [HPA](#hpa)
 * [性能调优](#性能调优)
   * [读懂监控指标](#读懂监控指标)
     * [kube-apiserver监控指标](#kube-apiserver监控指标)
