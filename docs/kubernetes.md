@@ -1229,6 +1229,12 @@ kubectl get --raw /metrics
 curl -sk https://127.0.0.1:10250/metrics --cacert /etc/kubernetes/pki/ca.crt --cert /etc/kubernetes/pki/apiserver-kubelet-client.crt --key /etc/kubernetes/pki/apiserver-kubelet-client.key | grep go_info
 ```
 
+# 最佳实践
+## HPA
+参考链接[kubernetes-hpa-configuration-guide](https://segment.com/blog/kubernetes-hpa-configuration-guide/)
+
+
+
 # 性能调优
 ## 读懂监控指标
 ### kube-apiserver监控指标
