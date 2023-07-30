@@ -200,6 +200,7 @@
     * [调用github接口将md转换为html](#调用github接口将md转换为html)
   * [WSL](#wsl)
   * [奇技淫巧](#奇技淫巧)
+    * [VMware为NAT网络配置端口转发](#vmware为nat网络配置端口转发)
     * [goland](#goland)
     * [curl取代postman](#curl取代postman)
     * [atom超级好用的package](#atom超级好用的package)
@@ -972,6 +973,9 @@ oc get infrastructure/cluster -o json | jq '.metadata += {"annotations": {"foo":
 使用jq格式化输出
 
 ```bash
+# 通过--arg，让key带着变量
+cat json_file | jq -r --arg file "etcd-peer-"${nodename}".crt" '.data[$file]'
+
 # 仅输出顶级key
 cat master.ign | jq '. |= keys'
 # 输出顶级和二级key
@@ -2839,6 +2843,19 @@ docker-engine的wsl默认数据目录`C:\Users\admin\AppData\Local\Docker\wsl` �
 * https://zhuanlan.zhihu.com/p/345645621
 
 ## 奇技淫巧
+
+### VMware为NAT网络配置端口转发
+参见： https://superuser.com/questions/571196/port-forwarding-to-a-vmware-workstation-virtual-machine
+
+VMware配置文件路径：`C:\ProgramData\VMware\vmnetnat.conf`
+```
+[incomingtcp]
+#<external port number> = <VM's IP address>:<VM's port number>*
+#(this maps guest port 80 to host port 81)
+81 = 192.168.100.1:80
+```
+
+修改后，重启`VMware NAT Service`生效。
 
 ### goland
 * 文件过滤器： `*.go,!*test*.go`

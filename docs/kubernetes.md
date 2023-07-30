@@ -666,7 +666,7 @@ kubectl get pod -n foo -l name=bar --sort-by=.status.startTime -owide --no-heade
 ## 节点维护
 ```bash
 # 排干节点
-kubectl drain ${node} --delete-local-data --ignore-daemonsets --force
+kubectl drain ${node} --delete-emptydir-data --ignore-daemonsets --force
 
 # 为节点打污点
 kubectl taint nodes worker foo:NoSchedule
@@ -909,7 +909,7 @@ systemctl stop kubelet
 crictl ps -q | xargs crictl stop
 
 # 以创建时间排序
-kubectl get secret -A --sort-by .metadata.creationTimestamp
+kubectl get pod -A --sort-by .metadata.creationTimestamp
 
 # 查看API版本
 kubectl api-versions
@@ -961,7 +961,7 @@ kubectl get pod ceportalrc-n5sqd -o template --template={{.status.phase}}
 kubectl get node 172.25.18.24 -o template --template={{.status.nodeInfo.osImage}}  
 # 查看容器的log
 kubectl logs --namespace="kube-system" kube-dns-v17.1-rc1-27sj0 kubedns  
-kubectl drain ${node} --delete-local-data --ignore-daemonsets --force
+kubectl drain ${node} --delete-emptydir-data --ignore-daemonsets --force
 kubectl uncordon ${node}
 # 给name为172.25.18.22的node打标签node: node3，kube-dns依赖于这个标签的。
 kubectl label node 172.25.18.22 node=node3
