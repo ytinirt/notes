@@ -26,8 +26,10 @@
   * [Shell和Bash](#shell和bash)
     * [Bash实例](#bash实例)
       * [简写的if和if-else判断](#简写的if和if-else判断)
+      * [函数返回逻辑判断结果](#函数返回逻辑判断结果)
       * [一行一行的读文件并分割处理每一行](#一行一行的读文件并分割处理每一行)
-      * [循环](#循环)
+      * [for循环](#for循环)
+      * [until](#until)
       * [一次创建多个文件](#一次创建多个文件)
       * [获取入参名称及值](#获取入参名称及值)
       * [字符串转array和array切片](#字符串转array和array切片)
@@ -49,6 +51,7 @@
       * [判断一个文件夹是否为空](#判断一个文件夹是否为空)
       * [使用cat生成文件](#使用cat生成文件)
       * [运算](#运算)
+      * [后台执行函数并等待结束](#后台执行函数并等待结束)
     * [double dash](#double-dash)
     * [其它记录](#其它记录)
   * [YAML](#yaml)
@@ -467,6 +470,13 @@ dns.qry.name contains "devops"      # DNS请求过滤
 [[ 1 -eq 1 ]] && echo "true" || echo "false"
 ```
 
+#### 函数返回逻辑判断结果
+```bash
+function is_server_ready() {
+    [ -f ${SERVER_READY_HINT} ]
+}
+```
+
 #### 一行一行的读文件并分割处理每一行
 ```bash
 POD_TEMP_RESULT_FILE=$(mktemp)
@@ -485,13 +495,22 @@ while IFS= read -r line; do
 done < path-to-file
 ```
 
-#### 循环
+#### for循环
 
 ```bash
 for i in $(seq 1 431); do rm -f mysql-bin.$(printf "%06d" $i); done
 for ((i=${hehe}; i<${hehe}+4; i++)); do printf "%03d\n" $i; done   #按照指定位数，左补零
 for ((i=1; i<4; i++)); do echo $i; done
 count=0;while true; do let 'count++'; echo ${count}; done
+```
+
+#### until
+在逻辑判断为true之前，一直执行：
+```bash
+until is_server_ready; do
+    log_print "server not ready"
+    sleep 2s
+done
 ```
 
 #### 一次创建多个文件
@@ -664,7 +683,7 @@ set -- "$@" --init-file="$tempSqlFile"
 ```bash
 function log_print()
 {
-    echo $(date +"%Y-%m-%d %T") $1 >> ${LOG_FILE}
+    echo "$(date +"%Y-%m-%d %T") $@"
 }
 
 function log_info()
@@ -800,6 +819,15 @@ EOF
 cell_num=997; tmp=$[ ( ${cell_num} - 1 ) % 3 ]; echo $tmp
 ```
 
+#### 后台执行函数并等待结束
+```bash
+func1 &
+func2 &
+sleep 10s &
+
+# 等待上述所有后台任务执行完成
+wait
+```
 
 ### double dash
 通过`--`将命令和参数区分开，在`--`后的都不是命令的参数。
