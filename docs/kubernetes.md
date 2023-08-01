@@ -12,7 +12,7 @@
 * [Kubernetes高级调度特性](#kubernetes高级调度特性)
   * [亲和性](#亲和性)
   * [自定义调度器](#自定义调度器)
-* [API优先级APIPriorityAndFaireness](#api优先级apipriorityandfaireness)
+* [API优先级APIPriorityAndFairness](#api优先级apipriorityandfairness)
 * [以CRD方式扩展API](#以crd方式扩展api)
 * [Pod调度如何感知volume的topology](#pod调度如何感知volume的topology)
 * [CPU资源高级管理](#cpu资源高级管理)
@@ -75,6 +75,8 @@
   * [编译kubelet](#编译kubelet)
   * [获取k8s控制面组件指标](#获取k8s控制面组件指标)
   * [kubeadm部署的集群的操作](#kubeadm部署的集群的操作)
+* [最佳实践](#最佳实践)
+  * [HPA](#hpa)
 * [性能调优](#性能调优)
   * [读懂监控指标](#读懂监控指标)
     * [kube-apiserver监控指标](#kube-apiserver监控指标)
@@ -286,7 +288,7 @@ done
 自定义调度器就是一个“controller”，不停的“reconcile”。
 
 
-# API优先级APIPriorityAndFaireness
+# API优先级APIPriorityAndFairness
 ```bash
 # https://www.yisu.com/zixun/523074.html
 oc get --raw /debug/api_priority_and_fairness/dump_priority_levels
@@ -1229,6 +1231,12 @@ kubectl get --raw /metrics
 # 从kubelet的metrics里，查看编译时用的golang版本：
 curl -sk https://127.0.0.1:10250/metrics --cacert /etc/kubernetes/pki/ca.crt --cert /etc/kubernetes/pki/apiserver-kubelet-client.crt --key /etc/kubernetes/pki/apiserver-kubelet-client.key | grep go_info
 ```
+
+# 最佳实践
+## HPA
+参考链接[kubernetes-hpa-configuration-guide](https://segment.com/blog/kubernetes-hpa-configuration-guide/)
+
+
 
 # 性能调优
 ## 读懂监控指标
