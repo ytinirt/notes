@@ -29,6 +29,9 @@
   * [golang diagnostics](#golang-diagnostics)
 * [Deep Dive系列](#deep-dive系列)
   * [http.Transport中连接池管理](#httptransport中连接池管理)
+  * [atomic原子操作](#atomic原子操作)
+    * [使用Value替代Bool](#使用value替代bool)
+    * [使用Value替代Pointer](#使用value替代pointer)
 * [通过goproxy代理解决package下载问题](#通过goproxy代理解决package下载问题)
 * [示例](#示例)
   * [启HTTP服务](#启http服务)
@@ -289,6 +292,44 @@ TODO: https://golang.org/doc/diagnostics
 ## http.Transport中连接池管理
 `http.Transport`的`getConn()`方法，从连接池中获取空闲连接，或新建一个连接。
 
+## atomic原子操作
+TODO:
+- [Go 语言标准库中 atomic.Value 的前世今生](https://blog.betacat.io/post/golang-atomic-value-exploration/)
+
+### 使用Value替代Bool
+```golang
+...
+showHidden          atomic.Value
+...
+func ShouldShowHidden() bool {
+	return showHidden.Load() != nil && showHidden.Load().(bool)
+}
+```
+
+### 使用Value替代Pointer
+```golang
+...
+cache atomic.Value
+...
+
+var resettedHint bool = true
+
+// Reset
+cache.Store(&resettedHint)
+
+// Main process logic
+cacheLoad, ok := cache.Load().(*cachedGroupList)
+if ok {
+	return cacheLoad
+} else {
+	cached := &cachedGroupList{
+		cachedResponse:     response,
+		cachedResponseETag: etag,
+	}
+	cache.Store(cached)
+	return cached
+}
+```
 
 # 通过goproxy代理解决package下载问题
 ```bash
