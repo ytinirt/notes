@@ -261,6 +261,8 @@ root        12     2  0 Feb02 ?        00:00:14 [migration/1]
 ```bash
 # 查看进程可以运行的cpu
 taskset -pc <pid>
+# 或者
+grep ^Cpus_allowed_list /proc/<pid>/status
 
 # grub参数配置isolcpus，预留CPU，避免除中断外的进程调度到预留的CPU上
 # cat /proc/cmdline
@@ -3961,6 +3963,14 @@ journalctl --no-pager -u docker
 journalctl -k
 journalctl --since="19:00:00" -u docker
 journalctl --since="2018-02-21 19:00:00"
+
+# 查看系统启动记录
+journalctl --list-boots
+
+# 查看当次启动以来的日志
+journalctl -b
+# 查看上一次启动后运行日志
+journalctl -b -1
 
 # 查看存储用量
 journalctl --disk-usage
