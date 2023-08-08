@@ -2541,9 +2541,13 @@ netstat -ptn | grep 10257
 # 连接和端口打开信息
 ss -Htanop \( sport = 10257 \)
 
+# 查看tcp监听端口
+ss -Htan state listening '( sport = 6443 or sport = 10248 )'
+
 #查看TCP已连接数
 ss state ESTABLISHED
 ss -s
+
 # 查看套接字 socket 连接信息，基本等同于 netstat -ptn
 ss -aonp
 ss -tpn dst :8080
