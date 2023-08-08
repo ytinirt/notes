@@ -1148,20 +1148,30 @@ kubectl delete pods <pod> --grace-period=0 --force
 ```
 
 ## Pod中获取PodIP的方法
+通过 [Downward API](https://kubernetes.io/docs/concepts/workloads/pods/downward-api/) ，可在Pod中获取例如PodIP之类的信息。
+这些信息属于Pod/容器自己的信息，容器初始化和运行的时候，获取这些信息有助于灵活配置。
 
+有两种方式将这些信息提供到Pod内：
+* [以环境变量方式](https://kubernetes.io/docs/tasks/inject-data-application/environment-variable-expose-pod-information/)
+* [以文件/volume方式](https://kubernetes.io/docs/tasks/inject-data-application/downward-api-volume-expose-pod-information/) ，特别适用于**标签**和**注解**
+
+例如以环境变量方式：
 ```bash
-          env:
-            - name: MYIP
-              valueFrom:
-                fieldRef:
-                  fieldPath: status.podIP
-            - name: RESOLVER_IP_ADDR
-              valueFrom:
-                fieldRef:
-                  fieldPath: status.hostIP
+env:
+  - name: MYIP
+    valueFrom:
+      fieldRef:
+        fieldPath: status.podIP
+  - name: RESOLVER_IP_ADDR
+    valueFrom:
+      fieldRef:
+        fieldPath: status.hostIP
 ```
-详见 Pod Preset, Expose Pod Information to Containers Through Environment Variables and Through Files.
-仅kubernetes v1.8+版本支持。
+
+注意:
+1. 仅kubernetes v1.8+版本支持。
+2. 仅支持部分字段，详见链接 [Downward API](https://kubernetes.io/docs/concepts/workloads/pods/downward-api/)
+3. 容器中使用环境变量，在*args*中若还未被容器内shell解析则应指定为`$(ENV_VAR_KEY)`，若在shell执行器后指定则为`${ENV_VAR_KEY}`
 
 ## emptyDir在宿主机上的路径
 

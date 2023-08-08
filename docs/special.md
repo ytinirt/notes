@@ -372,6 +372,9 @@ sed '/foo/d' file-name
 
 # 替换word，其中"\b"表示word的边界
 echo "bar embarassment" | sed "s/\bbar\b/no bar/g"
+
+# 搜索并在某一行后面追加一行
+sed -i '/^# clean_shutdown_file/a\clean_shutdown_file = ""' /tmp/crio.conf
 ```
 
 ### sort

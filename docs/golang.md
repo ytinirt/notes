@@ -38,6 +38,8 @@
   * [启HTTP服务](#启http服务)
   * [测试cpu性能](#测试cpu性能)
   * [代码实例](#代码实例)
+    * [自定义排序](#自定义排序)
+    * [在多个地址/端口上监听](#在多个地址端口上监听)
 <!-- TOC -->
 
 # 开发
@@ -383,6 +385,8 @@ func main() {
 ```
 
 ## 代码实例
+
+### 自定义排序
 ```golang
 // 自定义排序方式
 sort.Sort(byCreationTimestamp(terminatedPods))
@@ -399,6 +403,24 @@ func (o byCreationTimestamp) Less(i, j int) bool {
 	}
 	return o[i].CreationTimestamp.Before(&o[j].CreationTimestamp)
 }
+```
 
+### 在多个地址/端口上监听
+```golang
+package main
 
+import (
+	"net/http"
+)
+
+func index(rw http.ResponseWriter, req *http.Request) {
+	rw.Write([]byte("hello world"))
+}
+
+func main() {
+	http.HandleFunc("/", index)
+	go http.ListenAndServe("127.0.0.1:1555", nil)
+	go http.ListenAndServe("127.0.0.1:1666", nil)
+	select {}
+}
 ```
