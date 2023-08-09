@@ -83,6 +83,7 @@
 * [Deep Dive系列](#deep-dive系列)
   * [kube-apiserver](#kube-apiserver-1)
     * [服务启动流程](#服务启动流程)
+    * [服务端fieldSelector](#服务端fieldselector)
     * [REST Storage](#rest-storage)
     * [安装API及其REST Storage](#安装api及其rest-storage)
     * [API定义和版本](#api定义和版本)
@@ -291,7 +292,7 @@ done
 # API优先级APIPriorityAndFairness
 ```bash
 # https://www.yisu.com/zixun/523074.html
-oc get --raw /debug/api_priority_and_fairness/dump_priority_levels
+kubectl get --raw /debug/api_priority_and_fairness/dump_priority_levels
 ```
 
 # 以CRD方式扩展API
@@ -689,6 +690,11 @@ kubectl taint nodes worker foo=bar:NoExecute
 * 清理`Error`状态的Pod
   ```bash
   kubectl delete pod --field-selector=status.phase==Failed --all-namespaces
+  ```
+
+* 清理`NodeAffinity`状态的Pod
+  ```bash
+  kubectl get pod -A -owide | grep NodeAffinity | awk '{print $1" "$2}'  | xargs kubectl delete pod -n $1 $2
   ```
 
 * 找到master节点
@@ -1176,7 +1182,11 @@ env:
 ## emptyDir在宿主机上的路径
 
 ```bash
+# emptyDir文件夹路径
 /var/lib/kubelet/pods/<pod uuid>/volumes/kubernetes.io~empty-dir
+
+# 查找一个emptyDir文件夹中的文件，一种简便（但效率较低）的查找方法
+find /var/lib/kubelet/pods/*/volumes/kubernetes.io~empty-dir -name "file-name"
 ```
 
 
@@ -1260,6 +1270,9 @@ curl -sk https://127.0.0.1:10250/metrics --cacert /etc/kubernetes/pki/ca.crt --c
 起点`kubernetes/cmd/kube-apiserver/app/server.go`中`CreateServerChain()` 。
 
 依次经过*Aggregator*、 *KubeAPIServer*、 *APIExtensionServer*三个组件处理请求。
+
+### 服务端fieldSelector
+XXX TODO
 
 ### REST Storage
 `kubernetes/pkg/registry/core/rest/storage_core.go`中`NewLegacyRESTStorage` 。
