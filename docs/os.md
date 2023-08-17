@@ -168,6 +168,7 @@
     * [fuser（文件和设备）](#fuser文件和设备)
     * [netstat（网络）](#netstat网络)
     * [ss（网络）](#ss网络)
+    * [lsblk](#lsblk)
     * [常用命令](#常用命令-2)
   * [内存信息解读](#内存信息解读)
     * [内存用量TopN](#内存用量topn)
@@ -2553,7 +2554,10 @@ ss -aonp
 ss -tpn dst :8080
 ```
 
-
+### lsblk
+```bash
+lsblk --pairs --paths --bytes --output "NAME,FSTYPE,MOUNTPOINT,SIZE,STATE,TYPE,ROTA,RO,PKNAME,MAJ:MIN"
+```
 
 ### 常用命令
 
@@ -2635,7 +2639,6 @@ top -b -n1 -o RES | head -n27 | sed '1,7d'    # TOP 20内存使用
 dmesg -H            # 查看kernel信息
 perf
 virt-what           # 判断是否虚拟机（Guest、VM）运行
-lsblk
 ethtool				# 查看以太接口信息
 du -d 1 -h
 du -sh --exclude='lib/*' # 统计时排出lib目录下所有内容
@@ -4045,6 +4048,12 @@ logger -p user.info -t modname message
 
 
 ## 其它技巧
+找出损坏的软链接：
+```bash
+find /run/crio -type l ! -readable
+```
+
+
 打印头和尾日志：
 ```bash
 cat file.log | (head -n1 && tail -n1)
