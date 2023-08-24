@@ -1932,6 +1932,11 @@ xfs_quota -x -c 'limit -p bsoft=0 bhard=0 Logs' /
 ### 常用操作
 命令 `xfs_info`。
 
+查看配额使用情况：
+```bash
+xfs_quota -xc 'report -bih'  /data
+```
+
 ## samba
 
 典型配置：

@@ -1479,6 +1479,20 @@ func xxx() {
     kind, _ := accessor.Kind(obj)
     ...
 }
+
+// 或者，直接获取meta.Object
+func yyy() {
+    var obj runtime.Object
+    ...
+	meta, err := meta.Accessor(obj)
+	if err != nil {
+		return "", fmt.Errorf("object has no meta: %v", err)
+	}
+	if len(meta.GetNamespace()) > 0 {
+		return meta.GetNamespace() + "/" + meta.GetName(), nil
+	}
+	return meta.GetName(), nil
+}
 ```
 
 # 备忘

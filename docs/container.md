@@ -8,6 +8,7 @@
       * [根据pod的cpu request和limit如何设置cpu cgroup参数](#根据pod的cpu-request和limit如何设置cpu-cgroup参数)
     * [cpuset](#cpuset)
     * [memory](#memory)
+    * [devices](#devices)
   * [挂载cgroupfs](#挂载cgroupfs)
   * [判断是否为cgroupv2](#判断是否为cgroupv2)
   * [降级为cgroupv1](#降级为cgroupv1)
@@ -201,6 +202,11 @@ TODO: cgroup v1的oom，文件缓存*file_dirty* 和 *file_writeback* 的内存�
 * 系统参数`vm.dirty*`，参见[更加积极的脏页缓存刷新](./os.md#更加积极的脏页缓存刷新) 。针对大内存节点，调优 vm.dirty 参数，更加积极的脏数据刷新，避免脏页积累导致的容器内 file_dirty 和 file_writeback 过大、容器OOM。
 * 读写文件时*Direct I/O*参数，即`O_DIRECT`标识，避免文件系统缓存，不过相应的带来IO性能降低。
 * cgroupv2会限制内存group中pagecache内存用量，因此能避免上述oom。
+
+### devices
+```bash
+echo "b 7:0 rwm" > /sys/fs/cgroup/devices/kubepods.slice/devices.allow
+```
 
 ## 挂载cgroupfs
 
