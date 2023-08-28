@@ -6,6 +6,7 @@
   * [Git](#git)
     * [git命令补全](#git命令补全)
     * [从一个仓库pull然后push到另一个仓库](#从一个仓库pull然后push到另一个仓库)
+    * [tag](#tag)
     * [常用操作](#常用操作)
   * [VI/VIM](#vivim)
     * [常用操作](#常用操作-1)
@@ -242,6 +243,16 @@ git remote set-url --push origin git@example.com:another-repo.git
 # push到另一个仓库
 git push
 ```
+
+### tag
+区分两种tag：
+* ***annotated tags***，用于版本发布，gitlab在创建tag时，如果带上message信息就是这种tag
+* ***lightweight tags***，用于私有或临时标记
+
+一些项目在build时，通过：
+> git describe --abbrev=8 --dirty --always
+
+获取版本，但*git describe*仅查询***annotated tags***，并将其用于版本信息。
 
 ### 常用操作
 

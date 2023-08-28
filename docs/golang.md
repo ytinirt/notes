@@ -19,6 +19,8 @@
     * [方法一：关闭mod](#方法一关闭mod)
     * [方法二：build时不带mod version](#方法二build时不带mod-version)
   * [通过ldflags在编译阶段设置变量值](#通过ldflags在编译阶段设置变量值)
+    * [示例：使用git describe获取版本](#示例使用git-describe获取版本)
+    * [示例：使用semver库检查版本](#示例使用semver库检查版本)
   * [常用命令](#常用命令)
 * [如何Debug Golang程序](#如何debug-golang程序)
   * [打印堆栈](#打印堆栈)
@@ -141,6 +143,24 @@ var BuildVersion = "xxxx"
 ```bash
 GLDFLAGS="-X ${REPO}/pkg/version.Raw=${VERSION_OVERRIDE} -X ${REPO}/pkg/version.BuildVersion=${BUILD_VERSION}"
 go build -ldflags "${GLDFLAGS}" ...
+```
+
+### 示例：使用git describe获取版本
+> VERSION_OVERRIDE=$(git describe --abbrev=8 --dirty --always)
+
+### 示例：使用semver库检查版本
+```golang
+import (
+	"strings"
+	"github.com/blang/semver/v4"
+)
+
+var (
+	Raw = "v0.0.1"
+
+	// Version is the semver representation of the version.
+	Version = semver.MustParse(strings.TrimLeft(Raw, "v"))
+)
 ```
 
 ## 常用命令

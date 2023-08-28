@@ -834,6 +834,18 @@ curl -k https://127.0.0.1:10250/metrics --cacert /etc/kubernetes/pki/ca.crt --ce
 ```bash
 # 动态调整kube-apiserver日志级别
 curl -X PUT http://127.0.0.1:8001/debug/flags/v -d "4"
+
+# 开启proxy
+kubectl proxy --address=0.0.0.0 --disable-filter=true
+# 收集heap
+wget -O $(hostname)-heap-$(date +"%y%m%d%H%M") http://127.0.0.1:8001/debug/pprof/heap
+# 收集goroutine
+curl http://127.0.0.1:8001/debug/pprof/goroutine?debug=2 >> $(hostname)-goroutine-debug2-$(date +"%y%m%d%H%M")
+# 收集profile
+wget -O $(hostname)-profile-$(date +"%y%m%d%H%M") http://127.0.0.1:8001/debug/pprof/profile
+
+# 分析pprof
+go tool pprof -http :8080 *-{heap,goroutine-debug2,profile}-*
 ```
 
 ### kubelet
