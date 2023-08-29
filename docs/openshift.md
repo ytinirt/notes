@@ -4,6 +4,7 @@
 * [TOC](#toc)
 * [Deep Dive](#deep-dive)
   * [SCC](#scc)
+    * [使用oc adm policy设置scc权限的注意事项](#使用oc-adm-policy设置scc权限的注意事项)
 * [常用操作](#常用操作)
   * [Operator关键行为](#operator关键行为)
     * [rollout新版本](#rollout新版本)
@@ -76,6 +77,28 @@ var ControllerInitializers = map[string]InitFunc{
 ```
 代码详见 [cluster-policy-controller](https://github.com/openshift/cluster-policy-controller) 。
 
+### 使用oc adm policy设置scc权限的注意事项
+OpenShift的SCC实际上基于RBAC实现。
+
+需要注意如下两条命令的区别：
+1. `oc adm policy add-scc-to-user privileged -n hehe -z default`
+2. `oc adm policy add-scc-to-user privileged system:serviceaccount:hehe:default`
+
+上述命令1，创建`RoleBinding`，将`Privileged`赋予了hehe命名空间下的sa/default后得到如下结果：
+```bash
+# oc auth can-i --as=system:serviceaccount:hehe:default use scc/privileged
+no
+# oc auth can-i --as=system:serviceaccount:hehe:default use scc/privileged -n hehe
+yes
+```
+
+上述命令2，创建`ClusterRoleBinding`，将`Privileged`赋予了hehe命名空间下的sa/default后得到如下结果：
+```bash
+# oc auth can-i --as=system:serviceaccount:hehe:default use scc/privileged
+yes
+# oc auth can-i --as=system:serviceaccount:hehe:default use scc/privileged -n hehe
+yes
+```
 
 # 常用操作
 
