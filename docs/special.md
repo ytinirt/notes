@@ -257,6 +257,10 @@ git push
 ### 常用操作
 
 ```bash
+# TODO: depth用途和影响？
+# 增加depth为1后，拿不到annotated tag，执行git describe为空
+git clone --depth=1
+
 # Windows环境下git clone遇到"Filename too long"的问题
 # 参见 https://stackoverflow.com/questions/22575662/filename-too-long-in-git-for-windows
 git config --system core.longpaths true
