@@ -42,6 +42,7 @@
   * [代码实例](#代码实例)
     * [自定义排序](#自定义排序)
     * [在多个地址/端口上监听](#在多个地址端口上监听)
+    * [为mutex锁超时](#为mutex锁超时)
 <!-- TOC -->
 
 # 开发
@@ -442,5 +443,44 @@ func main() {
 	go http.ListenAndServe("127.0.0.1:1555", nil)
 	go http.ListenAndServe("127.0.0.1:1666", nil)
 	select {}
+}
+```
+
+### 为mutex锁超时
+```golang
+package main
+
+import (
+	"context"
+	"fmt"
+	"sync"
+	"time"
+)
+
+func main() {
+	var ml sync.Mutex
+	go func() {
+		ml.Lock()
+		fmt.Printf("other one is holding the lock...\n")
+	}()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	var ch chan struct{}
+
+	go func() {
+		ml.Lock()
+		ch <- struct{}{}
+	}()
+
+	select {
+	case <-ctx.Done():
+		fmt.Printf("lock failed: timeout\n")
+	case <-ch:
+		fmt.Printf("lock success\n")
+	}
+
+	return
 }
 ```
