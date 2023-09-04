@@ -11,6 +11,7 @@
   * [其它](#其它)
 * [Kubernetes高级调度特性](#kubernetes高级调度特性)
   * [亲和性](#亲和性)
+    * [配置示例](#配置示例)
   * [自定义调度器](#自定义调度器)
 * [API优先级APIPriorityAndFairness](#api优先级apipriorityandfairness)
 * [以CRD方式扩展API](#以crd方式扩展api)
@@ -218,6 +219,35 @@ httpGet:
 | --- | --- | --- | --- |
 | Node<br>Pod | 亲和(affinity)<br>反亲和(anti-affinity) | requiredDuringSchedulingIgnoredDuringExecution<br>requiredDuringSchedulingRequiredDuringExecution<br>preferredDuringSchedulingIgnoredDuringExecution | In/NotIn<br>Exists/DoesNotExists<br>Gt/Lt |
 
+### 配置示例
+当有worker时，优先调度到worker上，否则调度到master上：
+```yaml
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: node-role.kubernetes.io/worker
+          operator: Exists
+      - matchExpressions:
+        - key: node-role.kubernetes.io/master
+          operator: Exists
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        preference:
+          matchExpressions:
+          - key: node-role.kubernetes.io/worker
+            operator: Exists
+      - weight: 1
+        preference:
+          matchExpressions:
+          - key: node-role.kubernetes.io/master
+            operator: Exists
+tolerations:
+- effect: NoSchedule
+  key: node-role.kubernetes.io/master
+  operator: Exists
+```
 
 ## 自定义调度器
 custom scheduler，通过Bash脚本实现自定义调度器示例
@@ -821,14 +851,18 @@ curl -k https://127.0.0.1:10250/healthz --cacert /etc/kubernetes/pki/ca.crt --ce
 
 # kubelet的metrics
 curl -k https://127.0.0.1:10250/metrics --cacert /etc/kubernetes/pki/ca.crt --cert /etc/kubernetes/pki/apiserver-kubelet-client.crt --key /etc/kubernetes/pki/apiserver-kubelet-client.key
+
+# kubelet “看到”的节点内存实际用量
+NODE_IP=10.0.0.123
+sudo curl -sk https://${NODE_IP}:10250/metrics/resource --cacert /etc/kubernetes/pki/ca.crt --cert /etc/kubernetes/pki/apiserver-kubelet-client.crt --key /etc/kubernetes/pki/apiserver-kubelet-client.key | grep node_memory_working_set_bytes
 ```
 
-| 路径                | 说明             |
-|-------------------|----------------|
-| /metrics          | kubelet自己的指标   |
-| /metrics/cadvisor | 容器监控指标         |
-| /metrics/probes   | Pod的Prober指标   |
-| /metrics/resource | Pod的CPU和内存资源开销 |
+| 路径                | 说明                |
+|-------------------|-------------------|
+| /metrics          | kubelet自己的指标      |
+| /metrics/cadvisor | 容器监控指标            |
+| /metrics/probes   | Pod的Prober指标      |
+| /metrics/resource | 节点和Pod的CPU和内存资源开销 |
 
 
 ### kube-apiserver
