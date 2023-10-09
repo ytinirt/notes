@@ -889,6 +889,9 @@ TODO
 ### kube-controller-manager
 
 ### kube-scheduler
+```bash
+kill -s SIGUSR2 $(pidof kube-scheduler)
+```
 
 ## 堆栈文件分析
 ```bash

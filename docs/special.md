@@ -150,6 +150,7 @@
       * [查询临时表的创建](#查询临时表的创建)
       * [临时表使用的内存大小](#临时表使用的内存大小)
       * [mysqld内存高使用量分析](#mysqld内存高使用量分析)
+      * [使用clone插件备份数据库](#使用clone插件备份数据库)
     * [SQL语句实例](#sql语句实例)
   * [maxscale](#maxscale)
   * [mha](#mha)
@@ -2158,7 +2159,15 @@ show global variables like 'max_heap_table_size';
 ```
 
 
-
+#### 使用clone插件备份数据库
+```bash
+# 登录数据库
+mysql -uuser -ppassword -hmysql.foo.bar -P3306
+# 安装clone插件
+INSTALL PLUGIN clone SONAME 'mysql_clone.so';
+# 备份数据库
+CLONE LOCAL DATA DIRECTORY = '/clone_dir';
+```
 
 
 ### SQL语句实例

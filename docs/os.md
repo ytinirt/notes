@@ -874,8 +874,9 @@ systemctl set-property --runtime kubelet CPUShares=2048
 ## 其它
 service文件中：
 
-```bash
-"--etcd-certfile=\${ETCD_CLIENT_PEM}"   # 使用反斜杠'\'对'$'转义
+```
+# 使用反斜杠'\'对'$'转义
+"--etcd-certfile=\${ETCD_CLIENT_PEM}"
 ```
 
 
@@ -886,12 +887,20 @@ service文件中：
 
 ```bash
 ip route add 0.0.0.0/0 via 172.25.0.1
-ip -4 route get 8.8.8.8 # 获取生效的默认路由及其出接口IP地址
-cat /proc/net/route && cat /proc/net/ipv6_route   # 当没有ip和route命令时查看路由信息
-ip address add 172.25.50.32/20 dev eth0 # 设置（secondary）地址
-arp -s 172.25.50.31 fa:16:3e:b7:2a:8e # 添加静态ARP表项
-arp -d 172.25.50.31     # 删除ARP表项
-cat /sys/class/net/<interface>/speed    # 查看接口速率
+# 获取生效的默认路由及其出接口IP地址
+ip -4 route get 8.8.8.8
+# 查找到目的地址<dest-ip>的路由和出接口信息
+ip -4 route get <dest-ip>
+# 当没有ip和route命令时查看路由信息
+cat /proc/net/route && cat /proc/net/ipv6_route
+# 设置（secondary）地址
+ip address add 172.25.50.32/20 dev eth0
+# 添加静态ARP表项
+arp -s 172.25.50.31 fa:16:3e:b7:2a:8e
+# 删除ARP表项
+arp -d 172.25.50.31
+# 查看接口速率
+cat /sys/class/net/<interface>/speed
 ```
 
 
@@ -3070,6 +3079,9 @@ ntpq -p   # 查看当前从谁那里同步时间
 
 对ntp的改良。
 
+```bash
+chronyc -n sources -v
+```
 
 ## loop设备
 ```bash
