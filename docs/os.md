@@ -238,6 +238,7 @@
       * [日志限制](#日志限制-1)
       * [同systemd-journald的关系](#同systemd-journald的关系)
     * [shell脚本使用logger输出日志](#shell脚本使用logger输出日志)
+  * [使用bc做数值计算](#使用bc做数值计算)
   * [其它技巧](#其它技巧)
 <!-- TOC -->
 
@@ -4063,6 +4064,15 @@ logger -p user.info -t modname message
 ~~~
 输出的日志可通过`journalctl`查看。
 
+## 使用bc做数值计算
+
+```bash
+echo "${curr_freq_M} / ${full_freq_G} / 10" | bc
+
+# 单位GB，小数点后保留3位精度
+reservedMEM=$(echo "scale=3; ($totalMEM - $allocatableMEM)/1024/1024" | bc)
+```
+
 
 ## 其它技巧
 找出损坏的软链接：
@@ -4177,12 +4187,6 @@ nl打印时显示行号
 
 ```bash
 lsof | nl
-```
-
-使用bc做数值计算
-
-```bash
-echo "${curr_freq_M} / ${full_freq_G} / 10" | bc
 ```
 
 后台Daemon方式执行命令和脚本

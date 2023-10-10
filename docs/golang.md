@@ -6,6 +6,7 @@
   * [网络编程](#网络编程)
     * [http客户端超时和请求时context超时的区别](#http客户端超时和请求时context超时的区别)
 * [常用操作](#常用操作)
+  * [安装可执行文件](#安装可执行文件)
   * [避免1.17的编译注释被自动修改](#避免117的编译注释被自动修改)
 * [编译构建](#编译构建)
   * [build tag](#build-tag)
@@ -52,6 +53,14 @@ TODO: [Go http client timeout vs context timeout](https://stackoverflow.com/ques
 
 
 # 常用操作
+
+## 安装可执行文件
+以安装*controller-gen*为例：
+```bash
+mkdir /tmp/bin
+GOBIN=/tmp/bin go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.11.4
+```
+其中指定了版本v0.11.4。
 
 ## 避免1.17的编译注释被自动修改
 ```bash

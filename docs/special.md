@@ -374,6 +374,12 @@ grep -Eo "mysql-node[0-9]+"
 
 ### sed
 ```bash
+# 去掉字符串中的空格' '
+sed 's/[[:space:]]//g'
+
+# 使用正则表达式
+sed -e 's/{[0-9]\+}/%s/g'
+
 # 仅替换第一个匹配的内容
 sed -i '0,/foo/s//bar/' file-name
 
@@ -406,6 +412,9 @@ tr '\n' ' ' # 将换行符修改为空格
 ```bash
 ps -o pidns,pid,cmd | awk '$1==4026532661'
 cat id-list.log | awk '{s+=$1} END {print s}'
+
+# 判断 $1 ，并根据需要输出 $2
+awk '{if($1>1){print $2}}'
 ```
 
 ## Regex
