@@ -66,6 +66,9 @@
     * [创建Pod Sandbox](#创建pod-sandbox)
     * [创建业务容器](#创建业务容器)
     * [如何配置](#如何配置)
+  * [查看容器资源用量](#查看容器资源用量)
+    * [容器可读可写层存储占用top10](#容器可读可写层存储占用top10)
+    * [容器可读可写层inode占用top10](#容器可读可写层inode占用top10)
 * [Docker](#docker)
   * [容器环境下的swap使用](#容器环境下的swap使用)
   * [深入docker stats命令](#深入docker-stats命令)
@@ -971,6 +974,19 @@ crictl create <sandbox-id> container.json sandbox.json
 参见`vendor/k8s.io/cri-api/pkg/apis/runtime/v1/api.pb.go`中`PodSandboxConfig`和`ContainerConfig`结构体定义。
 
 **注意**和OCI的区别[opencontainers/runtime-spec](github.com/opencontainers/runtime-spec/specs-go/config.go) 。
+
+## 查看容器资源用量
+
+### 容器可读可写层存储占用top10
+```bash
+crictl stats -a -o json | jq '.stats[] | .writableLayer.usedBytes.value + " " + .attributes.labels["io.kubernetes.pod.namespace"] + " " + .attributes.labels["io.kubernetes.pod.name"]' -r | sort -rn | head -n 10
+```
+
+### 容器可读可写层inode占用top10
+```bash
+crictl stats -a -o json | jq '.stats[] | .writableLayer.inodesUsed.value + " " + .attributes.labels["io.kubernetes.pod.namespace"] + " " + .attributes.labels["io.kubernetes.pod.name"]' -r | sort -rn | head -n 10
+```
+
 
 # Docker
 
