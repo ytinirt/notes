@@ -20,6 +20,8 @@
     * [uniq](#uniq)
     * [tr](#tr)
     * [awk](#awk)
+    * [cut](#cut)
+      * [借助rev和cut仅截取字符串首部](#借助rev和cut仅截取字符串首部)
   * [Regex](#regex)
     * [实例](#实例)
   * [tcpdump](#tcpdump)
@@ -415,6 +417,14 @@ cat id-list.log | awk '{s+=$1} END {print s}'
 
 # 判断 $1 ，并根据需要输出 $2
 awk '{if($1>1){print $2}}'
+```
+
+### cut
+
+#### 借助rev和cut仅截取字符串首部
+```bash
+# 输出为 /kubernetes.io/apiextensions.k8s.io/customresourcedefinitions
+echo /kubernetes.io/apiextensions.k8s.io/customresourcedefinitions/a.b.c | rev | cut -d/ -f2- | rev
 ```
 
 ## Regex
