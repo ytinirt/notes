@@ -5,6 +5,8 @@
 * [Deep Dive](#deep-dive)
   * [SCC](#scc)
     * [使用oc adm policy设置scc权限的注意事项](#使用oc-adm-policy设置scc权限的注意事项)
+    * [“我”是否有这个操作权限](#我是否有这个操作权限)
+    * [“谁”有这个操作权限](#谁有这个操作权限)
 * [常用操作](#常用操作)
   * [Operator关键行为](#operator关键行为)
     * [rollout新版本](#rollout新版本)
@@ -98,6 +100,18 @@ yes
 yes
 # oc auth can-i --as=system:serviceaccount:hehe:default use scc/privileged -n hehe
 yes
+```
+
+### “我”是否有这个操作权限
+```bash
+oc auth can-i --as=system:serviceaccount:default:user use scc/privileged
+oc auth can-i --as=system:serviceaccount:default:user use scc/anyuid
+```
+
+### “谁”有这个操作权限
+```bash
+oc adm policy who-can use securitycontextconstraints/prvileged
+oc adm policy who-can use securitycontextconstraints/anyuid
 ```
 
 # 常用操作

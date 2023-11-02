@@ -60,6 +60,8 @@
 * [podman](#podman)
   * [使用podman查看cri创建的pod](#使用podman查看cri创建的pod)
   * [容器镜像和overlay/layer对应关系](#容器镜像和overlaylayer对应关系)
+  * [在login后podman的认证信息可能存放的几个地方](#在login后podman的认证信息可能存放的几个地方)
+  * [创建manifest list支持多架构镜像](#创建manifest-list支持多架构镜像)
   * [常用命令](#常用命令-1)
 * [crictl](#crictl)
   * [直接创建容器](#直接创建容器)
@@ -885,6 +887,26 @@ podman ps --all --storage
 1. `podman images`看到的镜像ID(`IMAGE ID`)即本地缓存镜像的id，具体对应于`/var/lib/containers/storage/overlay-images`目录下一个个文件夹
 2. `/var/lib/containers/storage/overlay-images/*/manifest`中有容器镜像的`layer`信息及每一层的大小
 3. ???
+
+## 在login后podman的认证信息可能存放的几个地方
+1. Linux默认在`${XDG_RUNTIME_DIR}/containers/auth.json`，即例如`/run/user/0/containers/auth.json`
+2. Windows和macOS默认在`$HOME/.config/containers/auth.json`
+3. 若缺失上述文件，则继续检查`$HOME/.docker/config.json`，即兼容使用`docker login`认证信息
+
+## 创建manifest list支持多架构镜像
+```bash
+# 新建一个manifest list
+podman manifest create localhost/flannel:v0.23.0
+# 向manifest list中添加镜像
+podman manifest add localhost/flannel:v0.23.0 foo.bar/dev/flannel:v0.23.0-amd64 foo.bar/dev/flannel:v0.23.0-arm64
+# 【可选】查看manifest list中镜像列表，检查各镜像携带的arch、variant、os等信息
+podman manifest inspect localhost/flannel:v0.23.0
+# 【可选】如果镜像没有arch信息，需要通过annotate为镜像添加arch等信息
+podman manifest annotate --arch "amd64" localhost/flannel:v0.23.0 foo.bar/dev/flannel:v0.23.0-amd64
+podman manifest annotate --arch "arm64" localhost/flannel:v0.23.0 foo.bar/dev/flannel:v0.23.0-arm64
+# 上传manifest list至镜像仓库
+podman manifest push localhost/flannel:v0.23.0 foo.bar/dev/flannel:v0.23.0
+```
 
 ## 常用命令
 ```bash
