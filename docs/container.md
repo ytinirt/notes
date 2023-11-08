@@ -58,6 +58,7 @@
   * [指定seccomp profile](#指定seccomp-profile)
   * [容器存储目录](#容器存储目录)
 * [podman](#podman)
+  * [配置管理](#配置管理)
   * [使用podman查看cri创建的pod](#使用podman查看cri创建的pod)
   * [容器镜像和overlay/layer对应关系](#容器镜像和overlaylayer对应关系)
   * [在login后podman的认证信息可能存放的几个地方](#在login后podman的认证信息可能存放的几个地方)
@@ -877,6 +878,9 @@ seccomp_profile = "/etc/crio/seccomp.json"
 * `/run/containers/storage/overlay-containers/<container>/userdata/`，放置容器的配置文件、挂载点等。
 
 # podman
+## 配置管理
+* 配置文件在`/usr/share/containers/`和`/etc/containers/`。
+
 ## 使用podman查看cri创建的pod
 ```bash
 podman ps --all --external

@@ -153,6 +153,7 @@
     * [coredump分析](#coredump分析)
     * [/proc/<pid>/目录下文件说明](#proc-pid-目录下文件说明)
     * [D状态进程的分析](#d状态进程的分析)
+      * [操作实例](#操作实例)
     * [defunct进程](#defunct进程)
     * [objdump分析库和可执行文件](#objdump分析库和可执行文件)
   * [主机资源监控](#主机资源监控)
@@ -162,7 +163,7 @@
     * [iftop（网络）](#iftop网络)
     * [sar（历史记录）](#sar历史记录)
       * [使能和配置sar](#使能和配置sar)
-      * [操作实例](#操作实例)
+      * [操作实例](#操作实例-1)
     * [打开文件数](#打开文件数)
     * [lsof（文件和设备）](#lsof文件和设备)
     * [fuser（文件和设备）](#fuser文件和设备)
@@ -2370,6 +2371,11 @@ TODO
 | syscall | |
 
 ### D状态进程的分析
+D状态进程指处于“不可中断睡眠状态”，即 *Uninterruptible Sleep* 。
+
+关于D状态和S状态进程的进一步说明，参见链接[What Is an Uninterruptible Process in Linux?](https://www.baeldung.com/linux/uninterruptible-process) 。
+
+#### 操作实例
 查看进程堆栈信息：
 ```bash
 cat /proc/<pid>/stack
@@ -2378,6 +2384,12 @@ cat /proc/<pid>/stack
 查看D住的进程/线程：
 ```bash
 ps -eL -o stat,pid,comm,wchan=DD | grep ^D
+```
+
+dump出所有D状态的进程调用栈：
+```bash
+echo w > /proc/sysrq-trigger
+# 然后在系统日志中查看调用栈
 ```
 
 ### defunct进程

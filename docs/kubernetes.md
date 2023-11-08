@@ -36,6 +36,8 @@
 * [鉴权Authorization](#鉴权authorization)
   * [判断我是否有权限](#判断我是否有权限)
   * [判断谁有权限操作](#判断谁有权限操作)
+* [安全](#安全)
+  * [Pod Security Admission](#pod-security-admission)
 * [操作实例](#操作实例)
   * [在大规模集群中优雅的操作](#在大规模集群中优雅的操作)
     * [集群Pod总数](#集群pod总数)
@@ -660,6 +662,10 @@ kubectl auth can-i --as=system:serviceaccount:kube-system:replicaset-controller 
 ```bash
 oc adm policy who-can use securitycontextconstraints/anyuid
 ```
+
+# 安全
+## Pod Security Admission
+TODO
 
 # 操作实例
 
