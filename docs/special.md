@@ -206,6 +206,7 @@
     * [图片配置大小](#图片配置大小)
     * [调用github接口将md转换为html](#调用github接口将md转换为html)
   * [WSL](#wsl)
+  * [frp](#frp)
   * [奇技淫巧](#奇技淫巧)
     * [VMware为NAT网络配置端口转发](#vmware为nat网络配置端口转发)
     * [goland](#goland)
@@ -2915,6 +2916,26 @@ docker-engine的wsl默认数据目录`C:\Users\admin\AppData\Local\Docker\wsl` �
 
 限制WSL使用的内存：
 * https://zhuanlan.zhihu.com/p/345645621
+
+## frp
+通过frp配置反向代理，穿过nat或防火墙，对外暴露设备。
+
+项目地址[frp](https://github.com/fatedier/frp) 。
+
+客户端配置示例：
+```bash
+# cat frpc.ini
+[common]
+server_addr = <server-ip-address>
+server_port = 7000
+token = token
+
+[ssh]
+type = tcp
+local_ip = 127.0.0.1
+local_port = 22
+remote_port = 6000
+```
 
 ## 奇技淫巧
 

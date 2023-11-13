@@ -2484,6 +2484,8 @@ systemctl status sysstat-collect.timer
 sar -r
 #查看CPU消耗情况
 sar -u
+# 其中XX为日期，例如9号，就是09
+sar -u -f saXX
 #查看CPU load，可以查看到历史CPU/系统负载
 sar -q
 #查看网络统计信息
