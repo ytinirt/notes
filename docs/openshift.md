@@ -8,6 +8,7 @@
     * [“我”是否有这个操作权限](#我是否有这个操作权限)
     * [“谁”有这个操作权限](#谁有这个操作权限)
 * [常用操作](#常用操作)
+  * [日志收集must-gather](#日志收集must-gather)
   * [Operator关键行为](#operator关键行为)
     * [rollout新版本](#rollout新版本)
   * [配置审计日志策略](#配置审计日志策略)
@@ -115,6 +116,15 @@ oc adm policy who-can use securitycontextconstraints/anyuid
 ```
 
 # 常用操作
+
+## 日志收集must-gather
+使用must-gather收集审计日志：
+```bash
+oc adm must-gather -- /usr/bin/gather_audit_logs
+```
+
+具体的，会拉起一个临时pod（使用must-gather镜像），这个pod里执行日志收集脚本。上面的例子中，就会执行`/usr/bin/gather_audit_logs`这个脚本。
+脚本中大量使用oc/kubectl命令查询集群信息和收集日志，因此会创建临时clusterRoleBinding，为pod使用的sa临时指定cluster-admin权限。
 
 ## Operator关键行为
 ### rollout新版本
