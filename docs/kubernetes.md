@@ -1089,6 +1089,10 @@ NS=default
 SA=admin
 TOKEN=$(kubectl get secrets -n ${NS} $(kubectl get sa -n ${NS} ${SA} -o jsonpath='{.secrets[0].name}') -o jsonpath='{.data.token}' | base64 -d)
 
+# kubectl使用token
+# XXX：需要说明的，如果有~/.kube/config文件，kubectl还是优先使用该kubeconfig文件
+kubectl get pod --token ${TOKEN} -s https://api.foo.bar:6443 --insecure-skip-tls-verify
+
 # 模仿Pod内使用in-cluster配置访问apiserver
 NS=default
 POD=test

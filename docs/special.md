@@ -122,6 +122,7 @@
     * [Pushgateway](#pushgateway)
     * [Alertmanager](#alertmanager)
     * [prometheus-operator](#prometheus-operator)
+    * [dashboard表达式实例](#dashboard表达式实例)
   * [Harbor](#harbor)
     * [手动清理镜像](#手动清理镜像)
   * [minio](#minio)
@@ -1831,6 +1832,19 @@ subsets:
 
 TODO：根本原因
 
+
+### dashboard表达式实例
+```
+# ETCD DB Size
+etcd_mvcc_db_total_size_in_bytes
+
+# ETCD Disk Sync Duration
+histogram_quantile(0.99, sum(rate(etcd_disk_wal_fsync_duration_seconds_bucket[5m])) by (pod_name, le))
+histogram_quantile(0.99, sum(rate(etcd_disk_backend_commit_duration_seconds_bucket[5m])) by (pod_name, le))
+
+# ETCD Total Leader Elections Per Day
+changes(etcd_server_leader_changes_seen_total[1d])
+```
 
 ## Harbor
 
