@@ -51,11 +51,6 @@
   * [获取openapi json](#获取openapi-json)
   * [从secret中获取证书信息](#从secret中获取证书信息)
   * [从KubeConfig文件中提取证书秘钥](#从kubeconfig文件中提取证书秘钥)
-  * [debug和问题解决](#debug和问题解决)
-    * [kube-apiserver](#kube-apiserver)
-    * [kubelet](#kubelet)
-    * [kube-controller-manager](#kube-controller-manager)
-    * [kube-scheduler](#kube-scheduler)
   * [堆栈文件分析](#堆栈文件分析)
   * [根据sa生成kubeconfig](#根据sa生成kubeconfig)
   * [kubeconfig跳过服务端证书校验](#kubeconfig跳过服务端证书校验)
@@ -84,7 +79,7 @@
   * [读懂监控指标](#读懂监控指标)
     * [kube-apiserver监控指标](#kube-apiserver监控指标)
 * [Deep Dive系列](#deep-dive系列)
-  * [kube-apiserver](#kube-apiserver-1)
+  * [kube-apiserver](#kube-apiserver)
     * [服务启动流程](#服务启动流程)
     * [服务端fieldSelector](#服务端fieldselector)
     * [REST Storage](#rest-storage)
@@ -96,15 +91,15 @@
       * [codec和codec factory](#codec和codec-factory)
     * [资源schema](#资源schema)
     * [健康检查/healthz](#健康检查healthz)
-  * [kube-controller-manager](#kube-controller-manager-1)
+  * [kube-controller-manager](#kube-controller-manager)
     * [配置和初始化](#配置和初始化)
     * [leader选举](#leader选举)
     * [核心Controller](#核心controller)
-  * [kube-scheduler](#kube-scheduler-1)
+  * [kube-scheduler](#kube-scheduler)
     * [配置和初始化](#配置和初始化-1)
     * [leader选举](#leader选举-1)
     * [资源调度](#资源调度)
-  * [kubelet](#kubelet-1)
+  * [kubelet](#kubelet)
     * [配置和初始化](#配置和初始化-2)
     * [PLEG](#pleg)
     * [调用CRI接口](#调用cri接口)
@@ -120,6 +115,11 @@
   * [库函数和实操](#库函数和实操)
     * [处理runtime.Object](#处理runtimeobject)
       * [获取meta.Object信息](#获取metaobject信息)
+* [Debug](#debug)
+  * [kube-apiserver](#kube-apiserver-1)
+  * [kubelet](#kubelet-1)
+  * [kube-controller-manager](#kube-controller-manager-1)
+  * [kube-scheduler](#kube-scheduler-1)
 * [备忘](#备忘)
   * [k8s版本信息](#k8s版本信息)
   * [从源码编译kubernetes时版本信息](#从源码编译kubernetes时版本信息)
@@ -819,85 +819,6 @@ cat e2e-test-kubeconfig  | grep client-certificate-data | awk '{print $2}' | bas
 cat e2e-test-kubeconfig  | grep client-key-data | awk '{print $2}' | base64 -d > tls.key
 ```
 
-## debug和问题解决
-```bash
-# 开启apiserver proxy
-# 注意，因示例和debug原因开启的disable-filter选项，会带来严重的安全问题，需谨慎
-# 默认端口8001
-kubectl proxy --address=0.0.0.0 --disable-filter=true
-
-# kube-apiserver
-# 浏览器打开 http://x.x.x.x:8001/debug/pprof/ 查看apiserver的pprof信息
-# 获取apiserver的goroutine信息（概要）
-curl http://x.x.x.x:8001/debug/pprof/goroutine?debug=1
-# 或（详细信息）
-curl http://x.x.x.x:8001/debug/pprof/goroutine?debug=2
-# TODOTODO
-
-# kubelet
-# 保持kubelet在线运行，使用pprof分析kubelet，拿到goroutine堆栈
-curl http://localhost:8001/api/v1/proxy/nodes/node-x/debug/pprof/goroutine?debug=2
-# 或者
-curl http://127.0.0.1:8001/api/v1/nodes/node-x/proxy/debug/pprof/goroutine?debug=2
-# 停止kubelet进程，并打印堆栈，特别有助于定位hang住的问题
-kill -s SIGQUIT <pid-of-kubelet>
-# 或者
-kill -SIGABRT <pid-of-kubelet>
-# 收集heap信息
-wget -O kubelet-heap.out http://127.0.0.1:8001/api/v1/nodes/node-x/proxy/debug/pprof/heap
-# 收集profile信息
-wget -O kubelet-profile.out http://127.0.0.1:8001/api/v1/nodes/node-x/proxy/debug/pprof/profile
-
-# kubelet健康检查
-curl 127.0.0.1:10248/healthz
-# 获取更多细节
-curl -k https://127.0.0.1:10250/healthz --cacert /etc/kubernetes/keys/ca.pem --cert /etc/kubernetes/keys/kubernetes.pem --key /etc/kubernetes/keys/kubernetes-key.pem
-# 或者
-curl -k https://127.0.0.1:10250/healthz --cacert /etc/kubernetes/pki/ca.crt --cert /etc/kubernetes/pki/apiserver-kubelet-client.crt --key /etc/kubernetes/pki/apiserver-kubelet-client.key
-
-# kubelet的metrics
-curl -k https://127.0.0.1:10250/metrics --cacert /etc/kubernetes/pki/ca.crt --cert /etc/kubernetes/pki/apiserver-kubelet-client.crt --key /etc/kubernetes/pki/apiserver-kubelet-client.key
-
-# kubelet “看到”的节点内存实际用量
-NODE_IP=10.0.0.123
-sudo curl -sk https://${NODE_IP}:10250/metrics/resource --cacert /etc/kubernetes/pki/ca.crt --cert /etc/kubernetes/pki/apiserver-kubelet-client.crt --key /etc/kubernetes/pki/apiserver-kubelet-client.key | grep node_memory_working_set_bytes
-```
-
-| 路径                | 说明                |
-|-------------------|-------------------|
-| /metrics          | kubelet自己的指标      |
-| /metrics/cadvisor | 容器监控指标            |
-| /metrics/probes   | Pod的Prober指标      |
-| /metrics/resource | 节点和Pod的CPU和内存资源开销 |
-
-
-### kube-apiserver
-```bash
-# 动态调整kube-apiserver日志级别
-curl -X PUT http://127.0.0.1:8001/debug/flags/v -d "4"
-
-# 开启proxy
-kubectl proxy --address=0.0.0.0 --disable-filter=true
-# 收集heap
-wget -O $(hostname)-heap-$(date +"%y%m%d%H%M") http://127.0.0.1:8001/debug/pprof/heap
-# 收集goroutine
-curl http://127.0.0.1:8001/debug/pprof/goroutine?debug=2 >> $(hostname)-goroutine-debug2-$(date +"%y%m%d%H%M")
-# 收集profile
-wget -O $(hostname)-profile-$(date +"%y%m%d%H%M") http://127.0.0.1:8001/debug/pprof/profile
-
-# 分析pprof
-go tool pprof -http :8080 *-{heap,goroutine-debug2,profile}-*
-```
-
-### kubelet
-TODO
-
-### kube-controller-manager
-
-### kube-scheduler
-```bash
-kill -s SIGUSR2 $(pidof kube-scheduler)
-```
 
 ## 堆栈文件分析
 ```bash
@@ -1553,6 +1474,86 @@ func yyy() {
 	}
 	return meta.GetName(), nil
 }
+```
+
+# Debug
+```bash
+# 开启apiserver proxy
+# 注意，因示例和debug原因开启的disable-filter选项，会带来严重的安全问题，需谨慎
+# 默认端口8001
+kubectl proxy --address=0.0.0.0 --disable-filter=true
+
+# kube-apiserver
+# 浏览器打开 http://x.x.x.x:8001/debug/pprof/ 查看apiserver的pprof信息
+# 获取apiserver的goroutine信息（概要）
+curl http://x.x.x.x:8001/debug/pprof/goroutine?debug=1
+# 或（详细信息）
+curl http://x.x.x.x:8001/debug/pprof/goroutine?debug=2
+# TODOTODO
+
+# kubelet
+# 保持kubelet在线运行，使用pprof分析kubelet，拿到goroutine堆栈
+curl http://localhost:8001/api/v1/proxy/nodes/node-x/debug/pprof/goroutine?debug=2
+# 或者
+curl http://127.0.0.1:8001/api/v1/nodes/node-x/proxy/debug/pprof/goroutine?debug=2
+# 停止kubelet进程，并打印堆栈，特别有助于定位hang住的问题
+kill -s SIGQUIT <pid-of-kubelet>
+# 或者
+kill -SIGABRT <pid-of-kubelet>
+# 收集heap信息
+wget -O kubelet-heap.out http://127.0.0.1:8001/api/v1/nodes/node-x/proxy/debug/pprof/heap
+# 收集profile信息
+wget -O kubelet-profile.out http://127.0.0.1:8001/api/v1/nodes/node-x/proxy/debug/pprof/profile
+
+# kubelet健康检查
+curl 127.0.0.1:10248/healthz
+# 获取更多细节
+curl -k https://127.0.0.1:10250/healthz --cacert /etc/kubernetes/keys/ca.pem --cert /etc/kubernetes/keys/kubernetes.pem --key /etc/kubernetes/keys/kubernetes-key.pem
+# 或者
+curl -k https://127.0.0.1:10250/healthz --cacert /etc/kubernetes/pki/ca.crt --cert /etc/kubernetes/pki/apiserver-kubelet-client.crt --key /etc/kubernetes/pki/apiserver-kubelet-client.key
+
+# kubelet的metrics
+curl -k https://127.0.0.1:10250/metrics --cacert /etc/kubernetes/pki/ca.crt --cert /etc/kubernetes/pki/apiserver-kubelet-client.crt --key /etc/kubernetes/pki/apiserver-kubelet-client.key
+
+# kubelet “看到”的节点内存实际用量
+NODE_IP=10.0.0.123
+sudo curl -sk https://${NODE_IP}:10250/metrics/resource --cacert /etc/kubernetes/pki/ca.crt --cert /etc/kubernetes/pki/apiserver-kubelet-client.crt --key /etc/kubernetes/pki/apiserver-kubelet-client.key | grep node_memory_working_set_bytes
+```
+
+| 路径                | 说明                |
+|-------------------|-------------------|
+| /metrics          | kubelet自己的指标      |
+| /metrics/cadvisor | 容器监控指标            |
+| /metrics/probes   | Pod的Prober指标      |
+| /metrics/resource | 节点和Pod的CPU和内存资源开销 |
+
+
+## kube-apiserver
+```bash
+# 动态调整kube-apiserver日志级别
+curl -X PUT http://127.0.0.1:8001/debug/flags/v -d "4"
+
+# 开启proxy
+kubectl proxy --address=0.0.0.0 --disable-filter=true
+# 收集heap
+wget -O $(hostname)-heap-$(date +"%y%m%d%H%M") http://127.0.0.1:8001/debug/pprof/heap
+# 收集goroutine
+curl http://127.0.0.1:8001/debug/pprof/goroutine?debug=2 >> $(hostname)-goroutine-debug2-$(date +"%y%m%d%H%M")
+# 收集profile
+wget -O $(hostname)-profile-$(date +"%y%m%d%H%M") http://127.0.0.1:8001/debug/pprof/profile
+
+# 分析pprof
+go tool pprof -http :8080 *-{heap,goroutine-debug2,profile}-*
+```
+
+## kubelet
+TODO
+
+## kube-controller-manager
+
+## kube-scheduler
+```bash
+kill -s SIGUSR2 $(pidof kube-scheduler)
 ```
 
 # 备忘
