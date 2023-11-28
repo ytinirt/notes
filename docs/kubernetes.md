@@ -1552,9 +1552,16 @@ TODO
 ## kube-controller-manager
 
 ## kube-scheduler
+在日志中，dump出kube-scheduler的内存数据（`Dump of cached NodeInfo`）：
 ```bash
 kill -s SIGUSR2 $(pidof kube-scheduler)
 ```
+
+主要包括等待调度的Pod队列详情（`Dump of scheduling queue`），以及各节点：
+* 节点名
+* 已请求资源`Requested Resources`
+* 可分配资源`Allocatable Resources`
+* 已调度的Pod详情
 
 # 备忘
 ## k8s版本信息
