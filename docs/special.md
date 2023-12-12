@@ -8,6 +8,7 @@
     * [从一个仓库pull然后push到另一个仓库](#从一个仓库pull然后push到另一个仓库)
     * [tag](#tag)
     * [常用操作](#常用操作)
+  * [plantuml](#plantuml)
   * [VI/VIM](#vivim)
     * [常用操作](#常用操作-1)
   * [Makefile](#makefile)
@@ -324,6 +325,14 @@ export no_proxy=.ytinirt.cn
 git config --global http.sslverify 'false'
 ```
 
+## plantuml
+通过*plantuml*画UML图
+
+TODO学习链接：
+* [plantuml官网](https://plantuml.com/zh/)
+* [plantuml-documentation](https://plantuml-documentation.readthedocs.io/en/latest/index.html)
+* [plantuml-documentation时序图](https://plantuml-documentation.readthedocs.io/en/latest/diagrams/sequence.html)
+* [entities, controls, boundaries概念](https://www.cs.sjsu.edu/~pearce/modules/lectures/ooa/analysis/ecb.htm)
 
 ## VI/VIM
 

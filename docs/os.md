@@ -182,6 +182,7 @@
   * [软件包管理](#软件包管理)
     * [rpm](#rpm)
     * [yum](#yum)
+    * [dnf](#dnf)
   * [域名解析](#域名解析)
     * [nslookup](#nslookup)
   * [时钟同步](#时钟同步)
@@ -2960,7 +2961,11 @@ yum clean all
 yum makecache
 ```
 
-
+### dnf
+```bash
+# 查看yum源信息
+dnf repoinfo
+```
 
 
 
