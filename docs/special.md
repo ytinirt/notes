@@ -70,6 +70,7 @@
       * [过滤带有特殊注解的k8s资源](#过滤带有特殊注解的k8s资源)
       * [查询k8s的events](#查询k8s的events)
       * [数字转string](#数字转string)
+      * [将map转换为key-value的数组](#将map转换为key-value的数组)
       * [排序](#排序)
       * [map对象添加kv](#map对象添加kv)
       * [更新字段](#更新字段)
@@ -1017,6 +1018,27 @@ kubectl get event -A -o json | jq '.items[] | select(.count != null) | select(.f
 #### 数字转string
 ```bash
 jq '.[] | .string + ": " + (.number|tostring)'
+```
+
+#### 将map转换为key-value的数组
+使用`to_entries`，将map转换为key-value组成的数组：
+```bash
+# cat images.json | jq '.images'
+{
+  "nginx": "foo:bar",
+  "centos": "hehe:xixi"
+}
+# cat images.json | jq '.images | to_entries'
+[
+  {
+    "key": "nginx",
+    "value": "foo:bar"
+  },
+  {
+    "key": "centos",
+    "value": "hehe:xixi"
+  }
+]
 ```
 
 #### 排序
