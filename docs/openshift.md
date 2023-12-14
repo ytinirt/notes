@@ -222,7 +222,7 @@ oc image mirror -a /var/lib/kubelet/config.json quay.io/openshift-release-dev/oc
 
 
 ## 使用podman操作容器镜像
-# 镜像导出
+# 镜像导出，导出多个镜像时注意增加 -m 标识
 sudo podman save -m quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:8c8813c quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:a705303fa | gzip > hehe.tar.gz
 
 

@@ -29,6 +29,7 @@
     * [tcpdump和libpcap常用规则](#tcpdump和libpcap常用规则)
   * [Shell和Bash](#shell和bash)
     * [Bash实例](#bash实例)
+      * [跳过pipe失败](#跳过pipe失败)
       * [简写的if和if-else判断](#简写的if和if-else判断)
       * [函数返回逻辑判断结果](#函数返回逻辑判断结果)
       * [一行一行的读文件并分割处理每一行](#一行一行的读文件并分割处理每一行)
@@ -41,6 +42,7 @@
       * [字符串切片](#字符串切片)
       * [截取字符串子串](#截取字符串子串)
       * [字符串比较](#字符串比较)
+      * [字符串替换](#字符串替换)
       * [计算数组中元素个数](#计算数组中元素个数)
       * [当没有stress时如何对CPU施压](#当没有stress时如何对cpu施压)
       * [并发执行多任务](#并发执行多任务)
@@ -84,12 +86,15 @@
   * [Swagger](#swagger)
     * [使用swagger-ui](#使用swagger-ui)
   * [GDB](#gdb)
+  * [tar](#tar)
+    * [解压时保留owner的id](#解压时保留owner的id)
+    * [常用操作](#常用操作-3)
 * [容器网络](#容器网络)
   * [Calico](#calico)
     * [使用Calico实现容器网络流量限制](#使用calico实现容器网络流量限制)
     * [Calico容器网络中固定Pod IP地址](#calico容器网络中固定pod-ip地址)
   * [kube-ovn](#kube-ovn)
-    * [常用操作](#常用操作-3)
+    * [常用操作](#常用操作-4)
   * [CoreDNS](#coredns)
     * [CoreDNS原理简介](#coredns原理简介)
     * [通过rewrite plugin修改待解析的域名](#通过rewrite-plugin修改待解析的域名)
@@ -142,7 +147,7 @@
   * [memcached](#memcached)
   * [mysql](#mysql)
     * [数据库操作](#数据库操作)
-      * [常用操作](#常用操作-4)
+      * [常用操作](#常用操作-5)
       * [数据库master节点操作](#数据库master节点操作)
       * [数据库slave节点操作](#数据库slave节点操作)
       * [重置slave上master binlog的位置](#重置slave上master-binlog的位置)
@@ -162,11 +167,11 @@
   * [PostgreSQL](#postgresql)
   * [SQLite](#sqlite)
   * [RabbitMQ](#rabbitmq)
-    * [常用操作](#常用操作-5)
+    * [常用操作](#常用操作-6)
     * [rabbitmq节点重新加入集群](#rabbitmq节点重新加入集群)
   * [influxdb](#influxdb)
   * [Openstack](#openstack)
-    * [常用操作](#常用操作-6)
+    * [常用操作](#常用操作-7)
     * [K8s中openstack-cloud-provider获取实例元数据](#k8s中openstack-cloud-provider获取实例元数据)
       * [通过ConfigDrive方式](#通过configdrive方式)
       * [通过MetadataService方式](#通过metadataservice方式)
@@ -512,6 +517,12 @@ dns.qry.name contains "devops"      # DNS请求过滤
 
 ### Bash实例
 
+#### 跳过pipe失败
+当脚本设置有`set -e`时，若命令执行失败，会导致脚本立即退出，为此可采用如下方式跳过失败：
+```bash
+command_failed || true
+```
+
 #### 简写的if和if-else判断
 ```bash
 # if
@@ -686,6 +697,22 @@ function compare()
 ```
 
 
+#### 字符串替换
+仅替换`first`中第一个子字符串`Suzy`：
+```bash
+first="I love Suzy and Mary"
+second="Sara"
+first=${first/Suzy/$second}
+# first is now "I love Sara and Mary"
+```
+
+替换所有匹配的子字符串：
+```bash
+first="Suzy, Suzy, Suzy"
+second="Sara"
+first=${first//Suzy/$second}
+# first is now "Sara, Sara, Sara"
+```
 
 #### 计算数组中元素个数
 
@@ -1188,6 +1215,22 @@ helm show all oci://registry-1.docker.io/ytinirt/demo
 gdb -c xx.core
 ```
 
+## tar
+
+### 解压时保留owner的id
+tar解压时，保留owner的id：
+```bash
+tar -zxf data.tar.gz --numeric-owner
+```
+
+### 常用操作
+```bash
+# 查看tar包中的文件列表
+tar -tf xxx.tar
+
+# 打包时，切换文件夹，解决绝对路径的影响
+tar -cf xxx.tar -C /path/to/files .
+```
 
 # 容器网络
 

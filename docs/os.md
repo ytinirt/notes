@@ -3519,6 +3519,10 @@ apt-get -f install
 
 # apt下载的deb包的缓存
 /var/cache/apt/archive
+
+# 查看已安装的包
+dpkg-query -l | less
+apt list --installed | less
 ```
 
 ### 添加仓库
@@ -4105,12 +4109,6 @@ find /run/crio -type l ! -readable
 cat file.log | (head -n1 && tail -n1)
 ```
 
-
-
-tar解压时，保留owner的id：
-```bash
-tar -zxf data.tar.gz --numeric-owner
-```
 
 
 查看服务器 SN 串号：
