@@ -76,6 +76,8 @@
       * [排序](#排序)
       * [map对象添加kv](#map对象添加kv)
       * [更新字段](#更新字段)
+      * [传参数](#传参数)
+      * [仅输出顶级和或二级key](#仅输出顶级和或二级key)
     * [常用操作](#常用操作-2)
   * [base64](#base64)
   * [butane](#butane)
@@ -382,6 +384,10 @@ cmake ../mysql-server-mysql-5.7.20/ -LH
 ## 文本处理
 ### grep
 ```bash
+# 搜索的字符串开头是 '-'，增加'--'
+grep -- "-h"
+
+
 # 搜索时，跳过一些文件
 grep -r --exclude-dir={.git,.svn} "string to search" <directory>
 grep -r --exclude-dir="./*/.git" "string to search" <directory>
@@ -1094,19 +1100,25 @@ oc get infrastructure/cluster -o json | jq '.metadata += {"annotations": {"foo":
 }
 ```
 
+#### 传参数
+```bash
+# 通过--arg，让key带着变量
+cat json_file | jq -r --arg file "etcd-peer-"${nodename}".crt" '.data[$file]'
+```
+
+#### 仅输出顶级和或二级key
+```bash
+# 仅输出顶级key
+cat master.ign | jq '. |= keys'
+# 输出顶级和二级key
+cat master.ign | jq '.| map_values(keys)'
+```
+
 ### 常用操作
 
 使用jq格式化输出
 
 ```bash
-# 通过--arg，让key带着变量
-cat json_file | jq -r --arg file "etcd-peer-"${nodename}".crt" '.data[$file]'
-
-# 仅输出顶级key
-cat master.ign | jq '. |= keys'
-# 输出顶级和二级key
-cat master.ign | jq '.| map_values(keys)'
-
 jq .
 # jq escape dot
 cat xxx | jq '.Labels["io.kubernetes.pod.namespace"]'
