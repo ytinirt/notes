@@ -28,7 +28,12 @@
   * [使用devle调试Go程序](#使用devle调试go程序)
   * [使用go tool trace追踪Go程序](#使用go-tool-trace追踪go程序)
   * [使用pprof定位Go程序问题](#使用pprof定位go程序问题)
-    * [示例：使用pprof定位kubelet](#示例使用pprof定位kubelet)
+    * [程序集成pprof包](#程序集成pprof包)
+      * [查看goroutine信息](#查看goroutine信息)
+      * [查看heap信息](#查看heap信息)
+      * [查看cpu的profile信息](#查看cpu的profile信息)
+    * [示例：使用pprof定位kube-apiserver问题](#示例使用pprof定位kube-apiserver问题)
+    * [示例：使用pprof定位kubelet问题](#示例使用pprof定位kubelet问题)
   * [golang diagnostics](#golang-diagnostics)
 * [Deep Dive系列](#deep-dive系列)
   * [http.Transport中连接池管理](#httptransport中连接池管理)
@@ -236,6 +241,66 @@ TODO
 
 
 ## 使用pprof定位Go程序问题
+参考资料：
+- https://segmentfault.com/a/1190000039649589
+- https://www.kubernetes.org.cn/3119.html
+- https://pkg.go.dev/net/http/pprof
+- https://lightcone.medium.com/how-to-profile-go-programs-c6c00e8f2ebf
+- TODO https://www.huaweicloud.com/articles/760089e5e8665e2397024ce2b9c39871.html
+- TODO https://go.dev/blog/pprof
+- TODO https://github.com/rsc/benchgraffiti
+
+### 程序集成pprof包
+```golang
+package main
+
+import (
+    "fmt"
+    "log"
+    "net/http"
+    _ "net/http/pprof"
+)
+
+func main() {
+    fmt.Printf("start\n")
+    log.Println(http.ListenAndServe("localhost:6060", nil))
+    fmt.Printf("finished\n")
+}
+```
+
+编译并运行上述程序
+```bash
+go build -o demo demo.go && ./demo &
+```
+
+#### 查看goroutine信息
+```bash
+go tool pprof http://localhost:6060/debug/pprof/goroutine
+(pprof) top                 # 查看“执行数量”前top的goroutine
+(pprof) traces              # 查看goroutine调用栈
+(pprof) list <funcregexp>   # 查看函数源码
+```
+
+或者直接下载`goroutine`堆栈文件：
+```bash
+curl http://localhost:6060/debug/pprof/goroutine?debug=2 >> goroutine.txt
+# 或者
+curl http://localhost:6060/debug/pprof/goroutine?debug=1 >> goroutine.txt
+```
+
+#### 查看heap信息
+```bash
+go tool pprof http://localhost:6060/debug/pprof/heap
+(pprof) top
+```
+
+#### 查看cpu的profile信息
+```bash
+go tool pprof http://localhost:6060/debug/pprof/profile?seconds=30
+(pprof) top
+```
+
+### 示例：使用pprof定位kube-apiserver问题
 kube-apiserver集成了pprof工具，可以通过/debug/prof/*获得kube-apiserver的heap、profile等信息：
 ```bash
 # 首先开启代理，会监听 127.0.0.1:8001
@@ -287,17 +352,7 @@ go tool trace trace.out
 ```
 
 
-参考资料：
-- https://segmentfault.com/a/1190000039649589
-- https://www.kubernetes.org.cn/3119.html
-- https://pkg.go.dev/net/http/pprof
-- https://lightcone.medium.com/how-to-profile-go-programs-c6c00e8f2ebf
-- TODO https://www.huaweicloud.com/articles/760089e5e8665e2397024ce2b9c39871.html
-- TODO https://go.dev/blog/pprof
-- TODO https://github.com/rsc/benchgraffiti
-
-
-### 示例：使用pprof定位kubelet
+### 示例：使用pprof定位kubelet问题
 ```bash
 # master节点上，开启debug代理
 kubectl proxy
