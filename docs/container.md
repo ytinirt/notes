@@ -17,6 +17,7 @@
     * [使用systemd管理cgroup](#使用systemd管理cgroup)
 * [namespaces](#namespaces)
   * [pid](#pid)
+    * [找到host和容器内进程pid关系](#找到host和容器内进程pid关系)
     * [找到一个pidns下的进程](#找到一个pidns下的进程)
   * [mount](#mount)
     * [主机上查看和修改容器内文件](#主机上查看和修改容器内文件)
@@ -274,6 +275,8 @@ cgdelete
 * [Building a Linux container by hand using namespaces](https://www.redhat.com/sysadmin/building-container-namespaces)
 
 ## pid
+
+### 找到host和容器内进程pid关系
 host上，查看进程的status文件，可看到其在容器内的pid：
 ```bash
 # cat /proc/<pid>/status | grep NSpid
