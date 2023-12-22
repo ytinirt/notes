@@ -133,6 +133,7 @@
       * [iostat判断io瓶颈](#iostat判断io瓶颈)
       * [ionice修改io优先级](#ionice修改io优先级)
       * [fio性能测试](#fio性能测试)
+      * [iotop细看进程的io](#iotop细看进程的io)
       * [iozone](#iozone)
       * [判断SSD还是HDD](#判断ssd还是hdd)
     * [使用stress进行压力测试](#使用stress进行压力测试)
@@ -2145,6 +2146,10 @@ dperf基于dpdk，提供100Gbps级别的网络性能和压测功能，项目地�
 iostat -xz 2
 ```
 
+更进一步，主要看IO延迟：
+* *r_await* 平均读延迟，单位ms。
+* *w_await* 平均写延迟，单位ms。
+
 #### ionice修改io优先级
 
 使用`ionice`提升/限制磁盘IO性能：
@@ -2194,6 +2199,11 @@ fio --rw=write --ioengine=sync --fdatasync=1 --directory=test-data --size=22m --
 ```
 TODO
 
+#### iotop细看进程的io
+```bash
+# batch方式查看有读写的process
+iotop -obP
+```
 
 
 #### iozone
@@ -2652,7 +2662,6 @@ cat /proc/meminfo
     DirectMap1G:    96468992 kB
 ifstat
 time python -c "2**1000000000"  # CPU性能
-iotop               #监控磁盘IO操作
 ps -eo min_flt,maj_flt,cmd,pid    #查看 page faults 统计信息，有Minor、Major、Invalid三种 page faults类型
 slabtop -s c        #查看slabinfo信息
 pmstat              #查看系统全局性能  high-level system performance overview

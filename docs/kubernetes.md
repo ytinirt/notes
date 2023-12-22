@@ -74,10 +74,16 @@
   * [获取k8s控制面组件指标](#获取k8s控制面组件指标)
   * [kubeadm部署的集群的操作](#kubeadm部署的集群的操作)
 * [最佳实践](#最佳实践)
+  * [资源限制](#资源限制)
+    * [容器进程数限制pids](#容器进程数限制pids)
   * [HPA](#hpa)
 * [性能调优](#性能调优)
   * [读懂监控指标](#读懂监控指标)
+    * [etcd监控指标](#etcd监控指标)
     * [kube-apiserver监控指标](#kube-apiserver监控指标)
+    * [kube-controller-manager监控指标](#kube-controller-manager监控指标)
+    * [kube-scheduler监控指标](#kube-scheduler监控指标)
+    * [kubelet监控指标](#kubelet监控指标)
 * [Deep Dive系列](#deep-dive系列)
   * [kube-apiserver](#kube-apiserver)
     * [服务启动流程](#服务启动流程)
@@ -1056,6 +1062,10 @@ done
 ```bash
 kubectl api-resources --verbs=list --namespaced -o name \
 | xargs -n 1 kubectl get --show-kind --ignore-not-found -n ${NAMESPACE}
+
+# 统计
+NAMESPACE=default
+for t in $(kubectl api-resources --verbs=list --namespaced -o name); do echo "$t: $(kubectl get $t --ignore-not-found -n ${NAMESPACE} | wc -l)"; done
 ```
 
 ### 遍历一个命名空间下所有资源的label和annotations
@@ -1234,6 +1244,29 @@ curl -sk https://127.0.0.1:10250/metrics --cacert /etc/kubernetes/pki/ca.crt --c
 ```
 
 # 最佳实践
+## 资源限制
+### 容器进程数限制pids
+TODO: https://kubernetes.io/docs/concepts/policy/pid-limiting/
+
+当kubelet的`podPidsLimit`设置为4096时：
+```bash
+cd /sys/fs/cgroup/pids/kubepods.slice
+# 查看一个pod的pids设置
+for p in $(find . -name "pids.max"); do echo "$(cat $p) $p"; done | grep kubepods-burstable-podxxx.slice
+203348 ./kubepods-burstable.slice/kubepods-burstable-podxxx.slice/crio-111.scope/pids.max
+203348 ./kubepods-burstable.slice/kubepods-burstable-podxxx.slice/crio-conmon-222.scope/pids.max
+203348 ./kubepods-burstable.slice/kubepods-burstable-podxxx.slice/crio-222.scope/pids.max
+max ./kubepods-burstable.slice/kubepods-burstable-podxxx.slice/crio-<sandbox pod>/pids.max
+4096 ./kubepods-burstable.slice/kubepods-burstable-podxxx.slice/pids.max
+203348 ./kubepods-burstable.slice/kubepods-burstable-podxxx.slice/crio-conmon-111.scope/pids.max
+```
+可看到：
+1. sandbox pod的pids未设限，pids.max置为max
+2. 业务容器默认置为`203348`
+3. 整个pod的pids.max被置为4096
+
+代码实现详见：*pkg/kubelet/cm/pod_container_manager_linux.go*
+
 ## HPA
 参考链接[kubernetes-hpa-configuration-guide](https://segment.com/blog/kubernetes-hpa-configuration-guide/)
 
@@ -1241,8 +1274,23 @@ curl -sk https://127.0.0.1:10250/metrics --cacert /etc/kubernetes/pki/ca.crt --c
 
 # 性能调优
 ## 读懂监控指标
+### etcd监控指标
+告警经验值：
+
+| 指标                           | label                    | 说明  | 告警值     |
+|------------------------------|--------------------------|-----|---------|
+| grpc_server_handling_seconds | grpc_method="Txn"        |     | P99 0.5 |
+| grpc_server_handling_seconds | grpc_method="Range"      |     | P99 0.5 |
+| grpc_server_handling_seconds | grpc_method="LeaseGrant" |     | P99 0.5 |
+| grpc_server_handling_seconds | grpc_method="MemberList" |     | P99 0.5 |
+
 ### kube-apiserver监控指标
 
+### kube-controller-manager监控指标
+
+### kube-scheduler监控指标
+
+### kubelet监控指标
 
 # Deep Dive系列
 ## kube-apiserver

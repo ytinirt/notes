@@ -9,6 +9,7 @@
     * [cpuset](#cpuset)
     * [memory](#memory)
     * [devices](#devices)
+    * [pids](#pids)
   * [挂载cgroupfs](#挂载cgroupfs)
   * [判断是否为cgroupv2](#判断是否为cgroupv2)
   * [降级为cgroupv1](#降级为cgroupv1)
@@ -18,6 +19,7 @@
   * [pid](#pid)
     * [找到一个pidns下的进程](#找到一个pidns下的进程)
   * [mount](#mount)
+    * [主机上查看和修改容器内文件](#主机上查看和修改容器内文件)
   * [常用命令](#常用命令)
   * [常用工具](#常用工具)
     * [lsns](#lsns)
@@ -92,6 +94,8 @@
     * [docker使用代理](#docker使用代理)
     * [容器文件系统使用率统计](#容器文件系统使用率统计)
     * [强制重启Docker服务](#强制重启docker服务)
+* [镜像仓库和工具](#镜像仓库和工具)
+  * [skopeo](#skopeo)
 <!-- TOC -->
 
 # cgroup
@@ -214,6 +218,12 @@ TODO: cgroup v1的oom，文件缓存*file_dirty* 和 *file_writeback* 的内存�
 echo "b 7:0 rwm" > /sys/fs/cgroup/devices/kubepods.slice/devices.allow
 ```
 
+### pids
+可用于控制容器的进程数：
+```
+pids.current  pids.events   pids.max
+```
+
 ## 挂载cgroupfs
 
 以cpuset子系统为例：
@@ -288,6 +298,12 @@ ps -eo pidns,pid,lwp,cmd | awk '$1==xxxxxxxxxx'
 ## mount
 进一步阅读:
 * [Building a container by hand using namespaces: The mount namespace](https://www.redhat.com/sysadmin/mount-namespaces)
+
+### 主机上查看和修改容器内文件
+```bash
+nsenter -t $(pidof xxx) -m ls
+nsenter -t $(pidof xxx) -m vi /path/to/file
+```
 
 ## 常用命令
 ```bash
@@ -1341,4 +1357,15 @@ killall dockerd
 systemctl start docker
 ```
 
+
+# 镜像仓库和工具
+## skopeo
+常用命令
+```bash
+skopeo inspect docker://foo.bar/image:tag
+skopeo list-tags docker://foo.bar/image
+# 同步镜像的所有tag，当前还不支持多架构
+skopeo sync --src docker --dest dir foo.bar/image /mnt/usb --tls-verify=false --preserve-digests
+skopeo copy docker://foo.bar/image:tag dir:/mnt/usb --tls-verify=false --multi-arch=all --preserve-digests
+```
 
