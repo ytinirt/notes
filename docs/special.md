@@ -216,7 +216,9 @@
     * [图片配置大小](#图片配置大小)
     * [调用github接口将md转换为html](#调用github接口将md转换为html)
   * [WSL](#wsl)
-  * [frp](#frp)
+  * [反向代理/内网穿透工具](#反向代理内网穿透工具)
+    * [frp](#frp)
+    * [Ngrok](#ngrok)
   * [奇技淫巧](#奇技淫巧)
     * [VMware为NAT网络配置端口转发](#vmware为nat网络配置端口转发)
     * [goland](#goland)
@@ -3017,7 +3019,11 @@ docker-engine的wsl默认数据目录`C:\Users\admin\AppData\Local\Docker\wsl` �
 限制WSL使用的内存：
 * https://zhuanlan.zhihu.com/p/345645621
 
-## frp
+## 反向代理/内网穿透工具
+
+* https://wiki.kpromise.top/project-1/doc-6/
+
+### frp
 通过frp配置反向代理，穿过nat或防火墙，对外暴露设备。
 
 项目地址[frp](https://github.com/fatedier/frp) 。
@@ -3036,6 +3042,8 @@ local_ip = 127.0.0.1
 local_port = 22
 remote_port = 6000
 ```
+
+### Ngrok
 
 ## 奇技淫巧
 
