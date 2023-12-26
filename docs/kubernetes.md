@@ -1540,9 +1540,9 @@ curl http://x.x.x.x:8001/debug/pprof/goroutine?debug=2
 # TODOTODO
 
 # kubelet
+# 获取kubelet指标
+curl http://127.0.0.1:8001/api/v1/nodes/node-x/proxy/metrics
 # 保持kubelet在线运行，使用pprof分析kubelet，拿到goroutine堆栈
-curl http://localhost:8001/api/v1/proxy/nodes/node-x/debug/pprof/goroutine?debug=2
-# 或者
 curl http://127.0.0.1:8001/api/v1/nodes/node-x/proxy/debug/pprof/goroutine?debug=2
 # 停止kubelet进程，并打印堆栈，特别有助于定位hang住的问题
 kill -s SIGQUIT <pid-of-kubelet>
