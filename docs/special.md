@@ -218,6 +218,7 @@
   * [WSL](#wsl)
   * [反向代理/内网穿透工具](#反向代理内网穿透工具)
     * [frp](#frp)
+    * [sshd](#sshd)
     * [Ngrok](#ngrok)
   * [奇技淫巧](#奇技淫巧)
     * [VMware为NAT网络配置端口转发](#vmware为nat网络配置端口转发)
@@ -3042,6 +3043,9 @@ local_ip = 127.0.0.1
 local_port = 22
 remote_port = 6000
 ```
+
+### sshd
+* https://blog.csdn.net/feifei3211/article/details/102879381
 
 ### Ngrok
 

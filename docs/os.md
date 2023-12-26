@@ -104,6 +104,8 @@
   * [存储多路径](#存储多路径)
   * [Persistent Memory](#persistent-memory)
 * [File system](#file-system)
+  * [命令行工具](#命令行工具)
+    * [stat](#stat)
   * [内存文件系统](#内存文件系统)
   * [xfs文件系统](#xfs文件系统)
     * [配额管理](#配额管理)
@@ -1878,6 +1880,16 @@ multipathd
 
 # File system
 
+## 命令行工具
+### stat
+```bash
+# 查看文件系统信息，使用 statfs 系统调用
+stat -t --file-system /sys/fs/cgroup
+
+# 更进一步，查看文件系统type，判断是否为cgroup v1，其中type为27e0eb，对应cgroup v1，详见 man statfs
+stat -t --file-system /sys/fs/cgroup/cpu,cpuacct
+/sys/fs/cgroup/cpu,cpuacct 0 255 27e0eb 65536 65536 0 0 0 0 0
+```
 
 
 ## 内存文件系统
