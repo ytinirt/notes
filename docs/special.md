@@ -43,6 +43,7 @@
       * [截取字符串子串](#截取字符串子串)
       * [字符串比较](#字符串比较)
       * [字符串替换](#字符串替换)
+      * [遍历逗号分割的字符串](#遍历逗号分割的字符串)
       * [计算数组中元素个数](#计算数组中元素个数)
       * [当没有stress时如何对CPU施压](#当没有stress时如何对cpu施压)
       * [并发执行多任务](#并发执行多任务)
@@ -402,6 +403,9 @@ grep -Eo "mysql-node[0-9]+"
 
 ### sed
 ```bash
+# 一次性处理多个pattern
+sed -i 's/foo/bar/g;s/Foo/Bar/g' file-name
+
 # 去掉字符串中的空格' '
 sed 's/[[:space:]]//g'
 
@@ -721,6 +725,15 @@ first="Suzy, Suzy, Suzy"
 second="Sara"
 first=${first//Suzy/$second}
 # first is now "Sara, Sara, Sara"
+```
+
+#### 遍历逗号分割的字符串
+```bash
+variable=abc,def,ghij
+for i in ${variable//,/ }
+do
+    echo "$i"
+done
 ```
 
 #### 计算数组中元素个数
