@@ -144,6 +144,7 @@
   * [Redis](#redis)
     * [Redis常用操作](#redis常用操作)
 * [杂项](#杂项)
+  * [容错vs高可用vs灾备](#容错vs高可用vs灾备)
   * [AK/SK认证](#aksk认证)
     * [AK/SK原理](#aksk原理)
     * [AK/SK流程](#aksk流程)
@@ -2031,6 +2032,15 @@ info replication
 
 # 杂项
 
+## 容错vs高可用vs灾备
+TODO:
+* 容错 `Fault Tolerance`
+* 高可用 `High Availability`
+* 灾备 `Disaster Recovery`
+
+参考：
+* [容错，高可用和灾备](https://www.ruanyifeng.com/blog/2019/11/fault-tolerance.html)
+
 ## AK/SK认证
 自文章：[公有云API的认证方式：AK/SK 简介](https://blog.csdn.net/makenothing/article/details/81158481)
 
@@ -3042,19 +3052,39 @@ docker-engine的wsl默认数据目录`C:\Users\admin\AppData\Local\Docker\wsl` �
 
 项目地址[frp](https://github.com/fatedier/frp) 。
 
-客户端配置示例：
+**服务端**示例：
 ```bash
+# 配置
+# cat frps.ini
+[common]
+bind_port = 7000
+
+# 拉起服务端
+# ./frps -c frps.ini
+```
+
+**客户端**示例：
+```bash
+# 配置
 # cat frpc.ini
 [common]
 server_addr = <server-ip-address>
 server_port = 7000
-token = token
 
 [ssh]
 type = tcp
 local_ip = 127.0.0.1
 local_port = 22
 remote_port = 6000
+
+# 启动客户端
+# ./frpc -c frpc.ini
+```
+
+通过服务端，代理到客户端：
+```bash
+# 注意，通过端口区分，代理到不同的客户端
+# ssh <server-ip-address> -p 6000
 ```
 
 ### sshd
