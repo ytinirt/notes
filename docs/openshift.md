@@ -111,7 +111,7 @@ oc auth can-i --as=system:serviceaccount:default:user use scc/anyuid
 
 ### “谁”有这个操作权限
 ```bash
-oc adm policy who-can use securitycontextconstraints/prvileged
+oc adm policy who-can use securitycontextconstraints/privileged
 oc adm policy who-can use securitycontextconstraints/anyuid
 ```
 
