@@ -39,6 +39,7 @@
 * [安全](#安全)
   * [Pod Security Admission](#pod-security-admission)
 * [操作实例](#操作实例)
+  * [大规模集群实践](#大规模集群实践)
   * [在大规模集群中优雅的操作](#在大规模集群中优雅的操作)
     * [集群Pod总数](#集群pod总数)
     * [集群Event总数](#集群event总数)
@@ -674,6 +675,9 @@ oc adm policy who-can use securitycontextconstraints/anyuid
 TODO
 
 # 操作实例
+
+## 大规模集群实践
+* [究竟谁是草台班子？](https://mp.weixin.qq.com/s/ZvG232ale2qwBl1-LFw-Zw)
 
 ## 在大规模集群中优雅的操作
 

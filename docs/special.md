@@ -438,7 +438,11 @@ sed -i '/^# clean_shutdown_file/a\clean_shutdown_file = ""' /tmp/crio.conf
 
 ### tr
 ```bash
-tr '\n' ' ' # 将换行符修改为空格
+# 将换行符修改为空格
+tr '\n' ' '
+
+# 大写字母转换为小写字母
+tr '[:upper:]' '[:lower:]'
 ```
 
 ### awk

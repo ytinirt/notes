@@ -26,6 +26,9 @@
     * [透明大页THP](#透明大页thp)
   * [NUMA](#numa)
   * [内核模块Module](#内核模块module)
+    * [启机时自动加载内核驱动](#启机时自动加载内核驱动)
+    * [检查模块已被静态编译到内核中](#检查模块已被静态编译到内核中)
+    * [找到节点本地可以加载的所有内核模块](#找到节点本地可以加载的所有内核模块)
   * [inotify](#inotify)
     * [inotify打开句柄数耗尽问题解决办法](#inotify打开句柄数耗尽问题解决办法)
     * [inotify文件监控句柄数耗尽的解决办法](#inotify文件监控句柄数耗尽的解决办法)
@@ -593,15 +596,20 @@ numastat
 
 ## 内核模块Module
 
+### 启机时自动加载内核驱动
 启机时自动加载内核驱动的方法可参见`man modules-load.d`。
 
+### 检查模块已被静态编译到内核中
 检查模块已被静态编译到内核中：
 
 ```bash
 grep -e ipvs -e nf_conntrack_ipv4 /lib/modules/$(uname -r)/modules.builtin
 ```
 
-
+### 找到节点本地可以加载的所有内核模块
+```bash
+find /lib/modules/$(uname -r) -type f -name '*.ko*'
+```
 
 ## inotify
 
