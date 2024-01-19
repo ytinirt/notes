@@ -109,6 +109,7 @@
 * [File system](#file-system)
   * [命令行工具](#命令行工具)
     * [stat](#stat)
+  * [修改fstab](#修改fstab)
   * [内存文件系统](#内存文件系统)
   * [xfs文件系统](#xfs文件系统)
     * [配额管理](#配额管理)
@@ -1899,6 +1900,8 @@ stat -t --file-system /sys/fs/cgroup/cpu,cpuacct
 /sys/fs/cgroup/cpu,cpuacct 0 255 27e0eb 65536 65536 0 0 0 0 0
 ```
 
+## 修改fstab
+修改 `/etc/fstab` 一定要做 `findmnt -x` 检查，没有错误和告警才能重启。
 
 ## 内存文件系统
 

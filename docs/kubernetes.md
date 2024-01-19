@@ -74,6 +74,7 @@
   * [编译kubelet](#编译kubelet)
   * [获取k8s控制面组件指标](#获取k8s控制面组件指标)
   * [kubeadm部署的集群的操作](#kubeadm部署的集群的操作)
+  * [kube-apiserver内部本地访问客户端](#kube-apiserver内部本地访问客户端)
 * [最佳实践](#最佳实践)
   * [资源限制](#资源限制)
     * [容器进程数限制pids](#容器进程数限制pids)
@@ -1246,6 +1247,16 @@ kubectl get --raw /metrics
 # 从kubelet的metrics里，查看编译时用的golang版本：
 curl -sk https://127.0.0.1:10250/metrics --cacert /etc/kubernetes/pki/ca.crt --cert /etc/kubernetes/pki/apiserver-kubelet-client.crt --key /etc/kubernetes/pki/apiserver-kubelet-client.key | grep go_info
 ```
+
+## kube-apiserver内部本地访问客户端
+检查证书有效期：
+```bash
+MASTER_IP=1.2.3.4
+KUBE_APISERVER_PORT=6443
+curl --resolve apiserver-loopback-client:${KUBE_APISERVER_PORT}:${MASTER_IP} -k -v https://apiserver-loopback-client:${KUBE_APISERVER_PORT}/healthz
+```
+
+详见文章[kubernetes 究竟有没有 LTS？](https://mp.weixin.qq.com/s/3dATYVtgcQDxEOKR5XNofg)
 
 # 最佳实践
 ## 资源限制
