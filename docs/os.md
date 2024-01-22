@@ -243,6 +243,8 @@
       * [开启systemd-journald日志](#开启systemd-journald日志)
       * [日志限制](#日志限制)
       * [使用journalctl查看日志](#使用journalctl查看日志)
+        * [过滤日志](#过滤日志)
+        * [常用命令](#常用命令-4)
     * [rsyslogd日志](#rsyslogd日志)
       * [日志限制](#日志限制-1)
       * [同systemd-journald的关系](#同systemd-journald的关系)
@@ -4033,6 +4035,12 @@ SystemMaxFiles=100 ### 默认最多保留100个文件
 
 #### 使用journalctl查看日志
 
+##### 过滤日志
+```bash
+journalctl -o json _UID=0 MESSAGE_ID=xxx
+```
+
+##### 常用命令
 ```bash
 # 查看CentOS上服务的log，包括Kubernetes/docker/flannel/etcd等服务都能通过该命令查看log
 journalctl
@@ -4118,6 +4126,16 @@ shell脚本记录日志统一使用 `logger` 命令，格式：
 logger -p user.info -t modname message
 ~~~
 输出的日志可通过`journalctl`查看。
+
+TODO: 另外一个实例
+```bash
+logger --journald << EOF
+MESSAGE_ID=xxx
+MESSAGE=this is the message
+BOOT_ID=zzz
+PENDING=000
+EOF
+```
 
 ## 使用bc做数值计算
 
