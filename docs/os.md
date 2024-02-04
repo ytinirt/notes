@@ -234,6 +234,7 @@
       * [不去override更新resolv.conf文件](#不去override更新resolvconf文件)
     * [获取RPM包的源码](#获取rpm包的源码)
     * [构建自定义的CentOS内核](#构建自定义的centos内核)
+    * [配置coredump](#配置coredump)
     * [关闭coredump](#关闭coredump)
   * [动态链接库管理](#动态链接库管理)
   * [文本、字节流编辑](#文本字节流编辑)
@@ -745,52 +746,52 @@ net.ipv4.ip_local_reserved_ports = 35357,12345
 
 ### 内核参数调优
 
-| 类型 | 参数 | 默认值 | 优化 | 说明 |
-| --- | ---  |  ---- | ---- | ---- |
-| sysctl | net.ipv4.tcp_syncookies  |  ---- | ---- | 开启SYN Cookies，当出现SYN等待队列溢出时，启用cookies来处理 |
-| sysctl | net.ipv4.tcp_retries2  |  15 | 8 | TCP报文重传次数，当发送报文后没有收到ACK，就会触发重传。注意其采用指数回退，每次重试间隔都是上次的两倍。参见[文章](https://pracucci.com/linux-tcp-rto-min-max-and-tcp-retries2.html) |
-| sysctl | net.ipv4.tcp_tw_reuse  |  ---- | ---- | 开启重用，允许将TIME-WAIT sockets重新用于新的TCP连接 |
-| sysctl | net.ipv4.tcp_tw_recycle<br>net.ipv4.tcp_timestamps  |  ---- | ---- | 开启TCP连接中TIME-WAIT sockets的快速回收，已被net.ipv4.tcp_tw_reuse取代 |
-| sysctl | net.ipv4.tcp_fin_timeout  |  ---- | ---- | xxx超时时间 |
-| sysctl | net.ipv4.tcp_keepalive_time  |  30 | 30 | 优化keepalive 起用的时候，TCP 发送keepalive 消息的频度 |
-| sysctl | net.ipv4.tcp_keepalive_intvl  |  30 | 30 | 优化keepalive 起用的时候，探测时发探测包的时间间隔值 |
-| sysctl | net.ipv4.tcp_keepalive_probes  |  9 | 5 | 优化keepalive 起用的时候，探测重试的次数值. 全部超时则认定连接失效 |
-| sysctl | net.ipv4.tcp_max_tw_buckets  |  ---- | ---- | 优化系统同时保持TIME_WAIT的最大数量 |
-| sysctl | net.ipv4.tcp_max_syn_backlog  |  ---- | ---- | 增大socket监听backlog上限 |
-| sysctl | net.ipv4.tcp_synack_retries  |  ---- | ---- | ---- |
-| sysctl | net.ipv4.neigh.default.gc_stale_time  |  ---- | ---- | ---- |
-| sysctl | net.ipv4.neigh.default.gc_thresh1  |  ---- | ---- | ARP缓存 |
-| sysctl | net.ipv4.neigh.default.gc_thresh2  |  ---- | ---- | ---- |
-| sysctl | net.ipv4.neigh.default.gc_thresh3  |  ---- | ---- | ---- |
-| sysctl | net.ipv4.route.gc_thresh  |  ---- | ---- | ---- |
-| sysctl | net.ipv4.xfrm4_gc_thresh  |  ---- | ---- | ---- |
-| sysctl | net.ipv6.neigh.default.gc_thresh1  |  ---- | ---- | ---- |
-| sysctl | net.ipv6.neigh.default.gc_thresh2  |  ---- | ---- | ---- |
-| sysctl | net.ipv6.neigh.default.gc_thresh3  |  ---- | ---- | ---- |
-| sysctl | net.ipv6.route.gc_thresh  |  ---- | ---- | ---- |
-| sysctl | net.ipv6.xfrm6_gc_thresh  |  ---- | ---- | ---- |
-| sysctl | net.ipv4.conf.all.rp_filter  |  ---- | ---- | ---- |
-| sysctl | net.ipv4.conf.all.arp_announce  |  ---- | ---- | ---- |
-| sysctl | net.core.netdev_max_backlog  |  ---- | ---- | 每个网络接口接收数据包的速率比内核处理这些包的速率快时，允许送到队列的数据包的最大数目 |
-| sysctl | net.core.optmem_max<br>net.core.rmem_default<br>net.core.rmem_max<br>net.core.wmem_default<br>net.core.wmem_max  |  ---- | ---- | socket读写buffer值 |
-| sysctl | net.ipv4.tcp_mem<br>net.ipv4.tcp_rmem<br>net.ipv4.tcp_wmem  |  ---- | ---- | tcp读写buffer值 |
-| sysctl | net.netfilter.nf_conntrack_max  |  ---- | ---- | ---- |
-| sysctl | net.nf_conntrack_max  |  ---- | ---- | ---- |
-| sysctl | kernel.sysrq  |  ---- | ---- | ---- |
-| sysctl | kernel.core_uses_pid  |  ---- | ---- | ---- |
-| sysctl | net.bridge.bridge-nf-call-ip6tables<br>net.bridge.bridge-nf-call-iptables<br>net.bridge.bridge-nf-call-arptables  |  ---- | ---- | ---- |
-| sysctl | kernel.msgmnb<br>kernel.msgmax  |  ---- | ---- | ---- |
-| sysctl | kernel.shmmax<br>kernel.shmall<br>kernel.shmmni  |  ---- | ---- | kernel.shmmni用来限制整个系统创建的共享内存总个数。假设限制为32，每个共享内存1M，那总共消耗的共享内存就是32 * 1M |
-| sysctl | net.ipv4.ip_local_port_range<br>net.ipv4.ip_local_reserved_ports  |  ---- | ---- | ---- |
-| sysctl | fs.aio-max-nr  |  ---- | ---- | ---- |
-| sysctl | fs.file-max  |  ---- | ---- | ---- |
-| sysctl | fs.inotify.max_user_instances  |  ---- | ---- | ---- |
-| sysctl | vm.min_free_kbytes  |  67584 | 2097152 | 系统最小预留内存，频繁使用内存、cache内存占用量大的环境，建议增大系统预留内存 |
-| sysctl | vm.overcommit_memory  |  ---- | ---- | ---- |
-| sysctl | vm.swappiness  |  ---- | ---- | ---- |
-| sysctl | net.core.somaxconn  |  ---- | ---- | ---- |
-| sysctl | net.netfilter.nf_conntrack_tcp_be_liberal  |  0 | 1 | https://kubernetes.io/blog/2019/03/29/kube-proxy-subtleties-debugging-an-intermittent-connection-reset/ |
-| limits | nofile  |  ---- | ---- | ---- |
+| 类型     | 参数                                                                                                               | 默认值   | 优化      | 说明                                                                                                                              |
+|--------|------------------------------------------------------------------------------------------------------------------|-------|---------|---------------------------------------------------------------------------------------------------------------------------------|
+| sysctl | net.ipv4.tcp_syncookies                                                                                          | ----  | ----    | 开启SYN Cookies，当出现SYN等待队列溢出时，启用cookies来处理                                                                                        |
+| sysctl | net.ipv4.tcp_retries2                                                                                            | 15    | 8       | TCP报文重传次数，当发送报文后没有收到ACK，就会触发重传。注意其采用指数回退，每次重试间隔都是上次的两倍。参见[文章](https://pracucci.com/linux-tcp-rto-min-max-and-tcp-retries2.html) |
+| sysctl | net.ipv4.tcp_tw_reuse                                                                                            | ----  | ----    | 开启重用，允许将TIME-WAIT sockets重新用于新的TCP连接                                                                                            |
+| sysctl | net.ipv4.tcp_tw_recycle<br>net.ipv4.tcp_timestamps                                                               | ----  | ----    | 开启TCP连接中TIME-WAIT sockets的快速回收，已被net.ipv4.tcp_tw_reuse取代                                                                        |
+| sysctl | net.ipv4.tcp_fin_timeout                                                                                         | ----  | ----    | xxx超时时间                                                                                                                         |
+| sysctl | net.ipv4.tcp_keepalive_time                                                                                      | 30    | 30      | 优化keepalive 起用的时候，TCP 发送keepalive 消息的频度                                                                                         |
+| sysctl | net.ipv4.tcp_keepalive_intvl                                                                                     | 30    | 30      | 优化keepalive 起用的时候，探测时发探测包的时间间隔值                                                                                                 |
+| sysctl | net.ipv4.tcp_keepalive_probes                                                                                    | 9     | 5       | 优化keepalive 起用的时候，探测重试的次数值. 全部超时则认定连接失效                                                                                         |
+| sysctl | net.ipv4.tcp_max_tw_buckets                                                                                      | ----  | ----    | 优化系统同时保持TIME_WAIT的最大数量                                                                                                          |
+| sysctl | net.ipv4.tcp_max_syn_backlog                                                                                     | ----  | ----    | 增大socket监听backlog上限                                                                                                             |
+| sysctl | net.ipv4.tcp_synack_retries                                                                                      | ----  | ----    | ----                                                                                                                            |
+| sysctl | net.ipv4.neigh.default.gc_stale_time                                                                             | ----  | ----    | ----                                                                                                                            |
+| sysctl | net.ipv4.neigh.default.gc_thresh1                                                                                | ----  | ----    | ARP缓存                                                                                                                           |
+| sysctl | net.ipv4.neigh.default.gc_thresh2                                                                                | ----  | ----    | ----                                                                                                                            |
+| sysctl | net.ipv4.neigh.default.gc_thresh3                                                                                | ----  | ----    | ----                                                                                                                            |
+| sysctl | net.ipv4.route.gc_thresh                                                                                         | ----  | ----    | ----                                                                                                                            |
+| sysctl | net.ipv4.xfrm4_gc_thresh                                                                                         | ----  | ----    | ----                                                                                                                            |
+| sysctl | net.ipv6.neigh.default.gc_thresh1                                                                                | ----  | ----    | ----                                                                                                                            |
+| sysctl | net.ipv6.neigh.default.gc_thresh2                                                                                | ----  | ----    | ----                                                                                                                            |
+| sysctl | net.ipv6.neigh.default.gc_thresh3                                                                                | ----  | ----    | ----                                                                                                                            |
+| sysctl | net.ipv6.route.gc_thresh                                                                                         | ----  | ----    | ----                                                                                                                            |
+| sysctl | net.ipv6.xfrm6_gc_thresh                                                                                         | ----  | ----    | ----                                                                                                                            |
+| sysctl | net.ipv4.conf.all.rp_filter                                                                                      | ----  | ----    | ----                                                                                                                            |
+| sysctl | net.ipv4.conf.all.arp_announce                                                                                   | ----  | ----    | ----                                                                                                                            |
+| sysctl | net.core.netdev_max_backlog                                                                                      | ----  | ----    | 每个网络接口接收数据包的速率比内核处理这些包的速率快时，允许送到队列的数据包的最大数目                                                                                     |
+| sysctl | net.core.optmem_max<br>net.core.rmem_default<br>net.core.rmem_max<br>net.core.wmem_default<br>net.core.wmem_max  | ----  | ----    | socket读写buffer值                                                                                                                 |
+| sysctl | net.ipv4.tcp_mem<br>net.ipv4.tcp_rmem<br>net.ipv4.tcp_wmem                                                       | ----  | ----    | tcp读写buffer值                                                                                                                    |
+| sysctl | net.netfilter.nf_conntrack_max                                                                                   | ----  | ----    | ----                                                                                                                            |
+| sysctl | net.nf_conntrack_max                                                                                             | ----  | ----    | ----                                                                                                                            |
+| sysctl | kernel.sysrq                                                                                                     | ----  | ----    | ----                                                                                                                            |
+| sysctl | kernel.core_uses_pid                                                                                             | ----  | ----    | ----                                                                                                                            |
+| sysctl | net.bridge.bridge-nf-call-ip6tables<br>net.bridge.bridge-nf-call-iptables<br>net.bridge.bridge-nf-call-arptables | ----  | ----    | ----                                                                                                                            |
+| sysctl | kernel.msgmnb<br>kernel.msgmax                                                                                   | ----  | ----    | ----                                                                                                                            |
+| sysctl | kernel.shmmax<br>kernel.shmall<br>kernel.shmmni                                                                  | ----  | ----    | kernel.shmmni用来限制整个系统创建的共享内存总个数。假设限制为32，每个共享内存1M，那总共消耗的共享内存就是32 * 1M                                                            |
+| sysctl | net.ipv4.ip_local_port_range<br>net.ipv4.ip_local_reserved_ports                                                 | ----  | ----    | ----                                                                                                                            |
+| sysctl | fs.aio-max-nr                                                                                                    | ----  | ----    | ----                                                                                                                            |
+| sysctl | fs.file-max                                                                                                      | ----  | ----    | ----                                                                                                                            |
+| sysctl | fs.inotify.max_user_instances                                                                                    | ----  | ----    | ----                                                                                                                            |
+| sysctl | vm.min_free_kbytes                                                                                               | 67584 | 2097152 | 系统最小预留内存，频繁使用内存、cache内存占用量大的环境，建议增大系统预留内存                                                                                       |
+| sysctl | vm.overcommit_memory                                                                                             | ----  | ----    | ----                                                                                                                            |
+| sysctl | vm.swappiness                                                                                                    | ----  | ----    | ----                                                                                                                            |
+| sysctl | net.core.somaxconn                                                                                               | ----  | ----    | ----                                                                                                                            |
+| sysctl | net.netfilter.nf_conntrack_tcp_be_liberal                                                                        | 0     | 1       | https://kubernetes.io/blog/2019/03/29/kube-proxy-subtleties-debugging-an-intermittent-connection-reset/                         |
+| limits | nofile                                                                                                           | ----  | ----    | ----                                                                                                                            |
 
 
 ## D-Bus
@@ -1731,7 +1732,7 @@ lvs -o+seg_monitor
 
 - **iSCSI Initiator**: iSCSI initiators are clients that authenticate to an iSCSI target and get the authorization of block level storage access. Clients can have multiple iSCSI devices access the initiator.
 - **iSCSI Target**: An iSCSI target is a server that provides storage to an iSCSI Initiator. You can create a LUN in a target and provide block storage to the iSCSI initiator.
-- **LUN (Logical Unit Number)**: A LUN is a SCSI concept that allows us to divide a large number of the storage into a sizable chunk. A LUN is a logical representation of a physical disk. Storage which has been assigned to the iSCSI initiator will be the LUN.
+- **LUN (Logical Unit Number)**: A LUN is an SCSI concept that allows us to divide a large number of the storage into a sizable chunk. A LUN is a logical representation of a physical disk. Storage which has been assigned to the iSCSI initiator will be the LUN.
 - **IQN (iSCSI qualified name)**: An IQN is a unique name that is assigned to the iSCSI target and iSCSI initiator to identify each other.
 - **Portal**: The iSCSI portal is a network portal within the iSCSI network where the iSCSI network initiates. iSCSI works over TCP/IP, so the portal can be identified by IP address. There can be one or more Portal.
 - **ACL**: An access control list will allow the iSCSI initiator to connect to an iSCSI target. The ACL will restrict access for the iSCSI target so unauthorized initiators cannot connect
@@ -2306,6 +2307,9 @@ strace -p $(pidof etcd) 2>&1 | grep -e  "\(write\|fdatasync\)\((12\|(18\)"
 
 # 查看系统调用和耗时的汇总信息，特别有助于分析性能问题
 strace -c -f -p <pid of process/thread>
+
+# 查看系统调用详细耗时
+strace -T -o result_slow.log -- bash -c exit
 ```
 
 ### ftrace查看系统调用耗时
@@ -2398,13 +2402,13 @@ cat /proc/sys/kernel/core_pattern
 ### /proc/<pid>/目录下文件说明
 TODO
 
-| 文件名称 | 说明 |
-| ------- | ---- |
+| 文件名称    | 说明     |
+|---------|--------|
 | cmdline | 命令行字符串 |
-| exe | |
-| stack | 进程堆栈信息 |
-| root | |
-| syscall | |
+| exe     |        |
+| stack   | 进程堆栈信息 |
+| root    |        |
+| syscall |        |
 
 ### D状态进程的分析
 D状态进程指处于“不可中断睡眠状态”，即 *Uninterruptible Sleep* 。
@@ -2742,19 +2746,19 @@ KiB Swap:        0 total,        0 free,        0 used. 90331216 avail Mem
  88738 700        24.7g   5.8g  19340  4.6 app005     0  23420   13.5g    0 1.7m    0   5.8g
 ```
 
-|字段|含义|
-|----|----|
-|VIRT	|虚拟内存，包括进程使用的物理内存、swap内存、映射到内存空间的文件等，可理解为进程的内存地址空间（address space）用量，并非实际消耗使用的物理内存。<br>进程总是直接申请、访问和释放虚拟内存，而虚拟内存到物理内存的映射（通过page fault触发）由操作系统完成。<br>The total amount of virtual memory used by the task.  It includes all code, data and shared libraries plus pages that have been swapped out and pages that have been mapped but not used. |
-|RES	|物理内存，即进程当前消耗的RAM存储量。 |
-|SHR	|共享内存<br>Indicates how much of the VIRT size is actually sharable (memory or libraries). In the case of libraries, it does not necessarily mean that the entire library is resident. For example, if a program only uses a few functions in a library, the whole library is mapped and will be counted in VIRT and SHR, but only the parts of the library file containing the functions being used will actually be loaded in and be counted under RES. |
-|%MEM	|进程消耗的物理内存（RES）占系统内存百分比 |
-|SWAP	|交换分区（swap）内存用量 |
-|CODE	|进程可执行文件消耗的内存。<br>The amount of physical memory devoted to executable code, also known as the Text Resident Set size or TRS. |
-|DATA	|进程数据段和堆栈段内存。<br>The amount of physical memory devoted to other than executable code, also known as the Data Resident Set size or DRS. DATA is the amount of virtual memory used that isn't shared and that isn't code-text. I.e., it is the virtual stack and heap of the process. |
-|nMaj	|Major Page Fault Count.<br>A page fault occurs when a process attempts to read from or write to a virtual page that is not currently present in its address space.  A **major** page fault is when *auxiliary storage* access is involved in making that page available. |
-|nMin	|Minor Page Fault Count.<br>A **minor** page fault does not involve auxiliary storage access in making that page available. |
-|nDRT	|脏页数量。<br>Dirty Pages Count.The number of pages that have been modified since they were last written to auxiliary storage.  Dirty pages must be written to auxiliary storage before the corresponding physical memory location can be used for some other virtual page. |
-|USED	|等于RES+SWAP |
+| 字段    | 含义                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+|-------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| VIRT	 | 虚拟内存，包括进程使用的物理内存、swap内存、映射到内存空间的文件等，可理解为进程的内存地址空间（address space）用量，并非实际消耗使用的物理内存。<br>进程总是直接申请、访问和释放虚拟内存，而虚拟内存到物理内存的映射（通过page fault触发）由操作系统完成。<br>The total amount of virtual memory used by the task.  It includes all code, data and shared libraries plus pages that have been swapped out and pages that have been mapped but not used.                                                                                                             |
+| RES	  | 物理内存，即进程当前消耗的RAM存储量。                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| SHR	  | 共享内存<br>Indicates how much of the VIRT size is actually sharable (memory or libraries). In the case of libraries, it does not necessarily mean that the entire library is resident. For example, if a program only uses a few functions in a library, the whole library is mapped and will be counted in VIRT and SHR, but only the parts of the library file containing the functions being used will actually be loaded in and be counted under RES. |
+| %MEM	 | 进程消耗的物理内存（RES）占系统内存百分比                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| SWAP	 | 交换分区（swap）内存用量                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| CODE	 | 进程可执行文件消耗的内存。<br>The amount of physical memory devoted to executable code, also known as the Text Resident Set size or TRS.                                                                                                                                                                                                                                                                                                                            |
+| DATA	 | 进程数据段和堆栈段内存。<br>The amount of physical memory devoted to other than executable code, also known as the Data Resident Set size or DRS. DATA is the amount of virtual memory used that isn't shared and that isn't code-text. I.e., it is the virtual stack and heap of the process.                                                                                                                                                                     |
+| nMaj	 | Major Page Fault Count.<br>A page fault occurs when a process attempts to read from or write to a virtual page that is not currently present in its address space.  A **major** page fault is when *auxiliary storage* access is involved in making that page available.                                                                                                                                                                               |
+| nMin	 | Minor Page Fault Count.<br>A **minor** page fault does not involve auxiliary storage access in making that page available.                                                                                                                                                                                                                                                                                                                             |
+| nDRT	 | 脏页数量。<br>Dirty Pages Count.The number of pages that have been modified since they were last written to auxiliary storage.  Dirty pages must be written to auxiliary storage before the corresponding physical memory location can be used for some other virtual page.                                                                                                                                                                                 |
+| USED	 | 等于RES+SWAP                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 参考资料：
 - [what-does-virtual-memory-size-in-top-mean](https://serverfault.com/questions/138427/what-does-virtual-memory-size-in-top-mean)
 - [man top](https://linux.die.net/man/1/top)
@@ -2769,14 +2773,14 @@ Mem:       98822688    17584108    62921084     4338580    18317496    75918884
 Swap:      16777212       30036    16747176
 ```
 
-|字段|含义|
-|----|----|
-|total	|系统可支配使用的所有内存 |
-|used	|系统当前已使用的内存，主要由所有进程的【Pss】构成，还包括kernel动态分配的内存等 |
-|free	|尚未被系统涉足（不等同于使用）的内存 |
-|shared	|包括tmpfs占用的pagecache |
-|buff/cache	|由meminfo中【Buffers】+【Cached】得来 |
-|available	|同meminfo中MemAvailable，表示当前系统可用内存数量的统计值 |
+| 字段          | 含义                                           |
+|-------------|----------------------------------------------|
+| total	      | 系统可支配使用的所有内存                                 |
+| used	       | 系统当前已使用的内存，主要由所有进程的【Pss】构成，还包括kernel动态分配的内存等 |
+| free	       | 尚未被系统涉足（不等同于使用）的内存                           |
+| shared	     | 包括tmpfs占用的pagecache                          |
+| buff/cache	 | 由meminfo中【Buffers】+【Cached】得来                |
+| available	  | 同meminfo中MemAvailable，表示当前系统可用内存数量的统计值       |
 
 ### smaps信息解读
 ```bash
@@ -2800,12 +2804,12 @@ VmFlags: rd ex mr mw me dw sd
 ...
 ```
 
-|字段|含义|
-|----|----|
-| Rss	| 当前进程使用的常驻内存大小（resident set size），其中也包含当前进程使用的共享内存，例如.so库。<br>通过累加"ps -ef"中所有进程的RSS来统计系统物理内存（常驻内存）使用情况是不准确的，这种方法重复累加计算了共享内存，因此得到的结果偏大。|
-| Pss	| Proportional Set Size，同Rss类似，但其将共享内存的Rss进行平均分摊，例如100MB的内存被10个进程共享使用，那么每个进程就分摊10MB。因此，通过累加所有进程的Pss，就能得到系统物理内存使用的正确值。<br>命令为 $ grep Pss /proc/[1-9]*/smaps \| awk '{total+=$2};END{print total}' |
+| 字段                                                             | 含义                                                                                                                                                                                                                                                                          |
+|----------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Rss	                                                           | 当前进程使用的常驻内存大小（resident set size），其中也包含当前进程使用的共享内存，例如.so库。<br>通过累加"ps -ef"中所有进程的RSS来统计系统物理内存（常驻内存）使用情况是不准确的，这种方法重复累加计算了共享内存，因此得到的结果偏大。                                                                                                                                       |
+| Pss	                                                           | Proportional Set Size，同Rss类似，但其将共享内存的Rss进行平均分摊，例如100MB的内存被10个进程共享使用，那么每个进程就分摊10MB。因此，通过累加所有进程的Pss，就能得到系统物理内存使用的正确值。<br>命令为 $ grep Pss /proc/[1-9]*/smaps \                                                                                                                  | awk '{total+=$2};END{print total}' |
 | Shared_Clean<br>Shared_Dirty<br>Private_Clean<br>Private_Dirty | clean pages指mapped但未被修改过的内存，主要包括代码段text sections。<br>shared pages指被其它进程共享的内存。<br>dirty pages指mapped但已被修改过的内存。<br>private pages指只有当前进程使用的内存。<br>综上，Shared_Clean主要指动态链接库上的代码段。<br>注意，当动态链接库mapped到内存，且仅被一个进程使用时，其计入该进程的Private_XXX中。一旦有其它进程也共享这些mapped的内存，这些内存将计入Shared_XXX中。 |
-| AnonHugePages | 当前进程使用的AnonHugePages，详细描述见meminfo中AnonHugePages。 |
+| AnonHugePages                                                  | 当前进程使用的AnonHugePages，详细描述见meminfo中AnonHugePages。                                                                                                                                                                                                                            |
 
 ### meminfo信息解读
 ```bash
@@ -2855,50 +2859,50 @@ DirectMap4k:      395132 kB
 DirectMap2M:    100268032 kB
 ```
 
-|字段|含义|
-|----|----|
-|MemTotal	|系统可支配使用的所有内存，不包括用以记录page frame管理信息的mem_map的内存。|
-|MemFree	|尚未被系统涉足（不等同于使用）的内存。|
-|MemAvailable	|记录当前系统可用内存数量的统计值，buff/cache和slab中潜藏着很多可以回收的内存，使用MemFree显然不妥。|
-|Buffers	|表示块设备（block device）所占用的缓存页，包括：直接读写块设备、文件系统metadata（SuperBlock等）所使用的缓存页。注意与Cached区别。<br>Buffers占用的内存也计入LRU链，被统计在Active(file)和Inactive(file)中。|
-| Cached | pagecache内存大小，用于缓存文件里的数据、提升性能，通过echo 1 > /proc/sys/vm/drop_caches回收。<br>Cached是Mapped的超集，不仅包含mapped，也包含unmapped页面。当一个文件不再与进程关联后，其pagecache页面不会立即回收，仍然保留在LRU中，但Mapped统计值会减少。<br>POSIX/SysV shared memory和shared anonymous mmap基于tmpfs实现（等同于file-backed pages），都计入Cached。<br>Cached和SwapCached没有重叠，所以shared memory、shared anonymous mmap和tmpfs在不发生swap out时属于Cached，而在swap out/in过程中会被加入SwapCached、不再属于Cached。 |
-| SwapCached | anonymous pages要用到交换分区。shared memory、shared anonymous mmap和tmpfs虽然未计入AnonPages，但它们不是file-backed pages，所以也要用到交换分区。<br>交换分区可以包括一个或多个设备，每个交换分区设备对应有自己的swap cache，可以把swap cache理解为交换分区设备的“pagecache”：pagecache对应一个个文件，在打开文件时对应关系就确定了；swapcache对应一个个交换分区设备，一个匿名页只有即将被swap out时，对应关系才能被确定。<br>匿名页只有在如下两种情形时才存在于swapcache中： <br>a. 匿名页即将被swap out时先放进swap cache，直到swap out操作完成后就从swap cache中删除，该过程持续时间很短暂。<br>b. 曾经被swap out，再被swap in的匿名页会位于swap cache中，直到页面中内容发生变化或者原来的交换分区被回收为止。<br>综上，SwapCached记录：系统中曾经被swap out，现在又被swap in并且之后页面内容一直没发生变化的。 |
-| Active | 等于【Active(anon)】+【Active(file)】|
-| Inactive | 等于【Inactive(anon)】+【Inactive(file)】|
-| Active(anon) | 即LRU_ACTIVE_ANON<br>LRU是内核的页面回收（Page Frame Reclaiming）算法使用的数据结构，pagecache和所有用户进程的内存（kernel stack和huge pages除外）都挂在LRU链上。LRU包含Cached和AnonPages，不包含HugePages_*。<br>Inactive链上是长时间未被访问的内存页，Active链上是最近被访问过的内存页。LRU算法利用Inactive和Active链判断哪些内存页被优先回收。<br>用户进程的内存分两种：file表示与文件对应的页file-backed pages；anon表示匿名页anonymous pages。<br>file页包括进程代码、映射文件等。anon页包括进程的堆、栈等未与文件对应的。<br>内存不足时，file页直接写回disk中对应文件（称为page out）而无需用到swap分区，anon页只能写到disk上swap分区里（称为swap out）。<br>Unevictable链上是不能page out和swap out的内存页，包括VM_LOCKED内存页、SHM_LOCK共享内存页（又被计入"Mlocked"）和ramfs。 |
-| Inactive(anon) | 即LRU_INACTIVE_ANON |
-| Active(file) | 即LRU_ACTIVE_FILE |
-| Inactive(file) | 即LRU_INACTIVE_FILE |
-| Unevictable | 即LRU_UNEVICTABLE |
-| Mlocked | 统计被mlock()锁定的内存，这些内存不能page/swap out，会从Active/Inactive LRU链移动到UnevictableLRU链。Mlocked的统计和Unevictable、AnonPages、Shmem和Mapped有重叠。 |
-| SwapTotal | Swap分区大小 |
-| SwapFree | Swap分区空闲值 |
-| Dirty | 其值并未包括系统中所有脏页dirty pages，还需另外加上NFS_Unstable和Writeback。<br>即系统中所有脏页dirty pages = 【Dirty】+【NFS_Unstable】+【Writeback】。 <br>anonymous pages不属于dirty pages。  |
-| Writeback | 统计正准备回写硬盘的缓存页。 |
-| AnonPages | 统计用户进程的匿名页anonymous pages。<br>所有pagecache页（Cached）都是文件对应的页file-backed pages，不是匿名页anonymous pages，"Cached"和"AnonPages"间没有重叠。<br>shared memory基于tmpfs（文件系统），计入"Cached"。<br>private anonymous mmap计入"AnonPages"，而shared anonymous mmap计入"Cached"。<br>AnonHugePages计入AnonPages。<br>anonymous pages与用户进程共存，一旦用户进程退出，anonymous pages被释放。<br>pagecache与用户进程不强相关，即使文件与进程不关联了，pagecache仍可能保留。 |
-| Mapped | Mapped是Cached的子集，仅统计正被用户进程关联使用的文件，例如shared libraries、可执行文件、mmap文件等。因为shared memory和tmpfs被计入pagecache（Cached），所以attached shared memory和tmpfs上被map的文件计入Mapped。<br>用户进程的内存分两种：file表示与文件对应的页file-backed pages；anon表示匿名页anonymous pages。<br>因此，【所有进程PSS之和】=【Mapped】+【AnonPages】。 |
-| Shmem | 包含shared memory（shmget、shm_open、shared anonymous mmap）和tmpfs。<br>内核中shared memory都是基于tmpfs实现的，详见Documentation/filesystems/tmpfs.txt。<br>既然基于文件系统（fs），就不算anon页，所以未计入AnonPages，而被计入Cached（例如pagecache）和Mapped（当shmem被attached时）。<br>但tmpfs背后并不存在对应的disk文件，一旦内存不足时只能swap out，所以在LRU中其被计入anon链，注意与AnonPages处理的区别。<br>当shmget、shm_open和mmap创建共享内存时，只有真正访问时才分配物理内存，Shmem统计的是已分配大小。 |
-| Slab | 内核通过slab分配管理的内存总数。 |
-| SReclaimable | 内核通过slab分配的可回收的内存（例如dentry），通过echo 2 > /proc/sys/vm/drop_caches回收。 |
-| SUnreclaim | 内核通过slab分配的不可回收的内存。 |
-| KernelStack | 所有线程的内核栈（kernel stack）消耗总和，即等于（线程数 x Page大小）。 |
-| PageTables | 其统计Page Table所用内存大小（注：page table将内存的虚拟地址翻译成物理地址）。 |
-| NFS_Unstable | 其统计发给NFS server但尚未写入硬盘的缓存页，这些内存由Slab管理，因此也计入Slab。 |
-| Bounce | 内核在低地址（16MB以下）位置分配的临时buffer，用于对高地址（16MB以上）进行I/O操作的适配。 |
-| WritebackTmp | Memory used by FUSE for temporary writeback buffers。 |
-| CommitLimit | 基于vm.overcommit_ratio，表示系统当前可以分配的内存总数。<br>由【(vm.overcommit_ratio * 物理内存) + Swap】计算得来。 |
-| Committed_AS | 系统当前已分配的内存总数，即所有processes分配的（即使未使用）内存总和。例如某进程malloc()了1GB内存，但只使用300MB，仍然计入1GB至Committed_AS中。<br>当采用strict overcommit时（vm.overcommit_memory为2），Committed_AS值不能大于CommitLimit，否则应用会申请内存失败。 |
-| VmallocTotal | 可分配的虚拟内存总数。 |
-| VmallocUsed | 内核通过vmalloc分配的内存总数，注意区分VM_IOREMAP/VM_MAP/VM_ALLOC，详见/proc/vmallocinfo。 |
-| VmallocChunk | largest contiguous block of vmalloc area which is free。 |
-| HardwareCorrupted | 遇到内存硬件故障的内存总数。 |
-| AnonHugePages | 用以统计TransparentHugePages (THP)，与HugePages没有任何关系。其计入AnonPages和各进程RSS/PSS。<br>THP也可用于shared memory和tmpfs，但缺省是禁止的，详见Documentation/vm/transhuge.txt。<br>当THP未用于shared memory和tmpfs时，进程间不共享AnonHugePages，因此其统计值等于所有进程smaps中AnonHugePages值之和。 |
-| HugePages_Total | 对应内核参数vm.nr_hugepages，HugePages在内存中独立管理，不计入RSS/PSS、LRU Active/Inactive等。<br>HugePages一旦配置，无论是否使用都不再属于空闲内存。|
-| HugePages_Free | 空闲的HugePages |
-| HugePages_Rsvd | 用户申请HugePages后，HugePages_Rsvd立刻增加但HugePages_Free不会减少，直到用户读写后HugePages才被真正消耗，相应的HugePages_Rsvd减少、HugePages_Free也会检查。 |
-| HugePages_Surp | 统计surplus huge pages，即超过系统设定的常驻HugePages的内存数。 |
-| Hugepagesize | HugePage每页大小。 |
-| DirectMap4k<br>DirectMap2M<br>DirectMap1G | DirectMap不用于统计内存使用，而是反映TLB效率和负载（Load）的指标，它统计映射为4K、2M和1G页的内存大小。x86架构下，TLB管理更大的“page”，能够提升TLB的性能。 |
+| 字段                                        | 含义                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+|-------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| MemTotal	                                 | 系统可支配使用的所有内存，不包括用以记录page frame管理信息的mem_map的内存。                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| MemFree	                                  | 尚未被系统涉足（不等同于使用）的内存。                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| MemAvailable	                             | 记录当前系统可用内存数量的统计值，buff/cache和slab中潜藏着很多可以回收的内存，使用MemFree显然不妥。                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| Buffers	                                  | 表示块设备（block device）所占用的缓存页，包括：直接读写块设备、文件系统metadata（SuperBlock等）所使用的缓存页。注意与Cached区别。<br>Buffers占用的内存也计入LRU链，被统计在Active(file)和Inactive(file)中。                                                                                                                                                                                                                                                                                                                                                                                                         |
+| Cached                                    | pagecache内存大小，用于缓存文件里的数据、提升性能，通过echo 1 > /proc/sys/vm/drop_caches回收。<br>Cached是Mapped的超集，不仅包含mapped，也包含unmapped页面。当一个文件不再与进程关联后，其pagecache页面不会立即回收，仍然保留在LRU中，但Mapped统计值会减少。<br>POSIX/SysV shared memory和shared anonymous mmap基于tmpfs实现（等同于file-backed pages），都计入Cached。<br>Cached和SwapCached没有重叠，所以shared memory、shared anonymous mmap和tmpfs在不发生swap out时属于Cached，而在swap out/in过程中会被加入SwapCached、不再属于Cached。                                                                                                                                         |
+| SwapCached                                | anonymous pages要用到交换分区。shared memory、shared anonymous mmap和tmpfs虽然未计入AnonPages，但它们不是file-backed pages，所以也要用到交换分区。<br>交换分区可以包括一个或多个设备，每个交换分区设备对应有自己的swap cache，可以把swap cache理解为交换分区设备的“pagecache”：pagecache对应一个个文件，在打开文件时对应关系就确定了；swapcache对应一个个交换分区设备，一个匿名页只有即将被swap out时，对应关系才能被确定。<br>匿名页只有在如下两种情形时才存在于swapcache中： <br>a. 匿名页即将被swap out时先放进swap cache，直到swap out操作完成后就从swap cache中删除，该过程持续时间很短暂。<br>b. 曾经被swap out，再被swap in的匿名页会位于swap cache中，直到页面中内容发生变化或者原来的交换分区被回收为止。<br>综上，SwapCached记录：系统中曾经被swap out，现在又被swap in并且之后页面内容一直没发生变化的。          |
+| Active                                    | 等于【Active(anon)】+【Active(file)】                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| Inactive                                  | 等于【Inactive(anon)】+【Inactive(file)】                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| Active(anon)                              | 即LRU_ACTIVE_ANON<br>LRU是内核的页面回收（Page Frame Reclaiming）算法使用的数据结构，pagecache和所有用户进程的内存（kernel stack和huge pages除外）都挂在LRU链上。LRU包含Cached和AnonPages，不包含HugePages_*。<br>Inactive链上是长时间未被访问的内存页，Active链上是最近被访问过的内存页。LRU算法利用Inactive和Active链判断哪些内存页被优先回收。<br>用户进程的内存分两种：file表示与文件对应的页file-backed pages；anon表示匿名页anonymous pages。<br>file页包括进程代码、映射文件等。anon页包括进程的堆、栈等未与文件对应的。<br>内存不足时，file页直接写回disk中对应文件（称为page out）而无需用到swap分区，anon页只能写到disk上swap分区里（称为swap out）。<br>Unevictable链上是不能page out和swap out的内存页，包括VM_LOCKED内存页、SHM_LOCK共享内存页（又被计入"Mlocked"）和ramfs。 |
+| Inactive(anon)                            | 即LRU_INACTIVE_ANON                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| Active(file)                              | 即LRU_ACTIVE_FILE                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| Inactive(file)                            | 即LRU_INACTIVE_FILE                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| Unevictable                               | 即LRU_UNEVICTABLE                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| Mlocked                                   | 统计被mlock()锁定的内存，这些内存不能page/swap out，会从Active/Inactive LRU链移动到UnevictableLRU链。Mlocked的统计和Unevictable、AnonPages、Shmem和Mapped有重叠。                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| SwapTotal                                 | Swap分区大小                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| SwapFree                                  | Swap分区空闲值                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| Dirty                                     | 其值并未包括系统中所有脏页dirty pages，还需另外加上NFS_Unstable和Writeback。<br>即系统中所有脏页dirty pages = 【Dirty】+【NFS_Unstable】+【Writeback】。 <br>anonymous pages不属于dirty pages。                                                                                                                                                                                                                                                                                                                                                                                               |
+| Writeback                                 | 统计正准备回写硬盘的缓存页。                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| AnonPages                                 | 统计用户进程的匿名页anonymous pages。<br>所有pagecache页（Cached）都是文件对应的页file-backed pages，不是匿名页anonymous pages，"Cached"和"AnonPages"间没有重叠。<br>shared memory基于tmpfs（文件系统），计入"Cached"。<br>private anonymous mmap计入"AnonPages"，而shared anonymous mmap计入"Cached"。<br>AnonHugePages计入AnonPages。<br>anonymous pages与用户进程共存，一旦用户进程退出，anonymous pages被释放。<br>pagecache与用户进程不强相关，即使文件与进程不关联了，pagecache仍可能保留。                                                                                                                                                                 |
+| Mapped                                    | Mapped是Cached的子集，仅统计正被用户进程关联使用的文件，例如shared libraries、可执行文件、mmap文件等。因为shared memory和tmpfs被计入pagecache（Cached），所以attached shared memory和tmpfs上被map的文件计入Mapped。<br>用户进程的内存分两种：file表示与文件对应的页file-backed pages；anon表示匿名页anonymous pages。<br>因此，【所有进程PSS之和】=【Mapped】+【AnonPages】。                                                                                                                                                                                                                                                                          |
+| Shmem                                     | 包含shared memory（shmget、shm_open、shared anonymous mmap）和tmpfs。<br>内核中shared memory都是基于tmpfs实现的，详见Documentation/filesystems/tmpfs.txt。<br>既然基于文件系统（fs），就不算anon页，所以未计入AnonPages，而被计入Cached（例如pagecache）和Mapped（当shmem被attached时）。<br>但tmpfs背后并不存在对应的disk文件，一旦内存不足时只能swap out，所以在LRU中其被计入anon链，注意与AnonPages处理的区别。<br>当shmget、shm_open和mmap创建共享内存时，只有真正访问时才分配物理内存，Shmem统计的是已分配大小。                                                                                                                                                                         |
+| Slab                                      | 内核通过slab分配管理的内存总数。                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| SReclaimable                              | 内核通过slab分配的可回收的内存（例如dentry），通过echo 2 > /proc/sys/vm/drop_caches回收。                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| SUnreclaim                                | 内核通过slab分配的不可回收的内存。                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| KernelStack                               | 所有线程的内核栈（kernel stack）消耗总和，即等于（线程数 x Page大小）。                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| PageTables                                | 其统计Page Table所用内存大小（注：page table将内存的虚拟地址翻译成物理地址）。                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| NFS_Unstable                              | 其统计发给NFS server但尚未写入硬盘的缓存页，这些内存由Slab管理，因此也计入Slab。                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| Bounce                                    | 内核在低地址（16MB以下）位置分配的临时buffer，用于对高地址（16MB以上）进行I/O操作的适配。                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| WritebackTmp                              | Memory used by FUSE for temporary writeback buffers。                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| CommitLimit                               | 基于vm.overcommit_ratio，表示系统当前可以分配的内存总数。<br>由【(vm.overcommit_ratio * 物理内存) + Swap】计算得来。                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| Committed_AS                              | 系统当前已分配的内存总数，即所有processes分配的（即使未使用）内存总和。例如某进程malloc()了1GB内存，但只使用300MB，仍然计入1GB至Committed_AS中。<br>当采用strict overcommit时（vm.overcommit_memory为2），Committed_AS值不能大于CommitLimit，否则应用会申请内存失败。                                                                                                                                                                                                                                                                                                                                                              |
+| VmallocTotal                              | 可分配的虚拟内存总数。                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| VmallocUsed                               | 内核通过vmalloc分配的内存总数，注意区分VM_IOREMAP/VM_MAP/VM_ALLOC，详见/proc/vmallocinfo。                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| VmallocChunk                              | largest contiguous block of vmalloc area which is free。                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| HardwareCorrupted                         | 遇到内存硬件故障的内存总数。                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| AnonHugePages                             | 用以统计TransparentHugePages (THP)，与HugePages没有任何关系。其计入AnonPages和各进程RSS/PSS。<br>THP也可用于shared memory和tmpfs，但缺省是禁止的，详见Documentation/vm/transhuge.txt。<br>当THP未用于shared memory和tmpfs时，进程间不共享AnonHugePages，因此其统计值等于所有进程smaps中AnonHugePages值之和。                                                                                                                                                                                                                                                                                                              |
+| HugePages_Total                           | 对应内核参数vm.nr_hugepages，HugePages在内存中独立管理，不计入RSS/PSS、LRU Active/Inactive等。<br>HugePages一旦配置，无论是否使用都不再属于空闲内存。                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| HugePages_Free                            | 空闲的HugePages                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| HugePages_Rsvd                            | 用户申请HugePages后，HugePages_Rsvd立刻增加但HugePages_Free不会减少，直到用户读写后HugePages才被真正消耗，相应的HugePages_Rsvd减少、HugePages_Free也会检查。                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| HugePages_Surp                            | 统计surplus huge pages，即超过系统设定的常驻HugePages的内存数。                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| Hugepagesize                              | HugePage每页大小。                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| DirectMap4k<br>DirectMap2M<br>DirectMap1G | DirectMap不用于统计内存使用，而是反映TLB效率和负载（Load）的指标，它统计映射为4K、2M和1G页的内存大小。x86架构下，TLB管理更大的“page”，能够提升TLB的性能。                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 
 
 ## 中断信息解读
@@ -3835,6 +3839,14 @@ Kernel ABI一致性检查
 ```bash
 # 读取 /proc/kallsyms 文件，查看是否有修改/新增的内核符号
 [root@zy-super-load proc]# less /proc/kallsyms
+```
+
+### 配置coredump
+为进程配置coredump：
+```bash
+# 进程级，放到/etc/profile里可全局生效
+ulimit -c unlimited
+sysctl -w kernel.core_pattern=/var/log/core-%e.%p.%h.%t
 ```
 
 ### 关闭coredump

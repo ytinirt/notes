@@ -1065,6 +1065,7 @@ done
 
 ### 遍历一个命名空间下所有资源
 ```bash
+NAMESPACE=default
 kubectl api-resources --verbs=list --namespaced -o name \
 | xargs -n 1 kubectl get --show-kind --ignore-not-found -n ${NAMESPACE}
 
@@ -1075,6 +1076,7 @@ for t in $(kubectl api-resources --verbs=list --namespaced -o name); do echo "$t
 
 ### 遍历一个命名空间下所有资源的label和annotations
 ```bash
+NAMESPACE=default
 for api in $(kubectl api-resources --verbs=list --namespaced -o name); do
 kubectl get ${api} --ignore-not-found -n ${NAMESPACE} -o json | jq .items[].metadata.labels
 done
