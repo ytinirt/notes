@@ -47,8 +47,9 @@
     * [常用操作](#常用操作-1)
     * [为Pod/容器设置selinux label](#为pod容器设置selinux-label)
     * [根据审计日志设置selinux规则](#根据审计日志设置selinux规则)
-* [根据审计日志，查找被拦截的操作，并生成允许的规则](#根据审计日志查找被拦截的操作并生成允许的规则)
-* [设置selinux，放开拦截](#设置selinux放开拦截)
+* [容器运行时](#容器运行时)
+  * [runc](#runc)
+    * [常用命令](#常用命令-1)
   * [crun](#crun)
 * [OCI](#oci)
   * [oci-hooks](#oci-hooks)
@@ -66,7 +67,7 @@
   * [容器镜像和overlay/layer对应关系](#容器镜像和overlaylayer对应关系)
   * [在login后podman的认证信息可能存放的几个地方](#在login后podman的认证信息可能存放的几个地方)
   * [创建manifest list支持多架构镜像](#创建manifest-list支持多架构镜像)
-  * [常用命令](#常用命令-1)
+  * [常用命令](#常用命令-2)
 * [crictl](#crictl)
   * [直接创建容器](#直接创建容器)
     * [创建Pod Sandbox](#创建pod-sandbox)
@@ -118,31 +119,31 @@ cgroup实现本质上是给系统进程挂上hooks，当task运行过程中涉�
 
 ## cgroup子系统
 
-| 类型       | 说明                                                         |
-| ---------- | ------------------------------------------------------------ |
-| cpuset     | 为cgroup中的task分配独立的cpu（针对多处理器系统）和内存      |
-| cpu        | 控制task对cpu的使用                                          |
-| cpuacct    | 自动生成cgroup中task对cpu资源使用情况的报告                  |
-| memory     | 设定cgroup中task对内存使用量的限定，并且自动生成这些task对内存资源使用情况的报告 |
-| blkio      | 为块设备设定输入/输出限制                                    |
-| devices    | 开启或关闭cgroup中task对设备的访问                           |
-| freezer    | 挂起或恢复cgroup中的task                                     |
+| 类型         | 说明                                                                            |
+|------------|-------------------------------------------------------------------------------|
+| cpuset     | 为cgroup中的task分配独立的cpu（针对多处理器系统）和内存                                            |
+| cpu        | 控制task对cpu的使用                                                                 |
+| cpuacct    | 自动生成cgroup中task对cpu资源使用情况的报告                                                  |
+| memory     | 设定cgroup中task对内存使用量的限定，并且自动生成这些task对内存资源使用情况的报告                               |
+| blkio      | 为块设备设定输入/输出限制                                                                 |
+| devices    | 开启或关闭cgroup中task对设备的访问                                                        |
+| freezer    | 挂起或恢复cgroup中的task                                                             |
 | net_cls    | docker没有直接使用，其通过使用等级识别符（classid）标记网络数据包，从而允许Linux流量控制（TC）程序识别从具体cgroup中生成的数据包 |
-| perf_event | 对cgroup中的task进行统一的性能测试                           |
-| hugetlb    | TODO                                                         |
+| perf_event | 对cgroup中的task进行统一的性能测试                                                        |
+| hugetlb    | TODO                                                                          |
 
 ### cpu和cpuacct cgroup
-| 配置 | 说明 |
-| --- | --- |
-| cpu.cfs_burst_us |  |
-| cpu.cfs_period_us | cfs周期，单位微秒，默认值100000 |
-| cpu.cfs_quota_us | 用以配置在当前cfs周期下能够获取的调度配额，单位微秒，如果给95%个核则配置95000，如果给5个核则配置500000，默认值-1表示不受限 |
-| cpu.shares | 各cgroup共享cpu的权重值，默认1024，闲时cpu用量能超过根据权重计算的共享比例，忙时根据共享比例分配cpu资源 |
-| cpu.stat | **nr_periods**, 表示过去了多少个cpu.cfs_period_us里面配置的时间周期<br>**nr_throttled**, 在上面的这些周期中，有多少次是受到了限制（即cgroup中的进程在指定的时间周期中用光了它的配额）<br>**throttled_time**, cgroup中的进程被限制使用CPU持续了多长时间(纳秒) |
-| cpu.idle |  |
-| cpuacct.usage | 所有cpu核的累加使用时间(nanoseconds)  |
-| cpuacct.usage_percpu | 针对多核，输出的是每个CPU的使用时间(nanoseconds)  |
-| cpuacct.stat | 输出系统（system/kernel mode）耗时和用户（user mode）耗时，单位为USER_HZ。 |
+| 配置                   | 说明                                                                                                                                                                             |
+|----------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| cpu.cfs_burst_us     |                                                                                                                                                                                |
+| cpu.cfs_period_us    | cfs周期，单位微秒，默认值100000                                                                                                                                                           |
+| cpu.cfs_quota_us     | 用以配置在当前cfs周期下能够获取的调度配额，单位微秒，如果给95%个核则配置95000，如果给5个核则配置500000，默认值-1表示不受限                                                                                                        |
+| cpu.shares           | 各cgroup共享cpu的权重值，默认1024，闲时cpu用量能超过根据权重计算的共享比例，忙时根据共享比例分配cpu资源                                                                                                                  |
+| cpu.stat             | **nr_periods**, 表示过去了多少个cpu.cfs_period_us里面配置的时间周期<br>**nr_throttled**, 在上面的这些周期中，有多少次是受到了限制（即cgroup中的进程在指定的时间周期中用光了它的配额）<br>**throttled_time**, cgroup中的进程被限制使用CPU持续了多长时间(纳秒) |
+| cpu.idle             |                                                                                                                                                                                |
+| cpuacct.usage        | 所有cpu核的累加使用时间(nanoseconds)                                                                                                                                                     |
+| cpuacct.usage_percpu | 针对多核，输出的是每个CPU的使用时间(nanoseconds)                                                                                                                                               |
+| cpuacct.stat         | 输出系统（system/kernel mode）耗时和用户（user mode）耗时，单位为USER_HZ。                                                                                                                         |
 
 `cpu.shares`用于设置下限，在cpu繁忙时生效。`cpu.cfs_period_us`和`cpu.cfs_quota_us`设置硬上限。
 
@@ -459,7 +460,7 @@ docker buildx rm mybuilder
 参见[storage-driver-options](https://docs.docker.com/engine/reference/commandline/dockerd/#storage-driver-options)。即使采用overlay2存储驱动，也可以借助xfs的pquota特性，为容器rw层做限制。
 > overlay2.size
 >
-> Sets the default max size of the container. It is supported only when the backing fs is xfs and mounted with pquota mount option. Under these conditions the user can pass any size less then the backing fs size.
+> Sets the default max size of the container. It is supported only when the backing fs is xfs and mounted with pquota mount option. Under these conditions the user can pass any size less than the backing fs size.
 
 更进一步，通过`xfs`文件系统的`pquota`属性，可以实现文件夹级别的存储配额限制。
 
@@ -636,12 +637,12 @@ SELinux参照最小权限模型（the model of least-privilege）设计，与之
 
 targeted policy有四种形式的访问控制：
 
-| 类型 | 描述 |
-| --- | --- |
-| Type Enforcement (TE) | Type Enforcement is the primary mechanism of access control used in the targeted policy |
-| Role-Based Access Control (RBAC) | Based around SELinux users (not necessarily the same as the Linux user), but not used in the default configuration of the targeted policy |
-| Multi-Level Security (MLS) | Not commonly used and often hidden in the default targeted policy |
-| Multi-Category Security(MCS) | An extension of Multi-Level Security, used in the targeted policy to implement compartmentalization of virtual machines and containers through sVirt |
+| 类型                               | 描述                                                                                                                                                   |
+|----------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Type Enforcement (TE)            | Type Enforcement is the primary mechanism of access control used in the targeted policy                                                              |
+| Role-Based Access Control (RBAC) | Based around SELinux users (not necessarily the same as the Linux user), but not used in the default configuration of the targeted policy            |
+| Multi-Level Security (MLS)       | Not commonly used and often hidden in the default targeted policy                                                                                    |
+| Multi-Category Security(MCS)     | An extension of Multi-Level Security, used in the targeted policy to implement compartmentalization of virtual machines and containers through sVirt |
 
 所有进程和文件都含有SELinux安全啥下文（SELinux security context）信息
 ```bash
@@ -724,7 +725,7 @@ SELinux is preventing /usr/sbin/lldpad from sendto access on the unix_dgram_sock
 ```
 
 可以使用如下命令放开拦截：
-``bash
+```bash
 # 根据审计日志，查找被拦截的操作，并生成允许的规则
 ausearch -c 'lldpad' --raw | audit2allow -M my-lldpad
 # 设置selinux，放开拦截
@@ -1018,7 +1019,7 @@ crictl create <sandbox-id> container.json sandbox.json
 ### 如何配置
 参见`vendor/k8s.io/cri-api/pkg/apis/runtime/v1/api.pb.go`中`PodSandboxConfig`和`ContainerConfig`结构体定义。
 
-**注意**和OCI的区别[opencontainers/runtime-spec](github.com/opencontainers/runtime-spec/specs-go/config.go) 。
+**注意**和OCI的区别[opencontainers/runtime-spec](https://github.com/opencontainers/runtime-spec/specs-go/config.go) 。
 
 ## 查看容器资源用量
 
