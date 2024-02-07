@@ -92,6 +92,9 @@
   * [tar](#tar)
     * [解压时保留owner的id](#解压时保留owner的id)
     * [常用操作](#常用操作-3)
+  * [mqtt](#mqtt)
+    * [cli工具mqttx](#cli工具mqttx)
+    * [支持js脚本的mqtt-scripts](#支持js脚本的mqtt-scripts)
 * [容器网络](#容器网络)
   * [Calico](#calico)
     * [使用Calico实现容器网络流量限制](#使用calico实现容器网络流量限制)
@@ -1264,6 +1267,45 @@ tar -tf xxx.tar
 # 打包时，切换文件夹，解决绝对路径的影响
 tar -cf xxx.tar -C /path/to/files .
 ```
+
+## mqtt
+### cli工具mqttx
+
+安装客户端（来自emqx）
+```bash
+curl -LO https://www.emqx.com/en/downloads/MQTTX/v1.9.8/mqttx-cli-linux-x64
+sudo install ./mqttx-cli-linux-x64 /usr/local/bin/mqttx
+```
+
+常用命令：
+```bash
+# 连接broker
+mqttx conn -h 'broker.emqx.io' -p 1883 -u 'test' -P 'test'
+
+# 订阅主题
+mqttx sub -t 'topic/#' -h 'broker.emqx.io' -p 1883
+
+# 发布消息
+mqttx pub -t 'topic' -q 1 -h 'broker.emqx.io' -p 1883 -m 'Hello from MQTTX CLI'
+
+# benchmark
+mqttx bench conn -c 1000 i 10
+mqttx bench pub -c 100 -t "mqttx/bench/t" -m "hello"
+mqttx bench sub -c 50 -t 'mqttx/bench/t'
+```
+
+详见链接[mqtt cli tools](https://www.emqx.com/en/blog/mqtt-client-tools#mqtt-cli-tools)
+
+### 支持js脚本的mqtt-scripts
+容器镜像地址`dersimn/mqtt-scripts:latest`：
+```bash
+$ mv mock-device.js /path/to/mqtt-scripts
+$ docker run --privileged --rm --name=mqtt-scripts \
+    -v /path/to/mqtt-scripts:/scripts  --network host \
+    dersimn/mqtt-scripts --dir /scripts --url "mqtt://1.2.3.4:1883"
+```
+
+详见链接[Creating and Running a MQTT Device Simulator](https://docs.edgexfoundry.org/2.3/examples/Ch-ExamplesAddingMQTTDevice/#creating-and-running-a-mqtt-device-simulator) 。
 
 # 容器网络
 
