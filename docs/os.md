@@ -784,7 +784,8 @@ net.ipv4.ip_local_reserved_ports = 35357,12345
 | sysctl | net.bridge.bridge-nf-call-ip6tables<br>net.bridge.bridge-nf-call-iptables<br>net.bridge.bridge-nf-call-arptables | ----  | ----    | ----                                                                                                                            |
 | sysctl | kernel.msgmnb<br>kernel.msgmax                                                                                   | ----  | ----    | ----                                                                                                                            |
 | sysctl | kernel.shmmax<br>kernel.shmall<br>kernel.shmmni                                                                  | ----  | ----    | kernel.shmmni用来限制整个系统创建的共享内存总个数。假设限制为32，每个共享内存1M，那总共消耗的共享内存就是32 * 1M                                                            |
-| sysctl | net.ipv4.ip_local_port_range<br>net.ipv4.ip_local_reserved_ports                                                 | ----  | ----    | ----                                                                                                                            |
+| sysctl | net.ipv4.ip_local_port_range                                                                                     | ----  | ----    | 建立tcp/udp连接时，本地端口选择范围                                                                                                           |
+| sysctl | net.ipv4.ip_local_reserved_ports                                                                                 | ----  | ----    | 预留端口，建立连接时不用于本地端口。TCP/IP协议栈从ip_local_port_range中随机选取源端口时，会排除ip_local_reserved_ports中定义的端口                                       |
 | sysctl | fs.aio-max-nr                                                                                                    | ----  | ----    | ----                                                                                                                            |
 | sysctl | fs.file-max                                                                                                      | ----  | ----    | ----                                                                                                                            |
 | sysctl | fs.inotify.max_user_instances                                                                                    | ----  | ----    | ----                                                                                                                            |
@@ -3160,11 +3161,20 @@ rpc-statd
 ```
 
 ### 配置rpc-statd监听的端口
-*/etc/nfs.conf*文件中*statd*的port段，可以配置rpc-statd监听端口。
-
-详见说明：
+*/etc/nfs.conf*文件中*statd*的port段，可以配置rpc-statd监听端口，详见说明：
 ```bash
 man nfs.conf
+```
+
+具体的：
+```bash
+mkdir /etc/nfs.conf.d/
+cat << EEOOFF > /etc/nfs.conf.d/rpc.statd.conf
+[statd]
+port=12345
+EEOOFF
+
+systemctl restart rpc-statd.service
 ```
 
 ## 用户管理
