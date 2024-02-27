@@ -41,6 +41,8 @@
     * [使用Value替代Bool](#使用value替代bool)
     * [使用Value替代Pointer](#使用value替代pointer)
   * [cgo](#cgo)
+  * [GOARCH跨平台构建](#goarch跨平台构建)
+  * [go:embed](#go--embed)
 * [通过goproxy代理解决package下载问题](#通过goproxy代理解决package下载问题)
 * [示例](#示例)
   * [启HTTP服务](#启http服务)
@@ -421,6 +423,16 @@ if ok {
 
 ## cgo
 TODO: https://chai2010.cn/advanced-go-programming-book/ch2-cgo/ch2-02-basic.html
+
+## GOARCH跨平台构建
+TODO
+
+## go:embed
+TODO
+```golang
+//go:embed manifests/guard.yaml
+var podTemplate []byte
+```
 
 # 通过goproxy代理解决package下载问题
 ```bash

@@ -3150,6 +3150,21 @@ mkdir /mnt/loopdevmnt
 mount loopfile-1G.img /mnt/loopdevmnt/
 ```
 
+## rpc
+```bash
+rpcbind
+rpcinfo -p | grep status
+rpc-statd
+```
+
+### 配置rpc-statd监听的端口
+*/etc/nfs.conf*文件中*statd*的port段，可以配置rpc-statd监听端口。
+
+详见说明：
+```bash
+man nfs.conf
+```
+
 ## 用户管理
 
 ```bash
