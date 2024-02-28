@@ -1146,6 +1146,7 @@ cat master.ign | jq '.| map_values(keys)'
 jq .
 # jq escape dot
 cat xxx | jq '.Labels["io.kubernetes.pod.namespace"]'
+cat yyy | jq '.["a.b.c"]'
 kubectl get pod --all-namespaces -o json | jq -r '.items[] | select(.spec.hostNetwork) | .metadata.namespace + ":" +.metadata.name' | wc -l
 kubectl get pods -o json | jq '.items[] | select(.spec.hostname == "webapp-server-2" or .spec.hostname == "webapp-server-1") | .metadata.name' | tr -d '"'
 kubectl get pods -o json | jq '.items[].metadata.name'

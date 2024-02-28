@@ -1263,7 +1263,9 @@ curl --resolve apiserver-loopback-client:${KUBE_APISERVER_PORT}:${MASTER_IP} -k 
 # 最佳实践
 ## 资源限制
 ### 容器进程数限制pids
-TODO: https://kubernetes.io/docs/concepts/policy/pid-limiting/
+TODO:
+* https://kubernetes.io/docs/concepts/policy/pid-limiting/
+* https://access.redhat.com/articles/7033551
 
 当kubelet的`podPidsLimit`设置为4096时：
 ```bash
