@@ -3006,6 +3006,9 @@ yum makecache
 ```bash
 # 查看yum源信息
 dnf repoinfo
+
+# 查看软件历史版本
+dnf history conmon
 ```
 
 
@@ -3141,6 +3144,7 @@ ntpq -p   # 查看当前从谁那里同步时间
 对ntp的改良。
 
 ```bash
+# 检查时钟同步状态
 chronyc -n sources -v
 ```
 

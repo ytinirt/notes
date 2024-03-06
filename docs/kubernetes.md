@@ -38,6 +38,9 @@
   * [判断谁有权限操作](#判断谁有权限操作)
 * [安全](#安全)
   * [Pod Security Admission](#pod-security-admission)
+  * [Kubernetes对接容器安全](#kubernetes对接容器安全)
+    * [CRI接口中LinuxContainerSecurityContext](#cri接口中linuxcontainersecuritycontext)
+    * [OCI接口中LinuxDeviceCgroup](#oci接口中linuxdevicecgroup)
 * [操作实例](#操作实例)
   * [大规模集群实践](#大规模集群实践)
   * [在大规模集群中优雅的操作](#在大规模集群中优雅的操作)
@@ -674,6 +677,37 @@ oc adm policy who-can use securitycontextconstraints/anyuid
 # 安全
 ## Pod Security Admission
 TODO
+
+## Kubernetes对接容器安全
+
+### CRI接口中LinuxContainerSecurityContext
+类型 *LinuxContainerSecurityContext* 定义了Linux系统下容器的安全配置。
+
+其中特权模式（`Privileged` 为`true`）时，策略如下：
+```
+If set, run container in privileged mode.
+Privileged mode is incompatible with the following options. If
+privileged is set, the following features MAY have no effect:
+1. capabilities
+2. selinux_options
+4. seccomp
+5. apparmor
+
+Privileged mode implies the following specific options are applied:
+1. All capabilities are added.
+2. Sensitive paths, such as kernel module paths within sysfs, are not masked.
+3. Any sysfs and procfs mounts are mounted RW.
+4. AppArmor confinement is not applied.
+5. Seccomp restrictions are not applied.
+6. The device cgroup does not restrict access to any devices.
+7. All devices from the host's /dev are available within the container.
+8. SELinux restrictions are not applied (e.g. label=disabled).
+```
+
+### OCI接口中LinuxDeviceCgroup
+*LinuxDeviceCgroup* 定义Linux系统下Device控制组的配置。
+
+crio容器运行时中， `specAddHostDevicesIfPrivileged()` 会为特权容器配置allow为true。
 
 # 操作实例
 

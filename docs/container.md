@@ -61,6 +61,7 @@
   * [统计容器可读可写层存储用量](#统计容器可读可写层存储用量)
   * [指定seccomp profile](#指定seccomp-profile)
   * [容器存储目录](#容器存储目录)
+  * [non-root用户使用devices](#non-root用户使用devices)
 * [podman](#podman)
   * [配置管理](#配置管理)
   * [使用podman查看cri创建的pod](#使用podman查看cri创建的pod)
@@ -896,6 +897,23 @@ seccomp_profile = "/etc/crio/seccomp.json"
 ## 容器存储目录
 * `/run/containers/storage/overlay-containers/<pod-sandbox>/userdata/`，放置这个pod的`hostname`和`resolv.conf`等。
 * `/run/containers/storage/overlay-containers/<container>/userdata/`，放置容器的配置文件、挂载点等。
+
+## non-root用户使用devices
+参见 [non-root-containers-and-devices](https://kubernetes.io/blog/2021/11/09/non-root-containers-and-devices/) 。
+
+```bash
+# 修改crio配置，开启 device_ownership_from_security_context
+cat << EEOOFF > /etc/crio/crio.conf.d/10-device-ownership
+[crio.runtime]
+device_ownership_from_security_context = true
+EEOOFF
+
+# 重启crio使配置生效
+systemctl restart crio
+
+# 检查配置生效
+crio-status c | grep device_ownership_from_security_context
+```
 
 # podman
 ## 配置管理

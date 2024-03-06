@@ -27,8 +27,9 @@
     * [实例](#实例)
   * [tcpdump](#tcpdump)
     * [tcpdump和libpcap常用规则](#tcpdump和libpcap常用规则)
-  * [Shell和Bash](#shell和bash)
+  * [Bash和脚本](#bash和脚本)
     * [Bash实例](#bash实例)
+      * [遍历CSV数据](#遍历csv数据)
       * [跳过pipe失败](#跳过pipe失败)
       * [简写的if和if-else判断](#简写的if和if-else判断)
       * [函数返回逻辑判断结果](#函数返回逻辑判断结果)
@@ -534,9 +535,17 @@ dns.qry.name contains "devops"      # DNS请求过滤
 ```
 
 
-## Shell和Bash
+## Bash和脚本
 
 ### Bash实例
+
+#### 遍历CSV数据
+```bash
+ALL_ARCH_CSV=amd64,arm64
+for i in ${ALL_ARCH_CSV//,/ }; do
+    echo $i
+done
+```
 
 #### 跳过pipe失败
 当脚本设置有`set -e`时，若命令执行失败，会导致脚本立即退出，为此可采用如下方式跳过失败：
