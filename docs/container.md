@@ -727,6 +727,8 @@ SELinux is preventing /usr/sbin/lldpad from sendto access on the unix_dgram_sock
 
 可以使用如下命令放开拦截：
 ```bash
+ausearch -m avc --start recent
+
 # 根据审计日志，查找被拦截的操作，并生成允许的规则
 ausearch -c 'lldpad' --raw | audit2allow -M my-lldpad
 # 设置selinux，放开拦截
@@ -1388,6 +1390,10 @@ skopeo inspect docker://foo.bar/image:tag
 skopeo list-tags docker://foo.bar/image
 # 同步镜像的所有tag，当前还不支持多架构
 skopeo sync --src docker --dest dir foo.bar/image /mnt/usb --tls-verify=false --preserve-digests
+
+# 复制镜像
+skopeo copy --dest-tls-verify=false docker://docker.io/image:v1 docker://my.registry.hehe/image:v1
+# 支持所有架构
 skopeo copy docker://foo.bar/image:tag dir:/mnt/usb --tls-verify=false --multi-arch=all --preserve-digests
 ```
 

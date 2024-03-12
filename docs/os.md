@@ -170,6 +170,7 @@
     * [iftop（网络）](#iftop网络)
     * [sar（历史记录）](#sar历史记录)
       * [使能和配置sar](#使能和配置sar)
+      * [sar日志目录](#sar日志目录)
       * [操作实例](#操作实例-1)
     * [打开文件数](#打开文件数)
     * [lsof（文件和设备）](#lsof文件和设备)
@@ -236,8 +237,10 @@
       * [不去override更新resolv.conf文件](#不去override更新resolvconf文件)
     * [获取RPM包的源码](#获取rpm包的源码)
     * [构建自定义的CentOS内核](#构建自定义的centos内核)
-    * [配置coredump](#配置coredump)
-    * [关闭coredump](#关闭coredump)
+    * [coredump](#coredump)
+      * [配置coredump](#配置coredump)
+      * [关闭coredump](#关闭coredump)
+    * [内核crash dump](#内核crash-dump)
   * [动态链接库管理](#动态链接库管理)
   * [文本、字节流编辑](#文本字节流编辑)
   * [L2TP without IPsec配置](#l2tp-without-ipsec配置)
@@ -2521,6 +2524,9 @@ systemctl restart sysstat-collect.timer
 systemctl status sysstat-collect.timer
 ```
 
+#### sar日志目录
+`/var/log/sa/`
+
 #### 操作实例
 ```bash
 #查看内存使用情况（不包括swap）来自package: pcp-import-sar2pcp
@@ -3872,7 +3878,9 @@ Kernel ABI一致性检查
 [root@zy-super-load proc]# less /proc/kallsyms
 ```
 
-### 配置coredump
+### coredump
+
+#### 配置coredump
 为进程配置coredump：
 ```bash
 # 进程级，放到/etc/profile里可全局生效
@@ -3880,7 +3888,7 @@ ulimit -c unlimited
 sysctl -w kernel.core_pattern=/var/log/core-%e.%p.%h.%t
 ```
 
-### 关闭coredump
+#### 关闭coredump
 
 **普通进程**
 
@@ -3914,7 +3922,11 @@ Storage=none
 ProcessSizeMax=0
 ~~~
 
-
+### 内核crash dump
+```bash
+# 列出内核crash dump信息
+ls -hl /var/crash
+```
 
 ## 动态链接库管理
 

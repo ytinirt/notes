@@ -123,7 +123,9 @@
       * [CPU Manager](#cpu-manager)
       * [Memory Manager](#memory-manager)
       * [Device Plugin](#device-plugin)
+    * [节点优雅关机 GracefulNodeShutdown](#节点优雅关机-gracefulnodeshutdown)
   * [库函数和实操](#库函数和实操)
+    * [特性门featuregate](#特性门featuregate)
     * [处理runtime.Object](#处理runtimeobject)
       * [获取meta.Object信息](#获取metaobject信息)
 * [Debug](#debug)
@@ -1523,7 +1525,13 @@ healthz check failed
 
 #### Device Plugin
 
+### 节点优雅关机 GracefulNodeShutdown
+`GracefulNodeShutdown`
+
 ## 库函数和实操
+### 特性门featuregate
+featuregate在`pkg/features/kube_features.go`中定义。
+
 ### 处理runtime.Object
 #### 获取meta.Object信息
 方法1，将 *runtime.Object* 转成 *unstructured.Unstructured* :
