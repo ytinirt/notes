@@ -2953,6 +2953,8 @@ rpmls
 rpm -ivh package.rpm
 rpm -q kernel
 rpm -qa | grep kernel
+# 列出rpm包中所有文件
+rpm -ql cri-o
 # 查看安装脚本
 rpm -qi --scripts kmod-nvidia-latest-dkms-440.95.01-1.el7.x86_64
 # 查看文件属于哪个包

@@ -343,6 +343,7 @@ function cpu-usage {
 `lsns`工具来自包`util-linux`，其常见使用如下：
 
 ```bash
+# 查看网络命名空间列表
 lsns -t net
 ```
 
@@ -920,6 +921,7 @@ crio-status c | grep device_ownership_from_security_context
 # podman
 ## 配置管理
 * 配置文件在`/usr/share/containers/`和`/etc/containers/`。
+* 默认seccomp策略文件路径`/usr/share/containers/seccomp.json`。
 
 ## 使用podman查看cri创建的pod
 ```bash
@@ -968,6 +970,9 @@ cat /var/lib/containers/storage/overlay-images | jq
 
 # 调整日志级别
 podman pull --authfile /path/to/config.json <image> --log-level debug
+
+# 启容器但不分配网络
+podman run -it --rm --net=none centos:latest bash
 ```
 
 # crictl
