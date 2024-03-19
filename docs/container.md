@@ -6,6 +6,7 @@
   * [cgroup子系统](#cgroup子系统)
     * [cpu和cpuacct cgroup](#cpu和cpuacct-cgroup)
       * [根据pod的cpu request和limit如何设置cpu cgroup参数](#根据pod的cpu-request和limit如何设置cpu-cgroup参数)
+      * [cfs_period_us和cfs_quota_us进一步解释](#cfsperiodus和cfsquotaus进一步解释)
     * [cpuset](#cpuset)
     * [memory](#memory)
     * [devices](#devices)
@@ -136,7 +137,7 @@ cgroup实现本质上是给系统进程挂上hooks，当task运行过程中涉�
 ### cpu和cpuacct cgroup
 | 配置                   | 说明                                                                                                                                                                             |
 |----------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| cpu.cfs_burst_us     |                                                                                                                                                                                |
+| cpu.cfs_burst_us     | CFS调度器，允许在一个period内，cpu资源用量超过quota限制，预支的部分在后面的period里扣减出去。                                                                                                                     |
 | cpu.cfs_period_us    | cfs周期，单位微秒，默认值100000                                                                                                                                                           |
 | cpu.cfs_quota_us     | 用以配置在当前cfs周期下能够获取的调度配额，单位微秒，如果给95%个核则配置95000，如果给5个核则配置500000，默认值-1表示不受限                                                                                                        |
 | cpu.shares           | 各cgroup共享cpu的权重值，默认1024，闲时cpu用量能超过根据权重计算的共享比例，忙时根据共享比例分配cpu资源                                                                                                                  |
@@ -200,6 +201,14 @@ cgroup实现本质上是给系统进程挂上hooks，当task运行过程中涉�
 ```
 * 可看到 _cpu.cfs_quota_us_ / _cpu.cfs_period_us_ 为1.5，这个是上限。
 * *cpu.shares* / 1024 为0.5，对应`request 0.5`。
+
+#### cfs_period_us和cfs_quota_us进一步解释
+period为100000、quota为50000和period为10000、quota为5000，容器的cpu limit均为0.5核，有什么区别？
+* 每个period内，最多执行quota时间。如果在quota时间内未执行完，将被throttle（统计到stat里），并只能等待下一个period继续执行。
+* period越大，整体吞吐能力越好、削峰效果越好，但会导致实时性变差，反之亦然。
+
+辅以cfs_burst_us，能既获取良好的吞吐能力，又兼顾实时性，具体的：
+* CFS调度器，允许在一个period内，cpu资源用量超过quota限制，预支的部分在后面的period里扣减出去。
 
 ### cpuset
 遍历所有kubernetes pod的cpu亲和性：

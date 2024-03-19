@@ -102,6 +102,7 @@
       * [codec和codec factory](#codec和codec-factory)
     * [资源schema](#资源schema)
     * [健康检查/healthz](#健康检查healthz)
+    * [node authorizer实现](#node-authorizer实现)
   * [kube-controller-manager](#kube-controller-manager)
     * [配置和初始化](#配置和初始化)
     * [leader选举](#leader选举)
@@ -1470,6 +1471,20 @@ GVK和资源model的对应关系，资源model的默认值，资源在不同版�
 [+]poststarthook/apiservice-openapi-controller ok
 healthz check failed
 ```
+
+### node authorizer实现
+`plugin/pkg/auth/authorizer/node/graph.go`中为同node相关的资源创建的graph：
+```
+            volume attachment -> node
+                          pod -> node
+                sa     -> pod         // pod service account
+                secret -> pod         // every secret referenced by the pod, e.g. ImagePullSecrets, Container Env from secret, Volumes' secret ref
+                cm     -> pod         // every cm referenced by the pod, e.g. Container Env from cm, cm volumes
+                pvc    -> pod         // every pvc referenced by the pod in volumes
+          pv -> pvc
+secret -> pv                          // every secret referenced by the PV spec
+```
+在 `authorization-mode` 的 `node` 中，根据上述资源与节点的关系图`graph`判断节点是否有访问权限。
 
 ## kube-controller-manager
 
