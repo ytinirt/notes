@@ -51,6 +51,7 @@
 * [容器运行时](#容器运行时)
   * [runc](#runc)
     * [常用命令](#常用命令-1)
+    * [cri-o如何通过conmon调用runc创建容器](#cri-o如何通过conmon调用runc创建容器)
   * [crun](#crun)
 * [OCI](#oci)
   * [oci-hooks](#oci-hooks)
@@ -63,6 +64,7 @@
   * [指定seccomp profile](#指定seccomp-profile)
   * [容器存储目录](#容器存储目录)
   * [non-root用户使用devices](#non-root用户使用devices)
+  * [Deep Dive](#deep-dive)
 * [podman](#podman)
   * [配置管理](#配置管理)
   * [使用podman查看cri创建的pod](#使用podman查看cri创建的pod)
@@ -760,7 +762,22 @@ runc --root /run/containerd/runc/k8s.io ps <cid>
 runc --root /run/containerd/runc/k8s.io exec -t <cid> bash
 
 # 使用resume命令，解除paused状态
-runc --root=/run/containerd/runc/k8s.io resume <container-id>
+runc --root=/run/containerd/runc/k8s.io resume <cid>
+
+# 更新容器资源配置
+runc update --cpu-share 100 <cid>
+```
+
+### cri-o如何通过conmon调用runc创建容器
+```
+# 命令示例
+/usr/bin/runc
+    --systemd-cgroup
+    --root=/run/runc
+    create
+    --bundle /run/containers/storage/overlay-containers/<cid>/userdata
+    --pid-file /run/containers/storage/overlay-containers/<cid>/userdata/pidfile
+    <cid>
 ```
 
 ## crun
@@ -926,6 +943,11 @@ systemctl restart crio
 # 检查配置生效
 crio-status c | grep device_ownership_from_security_context
 ```
+
+## Deep Dive
+创建容器核心逻辑在`createSandboxContainer()`。
+
+cri server -> conmon -> runc -> user container process
 
 # podman
 ## 配置管理

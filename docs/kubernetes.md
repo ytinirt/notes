@@ -61,6 +61,7 @@
   * [定制kubectl输出](#定制kubectl输出)
   * [常见操作](#常见操作)
   * [资源遍历](#资源遍历)
+    * [遍历列出所有的资源类型及支持的操作](#遍历列出所有的资源类型及支持的操作)
     * [遍历所有pod](#遍历所有pod)
     * [遍历所有工作负载](#遍历所有工作负载)
     * [遍历一个命名空间下所有资源](#遍历一个命名空间下所有资源)
@@ -1075,6 +1076,21 @@ kubectl patch storageclass gold -p '{"metadata": {"annotations":{"storageclass.k
 ```
 
 ## 资源遍历
+
+### 遍历列出所有的资源类型及支持的操作
+```bash
+# do core resources first, which are at a separate api location
+api="core"
+kubectl get --raw /api/v1 | jq -r --arg api "$api" '.resources | .[] | "\($api) \(.name): \(.verbs | join(" "))"'
+
+# now do non-core resources
+APIS=$(kubectl get --raw /apis | jq -r '[.groups | .[].name] | join(" ")')
+for api in $APIS; do
+    version=$(kubectl get --raw /apis/$api | jq -r '.preferredVersion.version')
+    kubectl get --raw /apis/$api/$version | jq -r --arg api "$api" '.resources | .[]? | "\($api) \(.name): \(.verbs | join(" "))"'
+done
+```
+
 ### 遍历所有pod
 ```bash
 for n_p in $(kubectl get pod -A | sed 1d | awk '{print $1":"$2}'); do
@@ -1510,6 +1526,11 @@ secret -> pv                          // every secret referenced by the PV spec
 ### PLEG
 
 ### 调用CRI接口
+容器拉起流程 `kubelet` --cri--> `cri-o` --oci--> `runc`。
+
+* **_cri_**接口`k8s.io/cri-api/pkg/apis/runtime/v1/api.pb.go`，例如由`LinuxContainerResources`定义容器的资源配置。
+* **_oci_**接口`github.com/opencontainers/runtime-spec/specs-go/config.go`，例如由`LinuxResources`定义容器的资源配置。
+
 
 ### （间接）通过CNI接口管理网络
 
