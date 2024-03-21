@@ -42,6 +42,8 @@
   * [Discretionary Access Control](#discretionary-access-control)
   * [linux capabilities](#linux-capabilities)
   * [seccomp](#seccomp)
+  * [AppArmor](#apparmor)
+    * [使用AppArmor的前置条件](#使用apparmor的前置条件)
   * [selinux](#selinux)
     * [深入学习](#深入学习)
     * [一次完整的报错分析](#一次完整的报错分析)
@@ -639,6 +641,31 @@ spec:
 当指定为`localhost`时，默认从`/var/lib/kubelet/seccomp/`中搜索profile文件，详见`kubelet`的`--seccomp-profile-root`参数。
 当`test-profile.json`中禁止系统调用`clock_settime`后，在pod中使用date设置系统时间失败。
 
+## AppArmor
+https://kubernetes.io/docs/tutorials/security/apparmor/
+
+AppArmor通过调整配置文件（Profile）进行策略配置，以允许特定程序或容器所需的访问， 如 Linux 权能字、网络访问、文件权限等。
+每个Profile都可以在 强制（enforcing） 模式（阻止访问不允许的资源）或 投诉（complain） 模式（仅报告冲突）下运行。
+
+AppArmor的Profile施加到Pod的每个容器上，具体的，通过Pod的注解指定容器及其使用的Profile，注解示例如下：
+```
+container.apparmor.security.beta.kubernetes.io/<container_name>: <profile_ref>
+```
+
+### 使用AppArmor的前置条件
+1. 检查是否开启AppArmor内核模块
+    ```bash
+    # 输出为Y
+    cat /sys/module/apparmor/parameters/enabled
+    # 或者
+    cat /boot/config-$(uname -r) | grep CONFIG_SECURITY_APPARMOR
+    ```
+2. 容器运行时支持AppArmor，主流的容器运行时，例如containerd和cri-o，均支持AppArmor
+3. AppArmor的Profile文件已加载，如果Profile文件未加载，kubelet将拒绝创建使用该Profile的Pod
+    ```bash
+    # 查看已加载的Profile文件
+    cat /sys/kernel/security/apparmor/profiles | sort
+    ```
 
 ## selinux
 
