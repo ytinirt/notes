@@ -104,6 +104,8 @@
     * [强制重启Docker服务](#强制重启docker服务)
 * [镜像仓库和工具](#镜像仓库和工具)
   * [skopeo](#skopeo)
+    * [镜像搬运工](#镜像搬运工)
+    * [Windows环境上源码运行skopeo搬运镜像](#windows环境上源码运行skopeo搬运镜像)
 <!-- TOC -->
 
 # cgroup
@@ -1460,3 +1462,18 @@ skopeo copy --dest-tls-verify=false docker://docker.io/image:v1 docker://my.regi
 skopeo copy docker://foo.bar/image:tag dir:/mnt/usb --tls-verify=false --multi-arch=all --preserve-digests
 ```
 
+### 镜像搬运工
+```bash
+skopeo login registry-1.docker.io -u <username> -p <password>
+skopeo login image.foo.bar -u <username> -p <password> --tls-verify=false
+
+i=centos:latest
+skopeo copy --dest-tls-verify=false docker://docker.io/$i docker://image.foo.bar/dev/$i
+```
+
+### Windows环境上源码运行skopeo搬运镜像
+```bash
+# 增加 --override-os 搬运指定系统platform的镜像，例如 linux
+# 增加 --insecure-policy 跳过容器安全策略检查 /etc/containers/policy.json
+skopeo copy --dest-tls-verify=false docker://docker.io/$i docker://image.foo.bar/dev/$i --insecure-policy --override-os linux
+```
