@@ -1,3 +1,0 @@
-language: minimal
-
-script: .travis/update-toc.sh
