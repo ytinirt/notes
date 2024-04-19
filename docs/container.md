@@ -42,6 +42,11 @@
   * [Discretionary Access Control](#discretionary-access-control)
   * [linux capabilities](#linux-capabilities)
   * [seccomp](#seccomp)
+    * [原理](#原理)
+    * [确认操作系统和容器运行时支持seccomp](#确认操作系统和容器运行时支持seccomp)
+    * [为pod设置seccomp自定义策略](#为pod设置seccomp自定义策略)
+    * [排错](#排错)
+      * [runc加载seccomp策略时报“OCI permission denied”](#runc加载seccomp策略时报oci-permission-denied)
   * [AppArmor](#apparmor)
     * [使用AppArmor的前置条件](#使用apparmor的前置条件)
   * [selinux](#selinux)
@@ -586,12 +591,15 @@ spec:
 
 ## seccomp
 
+### 原理
 参考资料[seccomp](https://docs.docker.com/engine/security/seccomp)
 
 SECure COMPuting mode (简称seccomp)是Linux内核一种特性（Linux kernel feature）。能够过滤系统调用（Filter a process’s system calls）。
 相较linux capabilities，权限控制粒度更细。
 利用seccomp特性，Docker能够限制容器中能够访问的系统调用（system call），防止容器中的操作危害整个节点。
 
+
+### 确认操作系统和容器运行时支持seccomp
 通过如下操作，确认Linux和Docker支持seccomp：
 ```bash
 [root@zy-super-load docker]# docker info
@@ -610,6 +618,7 @@ CONFIG_SECCOMP=y
 从上述docker info中看到，docker的seccomp配置文件路径为`/etc/docker/seccomp.json`。
 该配置文件采用白名单模式，即容器内可访问seccomp.json列出的系统调用，除此之外的系统调用无法访问，默认（SCMP_ACT_ERRNO）返回Permission Denied。
 
+### 为pod设置seccomp自定义策略
 以设置系统时间为例：
 ~~~bash
 [root@zy-super-load ~]# strace date -s "15:22:00" 2>&1| grep -i time
@@ -642,6 +651,11 @@ spec:
 ```
 当指定为`localhost`时，默认从`/var/lib/kubelet/seccomp/`中搜索profile文件，详见`kubelet`的`--seccomp-profile-root`参数。
 当`test-profile.json`中禁止系统调用`clock_settime`后，在pod中使用date设置系统时间失败。
+
+### 排错
+
+#### runc加载seccomp策略时报“OCI permission denied”
+详见[issue](https://github.com/containers/common/issues/631)
 
 ## AppArmor
 https://kubernetes.io/docs/tutorials/security/apparmor/
@@ -1473,6 +1487,9 @@ skopeo copy --dest-tls-verify=false docker://docker.io/$i docker://image.foo.bar
 
 ### Windows环境上源码运行skopeo搬运镜像
 ```bash
+# Windows上构建skopeo可执行文件
+GOOS=windows GOARCH=amd64 go build -tags "containers_image_openpgp" -o bin/skopeo ./cmd/skopeo
+
 # 增加 --override-os 搬运指定系统platform的镜像，例如 linux
 # 增加 --insecure-policy 跳过容器安全策略检查 /etc/containers/policy.json
 skopeo copy --dest-tls-verify=false docker://docker.io/$i docker://image.foo.bar/dev/$i --insecure-policy --override-os linux

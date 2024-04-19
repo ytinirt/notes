@@ -96,6 +96,7 @@
   * [mqtt](#mqtt)
     * [cli工具mqttx](#cli工具mqttx)
     * [支持js脚本的mqtt-scripts](#支持js脚本的mqtt-scripts)
+  * [crontab](#crontab)
 * [容器网络](#容器网络)
   * [Calico](#calico)
     * [使用Calico实现容器网络流量限制](#使用calico实现容器网络流量限制)
@@ -1316,6 +1317,14 @@ $ docker run --privileged --rm --name=mqtt-scripts \
 ```
 
 详见链接[Creating and Running a MQTT Device Simulator](https://docs.edgexfoundry.org/2.3/examples/Ch-ExamplesAddingMQTTDevice/#creating-and-running-a-mqtt-device-simulator) 。
+
+## crontab
+定期执行job：
+```bash
+crontab -e
+0 * * * * systemctl restart systemd-journald
+# */5 * * * * systemctl restart systemd-journald
+```
 
 # 容器网络
 

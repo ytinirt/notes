@@ -74,6 +74,7 @@
   * [强制删除Pod](#强制删除pod)
   * [Pod中获取PodIP的方法](#pod中获取podip的方法)
   * [emptyDir在宿主机上的路径](#emptydir在宿主机上的路径)
+    * [节点上emptyDir用量统计](#节点上emptydir用量统计)
   * [FC存储多路径的PV配置](#fc存储多路径的pv配置)
   * [编译kubelet](#编译kubelet)
   * [获取k8s控制面组件指标](#获取k8s控制面组件指标)
@@ -1240,7 +1241,17 @@ env:
 find /var/lib/kubelet/pods/*/volumes/kubernetes.io~empty-dir -name "file-name"
 ```
 
+### 节点上emptyDir用量统计
+```bash
+for d in $(sudo find /var/lib/kubelet/pods -type d -name "*empty-dir*" 2>/dev/null); do
+    sudo du -sh $d
+done
 
+# 排除掉空文件夹
+for d in $(sudo find /var/lib/kubelet/pods -type d -name "*empty-dir*" 2>/dev/null); do
+    sudo du -sh $d
+done | grep -v "^0\>"
+```
 
 ## FC存储多路径的PV配置
 

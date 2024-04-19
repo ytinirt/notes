@@ -5,6 +5,7 @@
 * [Deep Dive](#deep-dive)
   * [SCC](#scc)
     * [使用oc adm policy设置scc权限的注意事项](#使用oc-adm-policy设置scc权限的注意事项)
+    * [代码方式为sa设置scc权限](#代码方式为sa设置scc权限)
     * [“我”是否有这个操作权限](#我是否有这个操作权限)
     * [“谁”有这个操作权限](#谁有这个操作权限)
 * [常用操作](#常用操作)
@@ -21,6 +22,7 @@
     * [强制更新](#强制更新)
   * [修改节点kubelet配置](#修改节点kubelet配置)
   * [让cvo不要调谐资源](#让cvo不要调谐资源)
+  * [让cvo删除资源](#让cvo删除资源)
 * [测试](#测试)
   * [执行内容查询](#执行内容查询)
   * [UT](#ut)
@@ -101,6 +103,23 @@ yes
 yes
 # oc auth can-i --as=system:serviceaccount:hehe:default use scc/privileged -n hehe
 yes
+```
+
+### 代码方式为sa设置scc权限
+根据scc实现原理，便可以通过创建`ClusterRoleBinding`为sa指定scc权限
+```
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: <自定义一个名字>
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:openshift:scc:privileged
+subjects:
+- kind: ServiceAccount
+  name: node-problem-detector
+  namespace: openshift-npd-system
 ```
 
 ### “我”是否有这个操作权限
@@ -409,6 +428,9 @@ EOF
 # 给clusterversion打patch
 oc patch clusterversion version --type json -p "$(cat patch.yaml)"
 ```
+
+## 让cvo删除资源
+manifests中yaml增加注解`release.openshift.io/delete: "true"`
 
 # 测试
 ## 执行内容查询
