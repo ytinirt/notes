@@ -38,7 +38,7 @@
   * [判断谁有权限操作](#判断谁有权限操作)
 * [安全](#安全)
   * [Pod Security Admission](#pod-security-admission)
-  * [配置containerd Capabilities](#配置containerd-capabilities)
+  * [配置container Capabilities](#配置container-capabilities)
   * [Kubernetes对接容器安全](#kubernetes对接容器安全)
     * [CRI接口中LinuxContainerSecurityContext](#cri接口中linuxcontainersecuritycontext)
     * [OCI接口中LinuxDeviceCgroup](#oci接口中linuxdevicecgroup)
@@ -686,7 +686,7 @@ oc adm policy who-can use securitycontextconstraints/anyuid
 ## Pod Security Admission
 TODO
 
-## 配置containerd Capabilities
+## 配置container Capabilities
 [在 Kubernetes 中配置 Container Capabilities](https://mp.weixin.qq.com/s/cQurKzXBEi-mMaT-lR8Ehg)
 
 ## Kubernetes对接容器安全
