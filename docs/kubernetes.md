@@ -1300,12 +1300,17 @@ make WHAT=cmd/kubelet GOLDFLAGS=""
 ```
 
 ## 获取k8s控制面组件指标
+
+**kube-apiserver**:
+```bash
+# kube-apiserver
+kubectl get --raw /metrics
+```
+
+**kubelet**:
 ```bash
 # 从kubeconfig里拿ca.crt user.crt user.key
 curl --cacert ./ca.crt --cert ./user.crt --key ./user.key https://x.x.x.x:10257/metrics -k
-
-# kube-apiserver
-kubectl get --raw /metrics
 ```
 
 ## kubeadm部署的集群的操作
@@ -1368,6 +1373,14 @@ max ./kubepods-burstable.slice/kubepods-burstable-podxxx.slice/crio-<sandbox pod
 | grpc_server_handling_seconds | grpc_method="MemberList" |     | P99 0.5 |
 
 ### kube-apiserver监控指标
+
+| 指标                            | label           | 说明                                                                 | 告警值 |
+|-------------------------------|-----------------|--------------------------------------------------------------------|-----|
+| etcd_db_total_size_in_bytes   |                 | Total size of the etcd database file physically allocated in bytes |     |
+| etcd_bookmark_counts          | resource        | Number of etcd bookmarks (progress notify events) split by kind    |     |
+| etcd_lease_object_counts      |                 | Number of objects attached to a single etcd lease                  |     |
+| etcd_request_duration_seconds | operation, type | Etcd request latency in seconds for each operation and object type |     |
+
 
 ### kube-controller-manager监控指标
 

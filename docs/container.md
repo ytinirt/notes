@@ -71,6 +71,7 @@
   * [指定seccomp profile](#指定seccomp-profile)
   * [容器存储目录](#容器存储目录)
   * [non-root用户使用devices](#non-root用户使用devices)
+  * [问题debug](#问题debug)
   * [Deep Dive](#deep-dive)
 * [podman](#podman)
   * [配置管理](#配置管理)
@@ -985,6 +986,28 @@ systemctl restart crio
 
 # 检查配置生效
 crio-status c | grep device_ownership_from_security_context
+```
+
+## 问题debug
+**调整日志级别**：
+```bash
+# 修改日志级别log_level为info、debug或trace
+/etc/crio/crio.conf.d/00-default
+
+# 重载配置
+systemctl reload crio
+```
+
+**获取pprof数据**：
+```bash
+# 通过环境变量，指定开启pprof
+Environment="ENABLE_PROFILE_UNIX_SOCKET=true"
+
+# 获取pprof数据，例如goroutine
+curl --unix-socket /var/run/crio/crio.sock http://localhost/debug/pprof/goroutine?debug=1
+
+# 当crio不响应时获取goroutine调用栈，调用栈信息保存在 /tmp/crio-goroutine-stacks-* 文件
+systemctl kill -s USR1 crio.service
 ```
 
 ## Deep Dive
