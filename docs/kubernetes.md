@@ -38,11 +38,13 @@
   * [判断谁有权限操作](#判断谁有权限操作)
 * [安全](#安全)
   * [Pod Security Admission](#pod-security-admission)
+  * [配置containerd Capabilities](#配置containerd-capabilities)
   * [Kubernetes对接容器安全](#kubernetes对接容器安全)
     * [CRI接口中LinuxContainerSecurityContext](#cri接口中linuxcontainersecuritycontext)
     * [OCI接口中LinuxDeviceCgroup](#oci接口中linuxdevicecgroup)
 * [操作实例](#操作实例)
   * [大规模集群实践](#大规模集群实践)
+    * [社区优化跟踪](#社区优化跟踪)
   * [在大规模集群中优雅的操作](#在大规模集群中优雅的操作)
     * [集群Pod总数](#集群pod总数)
     * [集群Event总数](#集群event总数)
@@ -91,6 +93,7 @@
     * [kube-controller-manager监控指标](#kube-controller-manager监控指标)
     * [kube-scheduler监控指标](#kube-scheduler监控指标)
     * [kubelet监控指标](#kubelet监控指标)
+  * [内存优化](#内存优化)
 * [Deep Dive系列](#deep-dive系列)
   * [kube-apiserver](#kube-apiserver)
     * [服务启动流程](#服务启动流程)
@@ -683,6 +686,9 @@ oc adm policy who-can use securitycontextconstraints/anyuid
 ## Pod Security Admission
 TODO
 
+## 配置containerd Capabilities
+[在 Kubernetes 中配置 Container Capabilities](https://mp.weixin.qq.com/s/cQurKzXBEi-mMaT-lR8Ehg)
+
 ## Kubernetes对接容器安全
 
 ### CRI接口中LinuxContainerSecurityContext
@@ -718,6 +724,9 @@ crio容器运行时中， `specAddHostDevicesIfPrivileged()` 会为特权容器�
 
 ## 大规模集群实践
 * [究竟谁是草台班子？](https://mp.weixin.qq.com/s/ZvG232ale2qwBl1-LFw-Zw)
+
+### 社区优化跟踪
+* [support pod namespace index in cache](https://github.com/kubernetes/kubernetes/issues/120778)
 
 ## 在大规模集群中优雅的操作
 
@@ -1380,6 +1389,7 @@ max ./kubepods-burstable.slice/kubepods-burstable-podxxx.slice/crio-<sandbox pod
 | etcd_bookmark_counts          | resource        | Number of etcd bookmarks (progress notify events) split by kind    |     |
 | etcd_lease_object_counts      |                 | Number of objects attached to a single etcd lease                  |     |
 | etcd_request_duration_seconds | operation, type | Etcd request latency in seconds for each operation and object type |     |
+| apiserver_storage_objects     | resource        | Number of stored objects at the time of last check split by kind   |     |
 
 
 ### kube-controller-manager监控指标
@@ -1387,6 +1397,11 @@ max ./kubepods-burstable.slice/kubepods-burstable-podxxx.slice/crio-<sandbox pod
 ### kube-scheduler监控指标
 
 ### kubelet监控指标
+
+## 内存优化
+[k8s client-go内存优化](https://blog.ayanamist.com/2022/10/28/k8s-informer-mem-optimize.html):
+* 优先使用Protobuf而不是JSON
+* 流式list，避免informer首次list时置`resourceVersion=0`，全量拉取数据并一起做反序列化，相关[KEP-3157: allow informers for getting a stream of data instead of chunking](https://github.com/kubernetes/enhancements/tree/master/keps/sig-api-machinery/3157-watch-list)
 
 # Deep Dive系列
 ## kube-apiserver
