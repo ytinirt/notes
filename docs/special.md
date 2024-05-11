@@ -56,6 +56,7 @@
       * [从文件中读取信息](#从文件中读取信息)
       * [比较两个变量是否相同](#比较两个变量是否相同)
       * [高级test语句: 正则表达式，判断是否为纯数字](#高级test语句--正则表达式判断是否为纯数字)
+      * [高级test语句：正则表达式，判断字符串](#高级test语句正则表达式判断字符串)
       * [判断一个文件夹是否为空](#判断一个文件夹是否为空)
       * [使用cat生成文件](#使用cat生成文件)
       * [运算](#运算)
@@ -906,6 +907,24 @@ case ${node_type} in
 esac
 ```
 
+
+#### 高级test语句：正则表达式，判断字符串
+```bash
+#!/bin/bash
+
+# String to check
+string="example123"
+
+# Regular expression pattern to match
+pattern="[0-9]+"
+
+# Check if the string matches the pattern using =~
+if [[ $string =~ $pattern ]]; then
+    echo "String matches the pattern"
+else
+    echo "String does not match the pattern"
+fi
+```
 
 
 #### 判断一个文件夹是否为空

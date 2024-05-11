@@ -938,6 +938,10 @@ kubectl get pod --sort-by=.status.startTime -o=custom-columns=name:.metadata.nam
 ## 常见操作
 
 ```bash
+# 找到deploy对应的pod（使用 jq 的 to_entries ）
+selector=$(kubectl get deploy -n $ns $name -o jsonpath='{.spec.selector.matchLabels}' | jq 'to_entries[]| .key + "=" + .value' -r | tr '\n' ',' | sed 's/,$//g')
+kubectl get pod -n $ns -l $selector
+
 # 手动拉取pod使用的容器镜像
 function man_pull {
     local ns=$1

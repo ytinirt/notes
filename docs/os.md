@@ -3750,6 +3750,11 @@ nmcli conn up br-ex
 nmcli connection modify eth0 ipv4.addresses 1.2.3.4/24 ipv4.gateway 1.2.3.5 ipv4.method manual
 nmcli connection down eth0
 nmcli connection up eth0
+
+# 查看wifi信息
+nmcli dev wifi list
+# 连接wifi
+nmcli dev wifi connect <ssid> password <password>
 ```
 
 #### 配置全局域名解析服务器
