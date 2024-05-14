@@ -139,6 +139,7 @@
       * [iostat判断io瓶颈](#iostat判断io瓶颈)
       * [ionice修改io优先级](#ionice修改io优先级)
       * [fio性能测试](#fio性能测试)
+      * [dd性能测试](#dd性能测试)
       * [iotop细看进程的io](#iotop细看进程的io)
       * [iozone](#iozone)
       * [判断SSD还是HDD](#判断ssd还是hdd)
@@ -2175,7 +2176,8 @@ dperf基于dpdk，提供100Gbps级别的网络性能和压测功能，项目地�
 间隔两秒看cpu util，如果到70%左右性能就会有明显影响：
 ```bash
 # 查看cpu和硬盘io信息，关注await和iowait的CPU占比
-iostat -xz 2
+iostat -xzm 2
+iostat -xm 1 /dev/sda
 ```
 
 更进一步，主要看IO延迟：
@@ -2225,11 +2227,18 @@ fio --filename=/tmp/1G -iodepth=64 -ioengine=libaio --direct=1 --rw=randwrite --
 ```
 
 
-参见[文章](https://www.ibm.com/cloud/blog/using-fio-to-tell-whether-your-storage-is-fast-enough-for-etcd)，测试方法如下：
+参见[文章](https://prog.world/is-storage-speed-suitable-for-etcd-ask-fio/)，测试方法如下：
 ```bash
-fio --rw=write --ioengine=sync --fdatasync=1 --directory=test-data --size=22m --bs=2300 --name=mytest
+# 在希望测试的disk的挂载路径中，创建文件夹 test-dir
+mkdir test-dir
+fio --rw=write --ioengine=sync --fdatasync=1 --directory=test-dir --size=22m --bs=2300 --name=mytest
 ```
 TODO
+
+#### dd性能测试
+```bash
+dd if=/dev/sda of=/dev/null bs=1M count=1024 iflag=direct
+```
 
 #### iotop细看进程的io
 ```bash
@@ -4368,6 +4377,7 @@ systemctl status smartd
 smartctl -i /dev/sda
 smartctl -s on /dev/sda
 smartctl -a /dev/sda
+smartctl -g wcache /dev/sda
 
 # 坏道检查
 badblocks

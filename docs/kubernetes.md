@@ -942,6 +942,16 @@ kubectl get pod --sort-by=.status.startTime -o=custom-columns=name:.metadata.nam
 selector=$(kubectl get deploy -n $ns $name -o jsonpath='{.spec.selector.matchLabels}' | jq 'to_entries[]| .key + "=" + .value' -r | tr '\n' ',' | sed 's/,$//g')
 kubectl get pod -n $ns -l $selector
 
+# 批量找到deploy对应的pod
+for deploy in $(kubectl get deploy -A -o=custom-columns=NS:.metadata.namespace,NAME:.metadata.name,REPLICA:.spec.replicas | grep " 2$" | awk '{print $1"/"$2}'); do
+    ns=$(echo $deploy | cut -d/ -f1)
+    name=$(echo $deploy | cut -d/ -f2)
+    selector=$(kubectl get deploy -n $ns $name -o jsonpath='{.spec.selector.matchLabels}' | jq 'to_entries[]| .key + "=" + .value' -r | tr '\n' ',' | sed 's/,$//g')
+    nodes=$(kubectl get pod -owide -n $ns -l $selector -o=custom-columns=NODE:.spec.nodeName --no-headers | tr '\n' ' ')
+    printf "%-30s %-50s %s\n" "$ns" "$name" "$nodes"
+done
+
+
 # 手动拉取pod使用的容器镜像
 function man_pull {
     local ns=$1

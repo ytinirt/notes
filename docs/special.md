@@ -1562,13 +1562,13 @@ volumes:
 
 **3. 使用性能测试工具fio测试fdatasync的p99显著小于10ms**
 
-  执行命令：`fio --rw=write --ioengine=sync --fdatasync=1 --directory=test-data --size=22m --bs=2300 --name=mytest`
+  执行命令：`fio --rw=write --ioengine=sync --fdatasync=1 --directory=test-dir --size=22m --bs=2300 --name=mytest`
 
   说明：
   * 上述采用顺序写（`--rw=write`），在写之后立刻落盘（--fdatasync=1），充分模拟`etcd`的行为。
   * fdatasync的p99得显著小于10ms，才表明disk的性能满足etcd要求。
   * fio版本要求3.5+；test-data是一个文件夹，位于待测试的disk挂载的文件系统内。
-  * 参考[文档链接](https://www.ibm.com/cloud/blog/using-fio-to-tell-whether-your-storage-is-fast-enough-for-etcd)
+  * 参考[文档链接](https://prog.world/is-storage-speed-suitable-for-etcd-ask-fio/)
 
 **4. OpenShift基于fio提供了检测工具**
 
