@@ -2105,6 +2105,8 @@ gcc -mtune=native -march=native -O3 -mcmodel=large  -fopenmp -DSTREAM_ARRAY_SIZE
 ```bash
 # 查询CPU额定主频
 cat /proc/cpuinfo
+# 查看主频信息
+cpupower frequency-info
 # 最后参数是额定主频
 cpupower frequency-set -f 2.5GHz
 # 卸载pcc_cpufreq内核模块
