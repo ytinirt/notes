@@ -2239,6 +2239,13 @@ TODO
 
 #### dd性能测试
 ```bash
+# 4K同步IO写性能，SSD盘参考预期值 ~10MB/s
+dd if=/dev/zero of=test-4k count=10240 oflag=dsync
+
+# 64K同步IO写性能，SSD盘参考预期值 ~100MB/s
+dd if=/dev/zero of=test-64k count=10240 oflag=dsync
+
+# 直接读盘
 dd if=/dev/sda of=/dev/null bs=1M count=1024 iflag=direct
 ```
 
@@ -4380,6 +4387,7 @@ smartctl -i /dev/sda
 smartctl -s on /dev/sda
 smartctl -a /dev/sda
 smartctl -g wcache /dev/sda
+smartctl -s wcache,off /dev/sdX
 
 # 坏道检查
 badblocks
