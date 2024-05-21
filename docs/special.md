@@ -228,6 +228,7 @@
     * [frp](#frp)
     * [sshd](#sshd)
     * [Ngrok](#ngrok)
+  * [Hyrum's Law](#hyrums-law)
   * [奇技淫巧](#奇技淫巧)
     * [VMware为NAT网络配置端口转发](#vmware为nat网络配置端口转发)
     * [goland](#goland)
@@ -3175,6 +3176,10 @@ remote_port = 6000
 * https://blog.csdn.net/feifei3211/article/details/102879381
 
 ### Ngrok
+
+## Hyrum's Law
+当API的用户数量足够多，你承诺和关注的功能并不重要。只要是API对外可见的能力，最终都会被某些用户依赖。
+[Hyrum's Law](https://www.hyrumslaw.com/)
 
 ## 奇技淫巧
 
