@@ -106,6 +106,7 @@
   * [FC存储](#fc存储)
   * [存储多路径](#存储多路径)
   * [Persistent Memory](#persistent-memory)
+  * [挂载点](#挂载点)
 * [File system](#file-system)
   * [命令行工具](#命令行工具)
     * [stat](#stat)
@@ -1896,6 +1897,17 @@ multipathd
 ## Persistent Memory
 *PMEM*，TODO
 
+## 挂载点
+```bash
+# 查看挂载点属性
+findmnt -o TARGET,PROPAGATION
+
+# 重新置共享，仅配置指定文件夹
+mount --make-shared /
+
+# 重新置共享，递归处理
+mount --make-rshared /
+```
 
 # File system
 

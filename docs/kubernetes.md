@@ -938,6 +938,9 @@ kubectl get pod --sort-by=.status.startTime -o=custom-columns=name:.metadata.nam
 ## 常见操作
 
 ```bash
+# 找到挂载主机根目录的pod
+kubectl get pod -A -o=custom-columns=NAMESPACE:.metadata.namespace,NAME:.metadata.name,VOLUMES:.spec.volumes | grep hostPath | grep "path:/ " | awk '{print $1" "$2}'
+
 # 找到deploy对应的pod（使用 jq 的 to_entries ）
 selector=$(kubectl get deploy -n $ns $name -o jsonpath='{.spec.selector.matchLabels}' | jq 'to_entries[]| .key + "=" + .value' -r | tr '\n' ',' | sed 's/,$//g')
 kubectl get pod -n $ns -l $selector
