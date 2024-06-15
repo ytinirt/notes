@@ -2338,6 +2338,9 @@ strace -fc -e trace=access curl -s 'https://10.100.0.1/' > /dev/null
 # 找配置文件的奇技淫巧
 strace -eopen pip 2>&1|grep pip.conf
 
+# 查看命令打开的文件
+strace -e trace=open,openat,creat ls
+
 # 获取etcd每次写操作字节数，借此评估fio测试块大小  TODO
 strace -p $(pidof etcd) 2>&1 | grep -e  "\(write\|fdatasync\)\((12\|(18\)"
 

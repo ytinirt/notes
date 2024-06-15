@@ -73,6 +73,8 @@
   * [non-root用户使用devices](#non-root用户使用devices)
   * [问题debug](#问题debug)
   * [Deep Dive](#deep-dive)
+    * [创建容器](#创建容器)
+    * [列出镜像ImageService/ListImages](#列出镜像imageservicelistimages)
 * [podman](#podman)
   * [配置管理](#配置管理)
   * [使用podman查看cri创建的pod](#使用podman查看cri创建的pod)
@@ -1011,9 +1013,15 @@ systemctl kill -s USR1 crio.service
 ```
 
 ## Deep Dive
+### 创建容器
 创建容器核心逻辑在`createSandboxContainer()`。
 
 cri server -> conmon -> runc -> user container process
+
+### 列出镜像ImageService/ListImages
+以`/runtime.v1alpha2.ImageService/ListImages`为例，`storage/storage_transport.go`中会从容器存储中，解析对应的镜像信息并返回。
+
+核心逻辑在`ParseStoreReference()`的`parsed reference into`。
 
 # podman
 ## 配置管理
