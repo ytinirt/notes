@@ -2430,6 +2430,11 @@ chmod a+x /tmp/xtime
 ```
 
 
+持续监控执行时间
+```bash
+while true; do echo $(echo -n $({ time cat /sys/fs/cgroup/memory/memory.stat; } 2>&1 | tail -n3)); sleep 0.1; done | grep -v "real 0m0.00"
+```
+
 ### coredump分析
 
 查看Core Dump文件保存路径

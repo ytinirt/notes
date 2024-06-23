@@ -27,6 +27,14 @@
     * [lsns](#lsns)
     * [nsenter](#nsenter)
     * [unshare](#unshare)
+* [OCI标准](#oci标准)
+  * [运行时标准 runtime-spec](#运行时标准-runtime-spec)
+  * [镜像标准 image-spec](#镜像标准-image-spec)
+    * [manifest](#manifest)
+    * [OCI Image Media Types](#oci-image-media-types)
+    * [layer](#layer)
+    * [blobs](#blobs)
+  * [分发标准 distribution-spec](#分发标准-distribution-spec)
 * [容器镜像](#容器镜像)
   * [从无到有制作基础镜像](#从无到有制作基础镜像)
   * [采用合并打包实现缩容](#采用合并打包实现缩容)
@@ -395,6 +403,34 @@ nsenter -t 14756 -n ip link set eth0 address ee:ee:ee:ee:ee:ee # 修改容器 MA
 
 >run program with some namespaces unshared from parent
 
+
+# OCI标准
+## 运行时标准 runtime-spec
+
+## 镜像标准 image-spec
+标准链接[image-spec](https://github.com/opencontainers/image-spec/blob/main/spec.md)
+
+### manifest
+包括如下信息：
+* **layer**, that will be unpacked to make up the final runnable filesystem.
+* **image config**, includes information such as application arguments, environments, etc.
+* **image index**, a higher-level manifest which points to a list of manifests and descriptors.
+
+最终能够`unpacked into an OCI Runtime Bundle.`
+
+### OCI Image Media Types
+https://github.com/opencontainers/image-spec/blob/main/media-types.md
+
+### layer
+
+
+### blobs
+```bash
+$ shasum -a 256 ./blobs/sha256/afff3924849e458c5ef237db5f89539274d5e609db5db935ed3959c90f1f2d51
+afff3924849e458c5ef237db5f89539274d5e609db5db935ed3959c90f1f2d51 ./blobs/sha256/afff3924849e458c5ef237db5f89539274d5e609db5db935ed3959c90f1f2d51
+```
+
+## 分发标准 distribution-spec
 
 # 容器镜像
 ## 从无到有制作基础镜像
