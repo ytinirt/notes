@@ -144,6 +144,7 @@
   * [从源码编译kubernetes时版本信息](#从源码编译kubernetes时版本信息)
   * [修改结构体定义后更新api-rules校验](#修改结构体定义后更新api-rules校验)
   * [构建时如何选取version](#构建时如何选取version)
+  * [StatefulSet无法更新中volumeClaimTemplates的request](#statefulset无法更新中volumeclaimtemplates的request)
   * [其它](#其它-1)
 <!-- TOC -->
 
@@ -1784,6 +1785,10 @@ kubernetes在构建时，根据git获取信息生成version，主要实现在 *k
 > KUBE_GIT_VERSION=$("${git[@]}" describe --tags --match='v*' --abbrev=14 "${KUBE_GIT_COMMIT}^{commit}" 2>/dev/null)
 
 再将`KUBE_GIT_VERSION`转成`semantic version`格式。
+
+## StatefulSet无法更新中volumeClaimTemplates的request
+* [问题讨论](https://serverfault.com/questions/955293/how-to-increase-disk-size-in-a-stateful-set)
+* [社区issue](https://github.com/kubernetes/kubernetes/issues/68737)
 
 ## 其它
 `kube-controller-manager`的默认配置在`kubernetes/pkg/controller/apis/config/v1alpha1/zz_generated.defaults.go`中`SetDefaults_KubeControllerManagerConfiguration()`设置。

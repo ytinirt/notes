@@ -2432,7 +2432,7 @@ chmod a+x /tmp/xtime
 
 持续监控执行时间
 ```bash
-while true; do echo $(echo -n $({ time cat /sys/fs/cgroup/memory/memory.stat; } 2>&1 | tail -n3)); sleep 0.1; done | grep -v "real 0m0.00"
+while true; do echo $(echo -n $(date) $({ time cat /sys/fs/cgroup/memory/memory.stat; } 2>&1 | tail -n3)); sleep 0.1; done | grep -v "real 0m0.00"
 ```
 
 ### coredump分析
@@ -4304,7 +4304,7 @@ ipmitool -I lanplus -H $ip -U $username -P $password lan print
 # 服务器硬件信息（例如硬件报错）
 ipmitool sel list
 
-# 获取BMC登录信息
+# 获取BMC的IP地址、登录信息
 ipmitool lan print
 ```
 
@@ -4329,6 +4329,10 @@ curl -u 'user:password' -X PUT "url_to_file" -T path_to_file -v
 
 # 重试
 GRACEFUL_CURL="curl --retry 30 --retry-delay 5 --retry-connrefused --max-time 3"
+
+# 获取HTTP响应码
+curl -o /dev/null -s -w "%{http_code}\n" http://example.com
+200
 ```
 
 查看系统开机时间
