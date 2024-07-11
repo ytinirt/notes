@@ -61,6 +61,7 @@
   * [根据sa生成kubeconfig](#根据sa生成kubeconfig)
   * [kubeconfig跳过服务端证书校验](#kubeconfig跳过服务端证书校验)
   * [定制kubectl输出](#定制kubectl输出)
+  * [kubectl patch操作](#kubectl-patch操作)
   * [常见操作](#常见操作)
   * [资源遍历](#资源遍历)
     * [遍历列出所有的资源类型及支持的操作](#遍历列出所有的资源类型及支持的操作)
@@ -934,6 +935,27 @@ clusters:
 ```bash
 # 定制输出
 kubectl get pod --sort-by=.status.startTime -o=custom-columns=name:.metadata.name,startTime:.status.startTime
+```
+
+## kubectl patch操作
+
+命令行：
+```bash
+kubectl patch mykind demo --type=merge --subresource status --patch 'status: {conditions: [{type: Degraded, status: "False", reason: AsExpected, message: "everything is ok", lastTransitionTime: "2024-07-11T09:08:47Z"}]}'
+```
+
+从标准输入中打patch：
+```bash
+cat << EEOOFF | kubectl patch mykind demo --type=merge --subresource status --patch-file=/dev/stdin
+status:
+  conditions:
+  - type: Available
+    status: "True"
+    lastTransitionTime: "2024-07-11T09:12:23Z"
+    reason: AsExpected
+    message: |-
+      DemoServiceAvailable: All service is available
+EEOOFF
 ```
 
 ## 常见操作
