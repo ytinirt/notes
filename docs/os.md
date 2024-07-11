@@ -7,6 +7,7 @@
     * [migration](#migration)
     * [绑核和预留CPU](#绑核和预留cpu)
       * [操作](#操作)
+      * [为systemd service设置绑核](#为systemd-service设置绑核)
   * [进程间通信](#进程间通信)
     * [ipcs和ipcrm工具](#ipcs和ipcrm工具)
   * [IO调度器](#io调度器)
@@ -300,10 +301,27 @@ taskset -cp 1
 taskset -cap 0,9-24,33-48,57-72,81-95 <pid>
 
 # 查看进程跑在什么core上
-ps -eLo pid,psr,comm
+ps -eLo pid,lwp,psr,comm
 
 # 使用numactl将进程绑定到隔离的核上
 
+```
+
+#### 为systemd service设置绑核
+```bash
+# 设置kubelet service的CPU亲和性
+cat << EEOOFF > /etc/systemd/system/kubelet.service.d/40-cpuaffinity.conf
+[Service]
+CPUAffinity=0-2
+EEOOFF
+
+# 使配置生效
+systemctl daemon-reload
+systemctl restart kubelet
+
+# 检查配置生效，kubelet及线程运行在指定核上
+systemctl show --property=CPUAffinity kubelet
+ps -eLo pid,lwp,psr,comm | grep kubelet
 ```
 
 ## 进程间通信
@@ -3313,8 +3331,8 @@ openssl storeutl -noout -text -certs  ca-bundle.crt
 openssl x509 -noout -ext subjectAltName
 
 # tls建连，获取server端证书信息
-openssl s_client -host 10.0.0.100 -port 2379 -msg -state -showcerts -tls1_2
-openssl s_client -showcerts -timeout -connect 1.2.3.4:8443 2>/dev/null | grep -i notafter
+openssl s_client -host <server-ip> -port <server-port> -msg -state -showcerts -tls1_2
+openssl s_client -showcerts -timeout -connect <server-ip>:<server-port> 2>/dev/null | grep -i notafter
 
 # 读取x509证书的信息
 openssl x509 -in xxx.crt -text -noout
