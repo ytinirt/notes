@@ -961,6 +961,16 @@ EEOOFF
 ## 常见操作
 
 ```bash
+# 查看pod和容器的创建、启动时间
+# 输入Pod相关信息
+NS=default
+POD=test-pod
+# 获取ID信息
+CID=$(kubectl describe pod -n $NS $POD  | grep cri-o | cut -d/ -f3)
+PODUID=$(kubectl get pod -n $NS $POD -o jsonpath='{.metadata.uid}')
+# 在Pod所在节点执行，查看pod和容器创建日志
+journalctl -u kubelet -u crio | grep "$POD\|$CID\|$PODUID" | grep "RemoteRuntimeService\|Created container\|Creating container\|Created container\|Starting container\|Started container"
+
 # 找到挂载主机根目录的pod
 kubectl get pod -A -o=custom-columns=NAMESPACE:.metadata.namespace,NAME:.metadata.name,VOLUMES:.spec.volumes | grep hostPath | grep "path:/ " | awk '{print $1" "$2}'
 
