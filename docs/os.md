@@ -286,6 +286,9 @@ taskset -pc <pid>
 # 或者
 grep ^Cpus_allowed_list /proc/<pid>/status
 
+# 查看所有进程的cpu亲和性设置
+for pid in $(ps -ef | sed '1d' | awk '{print $2}'); do taskset -cp $pid 2>/dev/null; done
+
 # grub参数配置isolcpus，预留CPU，避免除中断外的进程调度到预留的CPU上
 # cat /proc/cmdline
 ... isolcpus=1,2,3,4 ...
@@ -300,8 +303,12 @@ taskset -cp 1
 # 设置进程（及其线程）的cpu亲和性
 taskset -cap 0,9-24,33-48,57-72,81-95 <pid>
 
-# 查看进程跑在什么core上
+# 查看进程/线程跑在什么core上
 ps -eLo pid,lwp,psr,comm
+# taskset设置cpu亲和性后，通过ps可能查看到进程/线程的psr没变，
+# 原因是进程/线程近期未调度执行过，通过如下命令确认，检查 *_ctxt_switches 统计是否有增长
+# 更进一步，也可以通过 Cpus_allowed_list 检查cpu亲和性
+cat /proc/x/status | tail -n6
 
 # 使用numactl将进程绑定到隔离的核上
 
@@ -312,7 +319,7 @@ ps -eLo pid,lwp,psr,comm
 # 设置kubelet service的CPU亲和性
 cat << EEOOFF > /etc/systemd/system/kubelet.service.d/40-cpuaffinity.conf
 [Service]
-CPUAffinity=0-2
+CPUAffinity=1-3
 EEOOFF
 
 # 使配置生效
