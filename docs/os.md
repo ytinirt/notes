@@ -95,6 +95,7 @@
     * [使用fdisk操作MBR](#使用fdisk操作mbr)
     * [使用fdisk为分区扩容](#使用fdisk为分区扩容)
     * [使用sgdisk操作GPT](#使用sgdisk操作gpt)
+    * [使用wipefs管理设备签名](#使用wipefs管理设备签名)
   * [lvm和devicemapper](#lvm和devicemapper)
     * [常用命令](#常用命令-1)
     * [LVM+XFS的扩容和缩容](#lvmxfs的扩容和缩容)
@@ -1489,6 +1490,12 @@ sgdisk --print /dev/<sdxxx>
 # sgdisk -z /dev/<sdxxx>
 ```
 
+
+### 使用wipefs管理设备签名
+```bash
+# 查看设备签名信息
+wipefs /dev/sda
+```
 
 ## lvm和devicemapper
 
