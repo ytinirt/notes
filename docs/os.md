@@ -8,6 +8,7 @@
     * [绑核和预留CPU](#绑核和预留cpu)
       * [操作](#操作)
       * [为systemd service设置绑核](#为systemd-service设置绑核)
+    * [使用chrt修改进程的实时调度器属性](#使用chrt修改进程的实时调度器属性)
   * [进程间通信](#进程间通信)
     * [ipcs和ipcrm工具](#ipcs和ipcrm工具)
   * [IO调度器](#io调度器)
@@ -331,6 +332,13 @@ systemctl restart kubelet
 systemctl show --property=CPUAffinity kubelet
 ps -eLo pid,lwp,psr,comm | grep kubelet
 ```
+
+### 使用chrt修改进程的实时调度器属性
+```bash
+chrt -r -p 90 <pid>
+```
+
+相关内核参数：`kernel.sched_rt_runtime_us = -1`。
 
 ## 进程间通信
 
@@ -812,6 +820,7 @@ net.ipv4.ip_local_reserved_ports = 35357,12345
 | sysctl | net.nf_conntrack_max                                                                                             | ----  | ----    | ----                                                                                                                            |
 | sysctl | kernel.sysrq                                                                                                     | ----  | ----    | ----                                                                                                                            |
 | sysctl | kernel.core_uses_pid                                                                                             | ----  | ----    | ----                                                                                                                            |
+| sysctl | kernel.sched_rt_runtime_us                                                                                       |       | -1      |                                                                                                                                 |
 | sysctl | net.bridge.bridge-nf-call-ip6tables<br>net.bridge.bridge-nf-call-iptables<br>net.bridge.bridge-nf-call-arptables | ----  | ----    | ----                                                                                                                            |
 | sysctl | kernel.msgmnb<br>kernel.msgmax                                                                                   | ----  | ----    | ----                                                                                                                            |
 | sysctl | kernel.shmmax<br>kernel.shmall<br>kernel.shmmni                                                                  | ----  | ----    | kernel.shmmni用来限制整个系统创建的共享内存总个数。假设限制为32，每个共享内存1M，那总共消耗的共享内存就是32 * 1M                                                            |
