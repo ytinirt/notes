@@ -786,16 +786,33 @@ Apr 01 09:43:22 master0 setroubleshoot[1417162]: AnalyzeThread.run(): Set alarm 
 
 ### 常用操作
 ```bash
+# 设置SELinux模式
 setenforce 0
+
+# 查询当前SELinux模式
 getenforce
+
+# 查看SELinux状态
 sestatus
+
+# 设置具体elements的SELinux策略
 semanage
+
+# 查看文件的SELinux标签
 ls -Z
+
+# 查看进程的SELinux标签
 ps -efZ
+
+# 设置文件的SELinux标签
 chcon
 chcon -v --type=httpd_sys_content_t /html
 chcon -Rv --type=httpd_sys_content_t /html
+chcon -R --type container_file_t /var/lib/hostdir
+
 restorecon -R /html
+
+# 查看审计日志
 ausearch -m avc --start recent
 ausearch -ui 0
 setsebool -P virt_use_nfs 1
