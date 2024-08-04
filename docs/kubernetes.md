@@ -1645,6 +1645,20 @@ secret -> pv                          // every secret referenced by the PV spec
 
 #### CPU Manager
 
+```bash
+# 遍历打印所有容器的cpuset配置
+printf "%-44s %-64s %-48s %s\n" NAMESPACE POD CONTAINER CPUSET
+for cid in $(crictl ps -q); do
+    scope=$(find /sys/fs/cgroup/cpuset/ -name "crio-${cid}.scope")
+    if [ "${scope}" != "" ]; then
+        cpuset=$(cat ${scope}/cpuset.cpus)
+        cinfo=$(crictl inspect $cid | jq -r '.status | .labels["io.kubernetes.pod.namespace"] + " " + .labels["io.kubernetes.pod.name"] + " " + .labels["io.kubernetes.container.name"]')
+        printf "%-44s %-64s %-48s %s\n" $cinfo $cpuset
+    else
+        echo "Error: missing scope for $cid" >> /dev/stderr
+    fi
+done
+```
 
 #### Memory Manager
 

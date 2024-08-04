@@ -151,6 +151,7 @@
     * [messages日志统计](#messages日志统计)
       * [既有日志统计](#既有日志统计)
   * [收集系统配置](#收集系统配置)
+    * [使用 lshw 查看硬件配置](#使用-lshw-查看硬件配置)
   * [如何Debug程序和进程](#如何debug程序和进程)
     * [softlockup告警](#softlockup告警)
     * [pmap分析内存使用](#pmap分析内存使用)
@@ -205,6 +206,7 @@
       * [ntp服务自我保护](#ntp服务自我保护)
       * [常用命令和工具](#常用命令和工具)
     * [chronyd](#chronyd)
+    * [检查节点时钟变化](#检查节点时钟变化)
   * [loop设备](#loop设备)
   * [rpc](#rpc)
     * [配置rpc-statd监听的端口](#配置rpc-statd监听的端口)
@@ -2233,6 +2235,8 @@ dperf基于dpdk，提供100Gbps级别的网络性能和压测功能，项目地�
 ```bash
 # 查看cpu和硬盘io信息，关注await和iowait的CPU占比
 iostat -xzm 2
+# -t 带上时间戳
+iostat -xzmt 2
 iostat -xm 1 /dev/sda
 ```
 
@@ -2307,6 +2311,9 @@ dd if=/dev/sda of=/dev/null bs=1M count=1024 iflag=direct
 ```bash
 # batch方式查看有读写的process
 iotop -obP
+
+# 查看读写信息
+iotop -b -d 1 -t
 ```
 
 
@@ -2351,6 +2358,11 @@ cp -r /etc ${COLLECT_DIRECTORY}/
 sysctl -a > ${COLLECT_DIRECTORY}/sysctl-a.conf
 dmidecode hardware > ${COLLECT_DIRECTORY}/dmidecode-hardware.conf
 tar -zcf ${COLLECT_DIRECTORY}.tar.gz ${COLLECT_DIRECTORY}
+```
+
+### 使用 lshw 查看硬件配置
+```bash
+lshw
 ```
 
 ## 如何Debug程序和进程
@@ -3238,6 +3250,11 @@ ntpq -p   # 查看当前从谁那里同步时间
 ```bash
 # 检查时钟同步状态
 chronyc -n sources -v
+```
+
+### 检查节点时钟变化
+```bash
+journalctl -k | cut -d' ' -f1-3 | cut -d: -f1-2 | uniq | grep -v ^" " | uniq
 ```
 
 ## loop设备
