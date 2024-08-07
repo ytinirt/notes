@@ -1444,8 +1444,21 @@ ACTION=="add", SUBSYSTEM=="net", DRIVERS=="?*", ATTR{address}=="0c:da:41:1d:e3:4
 
 ## Disk操作
 ### 使用storcli查看存储信息
+
+> 注意：执行storcli命令，可能导致io的写延迟陡增（iostat中await值），相应的对IO性能敏感的服务会受影响
+
 ```bash
+# 查看是否有RAID，及RAID卡型号
+lspci |grep -i raid
+
+# 查看控制器信息（含Disk信息）
 /opt/bin/storcli64 /c0 show
+
+# 查看RAID信息
+/opt/bin/storcli64 /c0 /vall show
+
+# 查看cache信息
+/opt/bin/storcli64 /c0 show all |grep -i cache
 ```
 
 ### 使用lshw查看磁盘硬件信息
