@@ -280,6 +280,9 @@ git push
 
 获取版本，但*git describe*仅查询***annotated tags***，并将其用于版本信息。
 
+另一种操作：
+> git tag -l --points-at HEAD
+
 ### 常用操作
 
 ```bash
