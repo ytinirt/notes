@@ -84,6 +84,8 @@
   * [kubeadm部署的集群的操作](#kubeadm部署的集群的操作)
   * [kube-apiserver内部本地访问客户端](#kube-apiserver内部本地访问客户端)
 * [最佳实践](#最佳实践)
+  * [使用finalizers拦截资源删除](#使用finalizers拦截资源删除)
+    * [手动清理finalizers](#手动清理finalizers)
   * [资源限制](#资源限制)
     * [容器进程数限制pids](#容器进程数限制pids)
   * [HPA](#hpa)
@@ -1389,6 +1391,13 @@ curl --resolve apiserver-loopback-client:${KUBE_APISERVER_PORT}:${MASTER_IP} -k 
 详见文章[kubernetes 究竟有没有 LTS？](https://mp.weixin.qq.com/s/3dATYVtgcQDxEOKR5XNofg)
 
 # 最佳实践
+## 使用finalizers拦截资源删除
+
+### 手动清理finalizers
+```bash
+kubectl patch pod xxx --type='json' -p='[{"op": "remove", "path": "/metadata/finalizers"}]'
+```
+
 ## 资源限制
 ### 容器进程数限制pids
 TODO:
