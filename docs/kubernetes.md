@@ -943,7 +943,10 @@ kubectl get pod --sort-by=.status.startTime -o=custom-columns=name:.metadata.nam
 
 命令行：
 ```bash
+# merge方式
 kubectl patch mykind demo --type=merge --subresource status --patch 'status: {conditions: [{type: Degraded, status: "False", reason: AsExpected, message: "everything is ok", lastTransitionTime: "2024-07-11T09:08:47Z"}]}'
+# json方式
+kubectl patch bmh -n machine-api worker1 --subresource status --type='json' -p='[{"op": "replace", "path": "/status/hardware/hostname", "value": "hehe"}]'
 ```
 
 从标准输入中打patch：

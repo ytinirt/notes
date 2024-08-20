@@ -1445,7 +1445,7 @@ ACTION=="add", SUBSYSTEM=="net", DRIVERS=="?*", ATTR{address}=="0c:da:41:1d:e3:4
 ## Disk操作
 ### 使用storcli查看存储信息
 
-> 注意：执行storcli命令，可能导致io的写延迟陡增（iostat中await值），相应的对IO性能敏感的服务会受影响
+> 注意：执行storcli命令`show all j`，可能导致io的写延迟陡增（iostat中await值），相应的对IO性能敏感的服务会受影响
 
 ```bash
 # 查看是否有RAID，及RAID卡型号
@@ -4378,6 +4378,9 @@ ipmitool sel list
 
 # 获取BMC的IP地址、登录信息
 ipmitool lan print
+
+# 查看服务 SN 和 UUID 信息
+ipmitool fru list
 ```
 
 
