@@ -4340,6 +4340,8 @@ cat file.log | (head -n1 && tail -n1)
 查看服务器 SN 串号：
 ```bash
 dmidecode -t 1| grep "Serial Number"
+
+# 查询机型
 ```
 
 
