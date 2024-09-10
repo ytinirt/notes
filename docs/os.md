@@ -141,6 +141,7 @@
       * [dperf](#dperf)
     * [IO性能](#io性能)
       * [iostat判断io瓶颈](#iostat判断io瓶颈)
+        * [使用iostat监控根文件系统盘写延迟抖动](#使用iostat监控根文件系统盘写延迟抖动)
       * [ionice修改io优先级](#ionice修改io优先级)
       * [fio性能测试](#fio性能测试)
       * [dd性能测试](#dd性能测试)
@@ -150,8 +151,10 @@
     * [使用stress进行压力测试](#使用stress进行压力测试)
     * [messages日志统计](#messages日志统计)
       * [既有日志统计](#既有日志统计)
-  * [收集系统配置](#收集系统配置)
+  * [信息收集](#信息收集)
+    * [收集系统配置](#收集系统配置)
     * [使用 lshw 查看硬件配置](#使用-lshw-查看硬件配置)
+    * [服务器硬件信息收集](#服务器硬件信息收集)
   * [如何Debug程序和进程](#如何debug程序和进程)
     * [softlockup告警](#softlockup告警)
     * [pmap分析内存使用](#pmap分析内存使用)
@@ -1553,6 +1556,7 @@ pvdisplay -m
 vgdisplay
 lvm
 lvdisplay
+lvdisplay -m
 vgreduce
 vgreduce --removemissing
 vgscan
@@ -2251,11 +2255,29 @@ iostat -xzm 2
 # -t 带上时间戳
 iostat -xzmt 2
 iostat -xm 1 /dev/sda
+
+# 查看根文件系统盘写延迟抖动
+ROOT_DEVICE=$(findmnt / -n -o SOURCE) && iostat -x 1 2 $ROOT_DEVICE | grep ^$(basename $ROOT_DEVICE) | tail -n1 | awk '{print $12}'
 ```
 
 更进一步，主要看IO延迟：
 * *r_await* 平均读延迟，单位ms。
 * *w_await* 平均写延迟，单位ms。
+
+##### 使用iostat监控根文件系统盘写延迟抖动
+```bash
+# 写延迟抖动超过阈值，打印告警日志，默认1ms
+WRITE_AWAIT_THRESHOLD_MS=1
+
+ROOT_DEVICE=$(findmnt / -n -o SOURCE)
+while true; do
+    w_await=$(iostat -x 1 2 $ROOT_DEVICE | grep ^$(basename $ROOT_DEVICE) | tail -n1 | awk '{print $12}')
+
+    if awk 'BEGIN{if ('"$w_await"' > '"$WRITE_AWAIT_THRESHOLD_MS"') exit 0; else exit 1}'; then
+        echo $(date +"%F %T") $w_await
+    fi
+done
+```
 
 #### ionice修改io优先级
 
@@ -2362,7 +2384,9 @@ docker run -d -m 100M --rm polinux/stress stress  --vm 1 --vm-bytes 128M --vm-ke
 cat messages | cut -c1-12 | uniq -c
 ```
 
-## 收集系统配置
+## 信息收集
+
+### 收集系统配置
 ```bash
 TS=$(date +"%y%m%d%H%M")
 COLLECT_DIRECTORY="sys-config-$(hostname)-$TS"
@@ -2377,6 +2401,25 @@ tar -zcf ${COLLECT_DIRECTORY}.tar.gz ${COLLECT_DIRECTORY}
 ```bash
 lshw
 ```
+
+### 服务器硬件信息收集
+sudo权限执行：
+```bash
+# 环境重启次数
+journalctl --list-boots
+# 保存每次重启后的日志，id根据具体情况填写
+journalctl -b id > journal-<id>.log
+# 服务器信息
+dmidecode > dmi.log
+# cpu信息
+lscpu > cpu.log
+# pci信息
+lspci -vvv > pci.log
+# 日志压缩 
+tar zcf system-debug-log.tar.gz *.log
+```
+
+再登录bmc，执行日志一键收集，收集硬件日志。
 
 ## 如何Debug程序和进程
 
@@ -3079,6 +3122,10 @@ rpm -qf /usr/lib/systemd/system/kubelet.service
 yum install yum-utils
 # 安装docker-ce.repo
 yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+
+# 查看yum源列表
+yum repolist
+
 # 修改repo不同的channel
 yum-config-manager --enable docker-ce-nightly
 yum-config-manager --enable docker-ce-test

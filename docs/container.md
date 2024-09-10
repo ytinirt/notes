@@ -1004,7 +1004,7 @@ crio-status config  | grep -i pid
 ```bash
 for config in $(ls /var/lib/containers/storage/overlay-containers/*/userdata/config.json)
 do
-  diff=$(cat $config | jq .root.path -r|sed 's/merged$/diff/g')
+  diff=$(cat $config 2>/dev/null | jq .root.path -r|sed 's/merged$/diff/g')
   du -s $diff
 done | awk '{s+=$1} END {print s}'
 ```
@@ -1208,7 +1208,7 @@ crictl create <sandbox-id> container.json sandbox.json
 
 ### 容器可读可写层存储占用top10
 ```bash
-crictl stats -a -o json | jq '.stats[] | .writableLayer.usedBytes.value + " " + .attributes.labels["io.kubernetes.pod.namespace"] + " " + .attributes.labels["io.kubernetes.pod.name"]' -r | sort -rn | head -n 10
+crictl stats -a -o json | jq '.stats[] | .writableLayer.usedBytes.value + " " + .attributes.labels["io.kubernetes.pod.namespace"] + " " + .attributes.labels["io.kubernetes.pod.name"] + " " + .attributes.id' -r | sort -rn | head -n 10
 ```
 
 ### 容器可读可写层inode占用top10
