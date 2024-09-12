@@ -295,6 +295,9 @@ git clone --depth=1
 git config --system core.longpaths true
 # 也可直接修改 C:/Program Files/Git/etc/gitconfig 文件，在core段增加 longpaths = true
 
+# Windows环境下git clone遇到"invalid path"的问题（文件路径中有例如':'之类的字符）
+git config --system core.protectNTFS false
+
 # 获取当前最新commit的ID
 git rev-parse "HEAD^{commit}"
 KUBE_GIT_COMMIT=$(git rev-parse "HEAD^{commit}")
