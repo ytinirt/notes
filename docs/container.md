@@ -79,6 +79,7 @@
   * [指定seccomp profile](#指定seccomp-profile)
   * [容器存储目录](#容器存储目录)
   * [non-root用户使用devices](#non-root用户使用devices)
+  * [检查容器存储数据量是否合理](#检查容器存储数据量是否合理)
   * [问题debug](#问题debug)
   * [Deep Dive](#deep-dive)
     * [创建容器](#创建容器)
@@ -258,6 +259,11 @@ echo "b 7:0 rwm" > /sys/fs/cgroup/devices/kubepods.slice/devices.allow
 pids.current  pids.events   pids.max
 ```
 
+检查pids数TOP20：
+```bash
+for p in $(find /sys/fs/cgroup/pids/ -name "pids.current"); do echo "$(cat $p) $p"; done | sort -rn | head -n20
+```
+
 ## 挂载cgroupfs
 
 以cpuset子系统为例：
@@ -376,6 +382,9 @@ function cpu-usage {
 ```bash
 # 查看网络命名空间列表
 lsns -t net
+
+# 查看pid命名空间列表
+lsns -t pid
 ```
 
 
@@ -1043,6 +1052,19 @@ systemctl restart crio
 crio-status c | grep device_ownership_from_security_context
 ```
 
+## 检查容器存储数据量是否合理
+overlay元数据中id数：
+```bash
+sudo cat /var/lib/containers/storage/overlay-layers/layers.json /var/lib/containers/storage/overlay-layers/volatile-layers.json | jq . | grep -c "id\""
+```
+
+和`/var/lib/containers/storage/overlay`目录下文件夹数（除`l`文件夹外）是否接近：
+```bash
+sudo ls /var/lib/containers/storage/overlay | wc -l
+```
+
+参考链接[cri-o/issues/6981](https://github.com/cri-o/cri-o/issues/6981#issuecomment-1608606437)
+
 ## 问题debug
 **调整日志级别**：
 ```bash
@@ -1063,6 +1085,12 @@ curl --unix-socket /var/run/crio/crio.sock http://localhost/debug/pprof/goroutin
 
 # 当crio不响应时获取goroutine调用栈，调用栈信息保存在 /tmp/crio-goroutine-stacks-* 文件
 systemctl kill -s USR1 crio.service
+```
+
+**通过unix socket直接调用API**：
+```bash
+# 查询容器详情
+curl --unix-socket /var/run/crio/crio.sock http://localhost/containers/{CONTAINER_ID}
 ```
 
 ## Deep Dive

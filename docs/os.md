@@ -214,6 +214,7 @@
   * [rpc](#rpc)
     * [配置rpc-statd监听的端口](#配置rpc-statd监听的端口)
   * [用户管理](#用户管理)
+  * [查看用户密码过期时间](#查看用户密码过期时间)
   * [audit系统审计](#audit系统审计)
   * [HTPasswd认证](#htpasswd认证)
   * [系统资源限制](#系统资源限制)
@@ -3362,6 +3363,10 @@ su [-] nova
 usermod -s /bin/bash nova
 ```
 
+## 查看用户密码过期时间
+```bash
+chage -l -i root
+```
 
 ## audit系统审计
 ```bash
