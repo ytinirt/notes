@@ -78,6 +78,7 @@
   * [Pod中获取PodIP的方法](#pod中获取podip的方法)
   * [emptyDir在宿主机上的路径](#emptydir在宿主机上的路径)
     * [节点上emptyDir用量统计](#节点上emptydir用量统计)
+    * [远程到节点统计emptyDir用量](#远程到节点统计emptydir用量)
   * [FC存储多路径的PV配置](#fc存储多路径的pv配置)
   * [编译kubelet](#编译kubelet)
   * [获取k8s控制面组件指标](#获取k8s控制面组件指标)
@@ -1315,6 +1316,12 @@ done
 for d in $(sudo find /var/lib/kubelet/pods -type d -name "*empty-dir*" 2>/dev/null); do
     sudo du -sh $d
 done | grep -v "^0\>"
+```
+
+### 远程到节点统计emptyDir用量
+一个复杂的，借助`sh -c`远程执行`find`、`sudo`、`du`命令的示例：
+```bash
+ssh $node_ip 'sh -c "sudo find /var/lib/kubelet/pods/ -maxdepth 3 -name "kubernetes.io~empty-dir" -type d -exec du -s {} \;"' | grep -vw ^0 | awk '{print $2}'
 ```
 
 ## FC存储多路径的PV配置

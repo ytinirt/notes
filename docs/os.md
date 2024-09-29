@@ -2347,6 +2347,7 @@ dd if=/dev/sda of=/dev/null bs=1M count=1024 iflag=direct
 ```bash
 # batch方式查看有读写的process
 iotop -obP
+iotop -obP | grep "M/s\|G/s"
 
 # 查看读写信息
 iotop -b -d 1 -t
