@@ -16,6 +16,7 @@
   * [降级为cgroupv1](#降级为cgroupv1)
   * [常用操作](#常用操作)
     * [使用systemd管理cgroup](#使用systemd管理cgroup)
+    * [查看统计信息](#查看统计信息)
 * [namespaces](#namespaces)
   * [pid](#pid)
     * [找到host和容器内进程pid关系](#找到host和容器内进程pid关系)
@@ -304,6 +305,14 @@ lscgroup
 man cgconfig.conf
 cgcreate
 cgdelete
+```
+
+
+### 查看统计信息
+```bash
+# 全量统计信息
+cat /proc/cgroups
+
 ```
 
 

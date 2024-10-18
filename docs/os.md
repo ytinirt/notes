@@ -134,6 +134,7 @@
       * [设置或提升CPU运行频率](#设置或提升cpu运行频率)
       * [解决pcc和acpi的bug导致的CPU降频问题](#解决pcc和acpi的bug导致的cpu降频问题)
       * [长期测试CPU性能](#长期测试cpu性能)
+      * [查看核上进程切换次数统计](#查看核上进程切换次数统计)
     * [网络性能](#网络性能)
       * [主机网络指标](#主机网络指标)
       * [iperf测试网络性能](#iperf测试网络性能)
@@ -317,6 +318,9 @@ ps -eLo pid,lwp,psr,comm
 # 原因是进程/线程近期未调度执行过，通过如下命令确认，检查 *_ctxt_switches 统计是否有增长
 # 更进一步，也可以通过 Cpus_allowed_list 检查cpu亲和性
 cat /proc/x/status | tail -n6
+
+# 更准确的查看进程/线程运行在什么core
+ps -eLo stat,pid,tid,comm,psr
 
 # 使用numactl将进程绑定到隔离的核上
 
@@ -2209,7 +2213,15 @@ done
 for i in $(seq 0 99); do     echo -en [$(printf "%02d" $i)] $(date +"%Y-%m-%d %T") "\t";     echo -n $({ time python3 -c "2**1000000000"; } 2>&1 | grep -v ^$ | awk '{print $2}');     echo; done | tee -a ./cpu-perf-test-$(hostname).log
 ```
 
-
+#### 查看核上进程切换次数统计
+```bash
+while true; do
+    old=$(cat /sys/kernel/debug/sched/debug | grep -E "nr_switch|cpu#[0-3]," | head -8 | grep nr_sw | cut -d: -f2 | awk '{sum+=$1}END{print sum}')
+    sleep 10s
+    new=$(cat /sys/kernel/debug/sched/debug | grep -E "nr_switch|cpu#[0-3]," | head -8 | grep nr_sw | cut -d: -f2 | awk '{sum+=$1}END{print sum}')
+    echo "delta $((new - old))"
+done
+```
 
 ### 网络性能
 
@@ -2490,6 +2502,14 @@ while true; do
     fi
     echo
 done
+```
+
+```bash
+# 另一个例子，查看0-1核
+perf record -F 99 -C 0-1 -g sleep 10
+
+# 查看剖析数据
+perf report
 ```
 
 ### pstack分析CPU异常高时堆栈信息
