@@ -102,6 +102,7 @@
     * [LVM+XFS的扩容和缩容](#lvmxfs的扩容和缩容)
     * [LVM+EXT4的扩容和缩容](#lvmext4的扩容和缩容)
     * [Docker使用devicemapper的操作步骤](#docker使用devicemapper的操作步骤)
+    * [条带化](#条带化)
   * [ISCSI存储](#iscsi存储)
     * [使用iscsiadm客户端](#使用iscsiadm客户端)
     * [iscsi存储典型操作流程](#iscsi存储典型操作流程)
@@ -1796,6 +1797,9 @@ lvs -o+seg_monitor
 11. 清除之前的数据`rm -rf /var/lib/docker/*`
 12. 重启docker服务
 
+
+### 条带化
+详见链接[Boosting Linux Storage Performance with LVM Striping](https://medium.com/@ahmedmansouri/boosting-linux-disk-performance-with-lvm-striping-06f0124663ba)。
 
 
 ## ISCSI存储
