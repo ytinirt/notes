@@ -24,6 +24,7 @@
     * [预分配大页内存](#预分配大页内存)
       * [系统启动时分配大页内存](#系统启动时分配大页内存)
       * [系统运行时分配大页内存](#系统运行时分配大页内存)
+      * [系统大页内存分配信息](#系统大页内存分配信息)
       * [Kubernetes中Pod使用大页内存](#kubernetes中pod使用大页内存)
     * [透明大页THP](#透明大页thp)
   * [NUMA](#numa)
@@ -586,6 +587,14 @@ AnonHugePages         0      2      0      8     10
 HugePages_Total       0      0     40      0     40
 HugePages_Free        0      0     40      0     40
 HugePages_Surp        0      0      0      0      0
+```
+
+#### 系统大页内存分配信息
+```bash
+for f in $(find /sys/kernel/mm/hugepages -name nr_hugepages); do
+  echo $f
+  cat $f
+done
 ```
 
 #### Kubernetes中Pod使用大页内存
@@ -1799,7 +1808,9 @@ lvs -o+seg_monitor
 
 
 ### 条带化
-详见链接[Boosting Linux Storage Performance with LVM Striping](https://medium.com/@ahmedmansouri/boosting-linux-disk-performance-with-lvm-striping-06f0124663ba)。
+详见链接：
+* [LV Overviews](https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/7/html/logical_volume_manager_administration/lv_overview)
+* [Boosting Linux Storage Performance with LVM Striping](https://medium.com/@ahmedmansouri/boosting-linux-disk-performance-with-lvm-striping-06f0124663ba)。
 
 
 ## ISCSI存储
@@ -2060,9 +2071,12 @@ xfs_quota -x -c 'limit -p bsoft=0 bhard=0 Logs' /
 ### 常用操作
 命令 `xfs_info`。
 
-查看配额使用情况：
 ```bash
+# 查看配额使用情况
 xfs_quota -xc 'report -bih'  /data
+
+# 检查是否有quota id冲突
+xfs_quota -xc 'report -bih'  /
 ```
 
 ## samba

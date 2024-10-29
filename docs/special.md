@@ -121,6 +121,7 @@
     * [修复故障节点](#修复故障节点)
     * [快照备份（v3+支持）](#快照备份v3支持)
     * [v2全量备份](#v2全量备份)
+    * [存储和性能分析](#存储和性能分析)
     * [调优](#调优)
     * [错误类型说明](#错误类型说明)
   * [Prometheus](#prometheus)
@@ -1759,6 +1760,38 @@ etcdctl backup --data-dir="/path/to/data/" --backup-dir="/path/to/backup/"
 ```
 
 
+### 存储和性能分析
+获取所有keys：
+```bash
+etcdctl get / --prefix --keys-only --command-timeout 180s | grep -v ^$ > etcd-all-keys-dumped-$(date +"%y%m%d%H%M").log
+```
+
+分析keys：
+```bash
+ETCD_KEYS_DUMP_FILE=/path/to/etcd/keys/dump/file
+
+cat $ETCD_KEYS_DUMP_FILE | cut -d/ -f2 | sort | uniq -c | sort -rn | head -n 2 | while read -r count l1; do
+    echo $l1 $count
+done
+
+function etcd_key_prefix_analyze() {
+    local keys_dump_file=$1 prefix=$2
+    local prefix_sections current_sections conut section
+    local prefix_strlen format
+
+    # 去掉尾部/
+    prefix=$(echo $prefix | sed 's/\/$//g')
+    prefix_strlen=${#prefix}
+    format="%-$((prefix_strlen+32))s %d\n"
+    prefix_sections=$(echo $prefix | grep -o / | wc -l)
+    current_sections=$((prefix_sections+1))
+    printf "Keys with prefix %s/ (Top 10)\n" $prefix
+    cat $keys_dump_file | grep ^$prefix | cut -d/ -f$((current_sections+1)) | sort | uniq -c | sort -rn | head -n10 | while read -r count section; do
+        printf "${format}" $prefix/$section $count
+    done
+}
+
+```
 
 ### 调优
 
