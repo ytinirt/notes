@@ -270,6 +270,7 @@
       * [同systemd-journald的关系](#同systemd-journald的关系)
     * [shell脚本使用logger输出日志](#shell脚本使用logger输出日志)
   * [使用bc做数值计算](#使用bc做数值计算)
+    * [没有bc可用awk代替](#没有bc可用awk代替)
   * [其它技巧](#其它技巧)
 <!-- TOC -->
 
@@ -2364,10 +2365,10 @@ TODO
 #### dd性能测试
 ```bash
 # 4K同步IO写性能，SSD盘参考预期值 ~10MB/s
-dd if=/dev/zero of=test-4k count=10240 oflag=dsync
+dd if=/dev/zero of=test-4k bs=4k count=10240 oflag=dsync
 
 # 64K同步IO写性能，SSD盘参考预期值 ~100MB/s
-dd if=/dev/zero of=test-64k count=10240 oflag=dsync
+dd if=/dev/zero of=test-64k bs=64k count=10240 oflag=dsync
 
 # 直接读盘
 dd if=/dev/sda of=/dev/null bs=1M count=1024 iflag=direct
@@ -4413,6 +4414,10 @@ echo "${curr_freq_M} / ${full_freq_G} / 10" | bc
 reservedMEM=$(echo "scale=3; ($totalMEM - $allocatableMEM)/1024/1024" | bc)
 ```
 
+### 没有bc可用awk代替
+```bash
+awk -v nr_throttled="$nr_throttled" -v nr_periods="$nr_periods" 'BEGIN {print nr_throttled * 100 / nr_periods}'
+```
 
 ## 其它技巧
 找出损坏的软链接：

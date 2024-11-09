@@ -7,6 +7,7 @@
     * [cpu和cpuacct cgroup](#cpu和cpuacct-cgroup)
       * [根据pod的cpu request和limit如何设置cpu cgroup参数](#根据pod的cpu-request和limit如何设置cpu-cgroup参数)
       * [cfs_period_us和cfs_quota_us进一步解释](#cfsperiodus和cfsquotaus进一步解释)
+      * [分析命令](#分析命令)
     * [cpuset](#cpuset)
     * [memory](#memory)
     * [devices](#devices)
@@ -233,6 +234,50 @@ period为100000、quota为50000和period为10000、quota为5000，容器的cpu l
 
 辅以cfs_burst_us，能既获取良好的吞吐能力，又兼顾实时性，具体的：
 * CFS调度器，允许在一个period内，cpu资源用量超过quota限制，预支的部分在后面的period里扣减出去。
+
+#### 分析命令
+```bash
+# CPU周期次数
+old=0
+new=0
+while true; do
+    new=$(cat cpu.stat | grep nr_periods | awk '{print $2}')
+    delta=$((new-old))
+    echo "$(date) $delta"
+    old=$new
+    sleep 1s
+done
+
+# CPU限速次数
+old=0
+new=0
+while true; do
+    new=$(cat cpu.stat | grep nr_throttled | awk '{print $2}')
+    delta=$((new-old))
+    echo "$(date) $delta"
+    old=$new
+    sleep 1s
+done
+
+# 单个容器徒手实现 crictl stats --seconds 10 得效果
+cid=xxx
+while true; do
+    start=$(crictl stats -o json $cid | jq -r '.stats[0].cpu | .timestamp + " " + .usageCoreNanoSeconds.value')
+    sleep 10s
+    finished=$(crictl stats -o json $cid | jq -r '.stats[0].cpu | .timestamp + " " + .usageCoreNanoSeconds.value')
+
+    ts_start=$(echo $start | cut -d' ' -f1)
+    usage_start=$(echo $start | cut -d' ' -f2)
+    ts_finished=$(echo $finished | cut -d' ' -f1)
+    usage_finished=$(echo $finished | cut -d' ' -f2)
+
+    ts_delta=$((ts_finished - ts_start))
+    usage_delta=$((usage_finished - usage_start))
+    usage=$(echo $(awk -v usage_delta="$usage_delta" -v ts_delta="$ts_delta" 'BEGIN {print usage_delta * 100 / ts_delta}') | cut -d. -f1)
+
+    echo "$(date) $usage%"
+done
+```
 
 ### cpuset
 遍历所有kubernetes pod的cpu亲和性：

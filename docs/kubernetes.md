@@ -70,6 +70,7 @@
     * [遍历一个命名空间下所有资源](#遍历一个命名空间下所有资源)
     * [遍历一个命名空间下所有资源的label和annotations](#遍历一个命名空间下所有资源的label和annotations)
     * [遍历所有跨命名空间的资源](#遍历所有跨命名空间的资源)
+    * [遍历所有pod的cpu request配置](#遍历所有pod的cpu-request配置)
   * [客户端访问集群时context配置](#客户端访问集群时context配置)
   * [ConfigMap使用](#configmap使用)
   * [日志相关配置](#日志相关配置)
@@ -1221,6 +1222,28 @@ done
 for api in $(kubectl api-resources --verbs=list --namespaced=false -o name); do
 kubectl get ${api} --ignore-not-found -o json | jq .items[].metadata.annotations
 done
+```
+
+### 遍历所有pod的cpu request配置
+```bash
+# 统计pod的cpu request
+POD_TEMP_RESULT_FILE=$(mktemp)
+
+kubectl get pod -A -o json > $POD_TEMP_RESULT_FILE
+
+cat $POD_TEMP_RESULT_FILE | jq -r '.items[] | .metadata.namespace + " " + .metadata.name' | while read -r ns pod; do
+    pod_yaml=$(cat $POD_TEMP_RESULT_FILE | jq -r --arg ns "$ns" --arg pod "$pod" '.items[] | select(.metadata.namespace == $ns) | select(.metadata.name == $pod)')
+
+    for c in $(echo $pod_yaml | jq -r '.spec.containers[].name'); do
+        c_yaml=$(echo $pod_yaml | jq -r --arg c "$c" '.spec.containers[] | select(.name == $c)')
+        cpu_req=$(echo $c_yaml | jq -r .resources.requests.cpu)
+
+        printf "%-46s %-64s %-40s %s\n" $ns $pod $c $cpu_req
+    done
+done
+
+
+rm -f $POD_TEMP_RESULT_FILE
 ```
 
 ## 客户端访问集群时context配置
