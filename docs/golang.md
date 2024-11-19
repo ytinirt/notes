@@ -425,11 +425,12 @@ if ok {
 TODO: https://chai2010.cn/advanced-go-programming-book/ch2-cgo/ch2-02-basic.html
 
 ## GOARCH跨平台构建
-TODO
-
 ```bash
 # 查看golang支持的OS和ARCH组合
 go tool dist list
+
+# 在x86-64 windows环境编译linux arm64架构的可执行文件
+CGO_ENABLED=0 LD_FLAGS=-s GOARCH=arm64 GOOS=linux go build -C pkg/recommender -mod vendor -o recommender-arm64
 ```
 
 ## go:embed

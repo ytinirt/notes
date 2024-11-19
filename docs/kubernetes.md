@@ -1841,7 +1841,10 @@ go tool pprof -http :8080 *-{heap,goroutine-debug2,profile}-*
 ```
 
 ## kubelet
-TODO
+```bash
+# 收集kubelet堆栈，在/tmp目录查看堆栈文件，该操作不会导致kubelet进程重启
+kill -s SIGUSR2 `pidof kubelet`
+```
 
 ## kube-controller-manager
 
