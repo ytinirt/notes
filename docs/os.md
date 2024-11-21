@@ -154,6 +154,8 @@
     * [使用stress进行压力测试](#使用stress进行压力测试)
     * [messages日志统计](#messages日志统计)
       * [既有日志统计](#既有日志统计)
+    * [操作系统](#操作系统)
+      * [sysrq](#sysrq)
   * [信息收集](#信息收集)
     * [收集系统配置](#收集系统配置)
     * [使用 lshw 查看硬件配置](#使用-lshw-查看硬件配置)
@@ -2416,6 +2418,34 @@ docker run -d -m 100M --rm polinux/stress stress  --vm 1 --vm-bytes 128M --vm-ke
 ```bash
 cat messages | cut -c1-12 | uniq -c
 ```
+
+### 操作系统
+#### sysrq
+执行如下命令，然后在系统日志中查看结果：
+```bash
+# Will dump current memory info
+echo m > /proc/sysrq-trigger
+
+# Dumps tasks that are in uninterruptable (blocked) state
+echo w > /proc/sysrq-trigger
+
+# Shows a stack backtrace for all active CPUs
+echo l > /proc/sysrq-trigger
+
+# Shows all locks that are held
+echo d > /proc/sysrq-trigger
+
+# Will dump a list of current tasks and their information to your console
+echo t > /proc/sysrq-trigger
+
+# Will dump the current registers and flags to your console
+echo p > /proc/sysrq-trigger
+
+# Will dump per CPU lists of all armed hrtimers (but NOT regular timer_list timers) and detailed information about all clockevent devices
+echo q > /proc/sysrq-trigger
+```
+
+详见[Linux Magic System Request Key Hacks](https://www.kernel.org/doc/html/v4.13/admin-guide/sysrq.html) 。
 
 ## 信息收集
 
