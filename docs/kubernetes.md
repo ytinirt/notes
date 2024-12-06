@@ -879,9 +879,10 @@ function b642cert {
 ## 从KubeConfig文件中提取证书秘钥
 ```bash
 # TODO: 兼容配置有多个cluster、多个user的情况，需要通过current-context判断
-cat e2e-test-kubeconfig  | grep certificate-authority-data | awk '{print $2}' | base64 -d > ca.crt
-cat e2e-test-kubeconfig  | grep client-certificate-data | awk '{print $2}' | base64 -d > tls.crt
-cat e2e-test-kubeconfig  | grep client-key-data | awk '{print $2}' | base64 -d > tls.key
+PATH_TO_KUBECONFIG=/root/.kube/config
+cat $PATH_TO_KUBECONFIG  | grep certificate-authority-data | awk '{print $2}' | base64 -d > ca.crt
+cat $PATH_TO_KUBECONFIG  | grep client-certificate-data | awk '{print $2}' | base64 -d > tls.crt
+cat $PATH_TO_KUBECONFIG  | grep client-key-data | awk '{print $2}' | base64 -d > tls.key
 ```
 
 
@@ -1806,8 +1807,8 @@ curl -k https://127.0.0.1:10250/healthz --cacert /etc/kubernetes/keys/ca.pem --c
 # 或者
 curl -k https://127.0.0.1:10250/healthz --cacert /etc/kubernetes/pki/ca.crt --cert /etc/kubernetes/pki/apiserver-kubelet-client.crt --key /etc/kubernetes/pki/apiserver-kubelet-client.key
 
-# kubelet的metrics
-curl -k https://127.0.0.1:10250/metrics --cacert /etc/kubernetes/pki/ca.crt --cert /etc/kubernetes/pki/apiserver-kubelet-client.crt --key /etc/kubernetes/pki/apiserver-kubelet-client.key
+# kubelet的metrics，其中ca.crt、tls.crt和tls.key从kubeconfig中提取
+curl -k https://127.0.0.1:10250/metrics --cacert ca.crt --cert tls.crt --key tls.key
 
 # kubelet “看到”的节点内存实际用量
 NODE_IP=10.0.0.123

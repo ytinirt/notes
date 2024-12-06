@@ -926,6 +926,9 @@ runc --root /run/containerd/runc/k8s.io exec -t <cid> bash
 # 使用resume命令，解除paused状态
 runc --root=/run/containerd/runc/k8s.io resume <cid>
 
+# 查看容器状态
+runc --root=/run/containerd/runc/k8s.io state <容器ID 64位长号>
+
 # 更新容器资源配置
 runc update --cpu-share 100 <cid>
 ```
@@ -1136,6 +1139,8 @@ Environment="ENABLE_PROFILE_UNIX_SOCKET=true"
 
 # 获取pprof数据，例如goroutine
 curl --unix-socket /var/run/crio/crio.sock http://localhost/debug/pprof/goroutine?debug=1
+# 例如内存信息
+curl --unix-socket /var/run/crio/crio.sock http://localhost/debug/pprof/heap
 
 # 当crio不响应时获取goroutine调用栈，调用栈信息保存在 /tmp/crio-goroutine-stacks-* 文件
 systemctl kill -s USR1 crio.service

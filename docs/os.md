@@ -53,6 +53,7 @@
 * [D-Bus](#d-bus-1)
 * [Systemd](#systemd)
   * [service的类型](#service的类型)
+  * [通过D-Bus操作systemd](#通过d-bus操作systemd)
   * [常用操作](#常用操作)
   * [其它](#其它-1)
 * [Networks](#networks)
@@ -912,6 +913,13 @@ echo 1 > /sys/bus/pci/rescan
 ## service的类型
 
 
+## 通过D-Bus操作systemd
+```bash
+busctl call org.freedesktop.systemd1 /org/freedesktop/systemd1 org.freedesktop.systemd1.Manager GetUnitProcesses s "crio.service"
+```
+
+参见：
+* [archlinux上帮助文档](https://man.archlinux.org/man/org.freedesktop.systemd1.5.en)
 
 ## 常用操作
 
@@ -2307,6 +2315,7 @@ ROOT_DEVICE=$(findmnt / -n -o SOURCE)
 while true; do
     w_await=$(iostat -x 1 2 $ROOT_DEVICE | grep ^$(basename $ROOT_DEVICE) | tail -n1 | awk '{print $12}')
 
+    # 使用 awk 比较两个浮点数大小
     if awk 'BEGIN{if ('"$w_await"' > '"$WRITE_AWAIT_THRESHOLD_MS"') exit 0; else exit 1}'; then
         echo $(date +"%F %T") $w_await
     fi
@@ -2451,6 +2460,9 @@ echo q > /proc/sysrq-trigger
 
 ### 收集系统配置
 ```bash
+# 系统内核版本详情
+nkvers
+
 TS=$(date +"%y%m%d%H%M")
 COLLECT_DIRECTORY="sys-config-$(hostname)-$TS"
 mkdir ${COLLECT_DIRECTORY}
