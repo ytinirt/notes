@@ -99,6 +99,7 @@
     * [kube-scheduler监控指标](#kube-scheduler监控指标)
     * [kubelet监控指标](#kubelet监控指标)
   * [内存优化](#内存优化)
+  * [查看defaultCpuSet核上CPU使用量](#查看defaultcpuset核上cpu使用量)
 * [Deep Dive系列](#deep-dive系列)
   * [kube-apiserver](#kube-apiserver)
     * [服务启动流程](#服务启动流程)
@@ -1499,6 +1500,37 @@ max ./kubepods-burstable.slice/kubepods-burstable-podxxx.slice/crio-<sandbox pod
 [k8s client-go内存优化](https://blog.ayanamist.com/2022/10/28/k8s-informer-mem-optimize.html):
 * 优先使用Protobuf而不是JSON
 * 流式list，避免informer首次list时置`resourceVersion=0`，全量拉取数据并一起做反序列化，相关[KEP-3157: allow informers for getting a stream of data instead of chunking](https://github.com/kubernetes/enhancements/tree/master/keps/sig-api-machinery/3157-watch-list)
+
+## 查看defaultCpuSet核上CPU使用量
+```bash
+function default_cores {
+    input=$(cat /var/lib/kubelet/cpu_manager_state | jq -r .defaultCpuSet)
+    IFS=',' read -ra ADDR <<< "$input"
+    for item in "${ADDR[@]}"; do
+        if [[ "$item" == *"-"* ]]; then
+            start=$(echo "$item" | cut -d'-' -f1)
+            end=$(echo "$item" | cut -d'-' -f2)
+            for (( i=$start; i<=$end; i++ )); do
+                echo $i
+            done
+        else
+            echo $item
+        fi
+    done
+}
+
+function cores_util {
+    temp_result=$(mktemp)
+    ps -eLo pid,tid,comm,pcpu,psr > $temp_result
+    for c in $(default_cores); do
+        util=$(cat $temp_result | grep " $c$" | awk '{s+=$4}END{print s}')
+        printf "Core %2d ============================== total usage %s%%\n" $c $util
+        cat $temp_result | grep " $c$" | sort -rnk4 | head -n 10
+    done
+
+    rm -f $temp_result
+}
+```
 
 # Deep Dive系列
 ## kube-apiserver

@@ -53,7 +53,7 @@
 * [D-Bus](#d-bus-1)
 * [Systemd](#systemd)
   * [service的类型](#service的类型)
-  * [通过D-Bus操作systemd](#通过d-bus操作systemd)
+  * [使用busctl通过D-Bus操作systemd](#使用busctl通过d-bus操作systemd)
   * [常用操作](#常用操作)
   * [其它](#其它-1)
 * [Networks](#networks)
@@ -138,6 +138,7 @@
       * [解决pcc和acpi的bug导致的CPU降频问题](#解决pcc和acpi的bug导致的cpu降频问题)
       * [长期测试CPU性能](#长期测试cpu性能)
       * [查看核上进程切换次数统计](#查看核上进程切换次数统计)
+      * [查看繁忙的进程及其运行的核](#查看繁忙的进程及其运行的核)
     * [网络性能](#网络性能)
       * [主机网络指标](#主机网络指标)
       * [iperf测试网络性能](#iperf测试网络性能)
@@ -895,7 +896,8 @@ echo 1 > /sys/bus/pci/rescan
 [安全：人见人爱的vDSO机制，如今也靠不住了](https://cloud.tencent.com/developer/article/1073909)
 
 # D-Bus
-[链接](https://www.freedesktop.org/wiki/Software/dbus/)
+* [链接](https://www.freedesktop.org/wiki/Software/dbus/)
+* [Linux DBus通信机制](https://www.ctyun.cn/developer/article/594363899367493)
 
 # Systemd
 
@@ -913,9 +915,29 @@ echo 1 > /sys/bus/pci/rescan
 ## service的类型
 
 
-## 通过D-Bus操作systemd
+## 使用busctl通过D-Bus操作systemd
+systemd服务的D-Bus名称是`org.freedesktop.systemd1`。
+
 ```bash
+# 列出总线
+busctl list
+
+# 查看总线上的消息
+busctl monitor
+
+# 查看systemd服务拥有的对象
+busctl tree org.freedesktop.systemd1
+
+# 通过org.freedesktop.systemd1.Manager接口，调用systemd方法
 busctl call org.freedesktop.systemd1 /org/freedesktop/systemd1 org.freedesktop.systemd1.Manager GetUnitProcesses s "crio.service"
+# service: org.freedesktop.systemd1
+# 对象
+
+# 
+busctl introspect org.freedesktop.systemd1 /org/freedesktop/systemd1/unit/kubelet_2eservice
+
+# 读取属性，如下示例输出结果 s "active"
+busctl get-property org.freedesktop.systemd1 /org/freedesktop/systemd1/unit/kubelet_2eservice org.freedesktop.systemd1.Unit ActiveState
 ```
 
 参见：
@@ -2250,6 +2272,16 @@ while true; do
     new=$(cat /sys/kernel/debug/sched/debug | grep -E "nr_switch|cpu#[0-3]," | head -8 | grep nr_sw | cut -d: -f2 | awk '{sum+=$1}END{print sum}')
     echo "delta $((new - old))"
 done
+```
+
+#### 查看繁忙的进程及其运行的核
+```bash
+ps -e -L -o stat,pid,tid,comm,wchan=DD,psr | grep ^[DR] | sort -nk6
+
+# 以 3 核为例，统计3核的使用率和top进程/线程
+ps -eLo pid,tid,comm,pcpu,psr | grep -E "\s3$" | awk '{s+=$4}END{print s}'
+ps -eLo pid,tid,comm,pcpu,psr | grep -E "\s3$" | sort -nk4
+
 ```
 
 ### 网络性能
