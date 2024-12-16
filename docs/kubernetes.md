@@ -134,7 +134,7 @@
       * [Topology Manager](#topology-manager)
       * [CPU Manager](#cpu-manager)
       * [Memory Manager](#memory-manager)
-      * [Device Plugin](#device-plugin)
+      * [Device Manager](#device-manager)
     * [节点优雅关机 GracefulNodeShutdown](#节点优雅关机-gracefulnodeshutdown)
   * [库函数和实操](#库函数和实操)
     * [特性门featuregate](#特性门featuregate)
@@ -1525,7 +1525,7 @@ function cores_util {
     for c in $(default_cores); do
         util=$(cat $temp_result | grep " $c$" | awk '{s+=$4}END{print s}')
         printf "Core %2d ============================== total usage %s%%\n" $c $util
-        cat $temp_result | grep " $c$" | sort -rnk4 | head -n 10
+        cat $temp_result | grep " $c$" | sort -rnk4 | head -n 3
     done
 
     rm -f $temp_result
@@ -1741,7 +1741,8 @@ done
 
 #### Memory Manager
 
-#### Device Plugin
+#### Device Manager
+Device Manager调用Device Plugin，完成扩展设备的发现、分配。
 
 ### 节点优雅关机 GracefulNodeShutdown
 `GracefulNodeShutdown`
@@ -1875,6 +1876,11 @@ go tool pprof -http :8080 *-{heap,goroutine-debug2,profile}-*
 
 ## kubelet
 ```bash
+# 动态调整kubelet日志级别，不用重启服务
+NODENAME=hehe
+kubectl proxy &
+curl -X PUT http://127.0.0.1:8001/api/v1/nodes/${NODENAME}/proxy/debug/flags/v -d "5"
+
 # 收集kubelet堆栈，在/tmp目录查看堆栈文件，该操作不会导致kubelet进程重启
 kill -s SIGUSR2 `pidof kubelet`
 ```

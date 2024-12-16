@@ -353,6 +353,8 @@ ps -eLo pid,lwp,psr,comm | grep kubelet
 ### 使用chrt修改进程的实时调度器属性
 ```bash
 chrt -r -p 90 <pid>
+# TODO
+chrt -r -a --pid 1 123456
 ```
 
 相关内核参数：`kernel.sched_rt_runtime_us = -1`。
