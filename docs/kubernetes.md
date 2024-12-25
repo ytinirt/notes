@@ -91,6 +91,7 @@
   * [资源限制](#资源限制)
     * [容器进程数限制pids](#容器进程数限制pids)
   * [HPA](#hpa)
+  * [集群内通过svc访问外部服务](#集群内通过svc访问外部服务)
 * [性能调优](#性能调优)
   * [读懂监控指标](#读懂监控指标)
     * [etcd监控指标](#etcd监控指标)
@@ -1465,7 +1466,42 @@ max ./kubepods-burstable.slice/kubepods-burstable-podxxx.slice/crio-<sandbox pod
 ## HPA
 参考链接[kubernetes-hpa-configuration-guide](https://segment.com/blog/kubernetes-hpa-configuration-guide/)
 
-
+## 集群内通过svc访问外部服务
+```bash
+cat << EEOOFF | kubectl apply -f -
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: etcd
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: etcd
+  namespace: etcd
+subsets:
+- addresses:
+  - ip: 1.2.3.4
+  - ip: 1.2.3.5
+  - ip: 1.2.3.6
+  ports:
+  - port: 2379
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    k8s-app: etcd
+  name: etcd
+  namespace: etcd
+spec:
+  ports:
+  - name: etcd
+    port: 2379
+    protocol: TCP
+    targetPort: 2379
+EEOOFF
+```
 
 # 性能调优
 ## 读懂监控指标

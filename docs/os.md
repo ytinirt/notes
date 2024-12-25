@@ -217,6 +217,7 @@
       * [常用命令和工具](#常用命令和工具)
     * [chronyd](#chronyd)
     * [检查节点时钟变化](#检查节点时钟变化)
+    * [系统时间保存到硬件时钟](#系统时间保存到硬件时钟)
   * [loop设备](#loop设备)
   * [rpc](#rpc)
     * [配置rpc-statd监听的端口](#配置rpc-statd监听的端口)
@@ -3222,9 +3223,13 @@ rpmls
 rpm -ivh package.rpm
 rpm -q kernel
 rpm -qa | grep kernel
+# 查看最后安装时间
+rpm -qa --last nss-devel
 # 列出rpm包中所有文件
 rpm -ql cri-o
-# 查看安装脚本
+# 查看安装包详情
+rpm -qi nss-devel
+# 进一步查看安装脚本
 rpm -qi --scripts kmod-nvidia-latest-dkms-440.95.01-1.el7.x86_64
 # 查看文件属于哪个包
 rpm -qf /usr/lib/systemd/system/kubelet.service
@@ -3432,6 +3437,11 @@ chronyc -n sources -v
 ### 检查节点时钟变化
 ```bash
 journalctl -k | cut -d' ' -f1-3 | cut -d: -f1-2 | uniq | grep -v ^" " | uniq
+```
+
+### 系统时间保存到硬件时钟
+```bash
+hwclock --systohc
 ```
 
 ## loop设备

@@ -184,6 +184,11 @@ var (
 ```bash
 # 查看exec-binary-file中使用的mod的version
 go version -m exec-binary-file
+
+# 老旧代码，未使用mod的编译方式，以 k8s-dummy-device-plugin 为例
+# 代码放 /usr/src 目录下，进入 /usr/src/k8s-dummy-device-plugin 目录
+GOPATH=/usr GO111MODULE=off CGO_ENABLED=0 go build -a -o k8s-dummy-device-plugin dummy.go
+
 ```
 
 # 如何Debug Golang程序
