@@ -1761,7 +1761,7 @@ secret -> pv                          // every secret referenced by the PV spec
 #### CPU Manager
 
 ```bash
-# 遍历打印所有容器的cpuset配置
+# 遍历打印所有容器的cpuset配置，注意需要特权用户执行
 printf "%-44s %-64s %-48s %s\n" NAMESPACE POD CONTAINER CPUSET
 for cid in $(crictl ps -q); do
     scope=$(find /sys/fs/cgroup/cpuset/ -name "crio-${cid}.scope")

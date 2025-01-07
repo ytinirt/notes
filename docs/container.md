@@ -7,6 +7,7 @@
     * [cpu和cpuacct cgroup](#cpu和cpuacct-cgroup)
       * [根据pod的cpu request和limit如何设置cpu cgroup参数](#根据pod的cpu-request和limit如何设置cpu-cgroup参数)
       * [cfs_period_us和cfs_quota_us进一步解释](#cfsperiodus和cfsquotaus进一步解释)
+      * [cpu.rt_runtime_us](#cpurtruntimeus)
       * [分析命令](#分析命令)
     * [cpuset](#cpuset)
     * [memory](#memory)
@@ -92,6 +93,7 @@
   * [容器镜像和overlay/layer对应关系](#容器镜像和overlaylayer对应关系)
   * [在login后podman的认证信息可能存放的几个地方](#在login后podman的认证信息可能存放的几个地方)
   * [创建manifest list支持多架构镜像](#创建manifest-list支持多架构镜像)
+  * [使用podman统计容器镜像大小](#使用podman统计容器镜像大小)
   * [常用命令](#常用命令-2)
 * [crictl](#crictl)
   * [直接创建容器](#直接创建容器)
@@ -234,6 +236,9 @@ period为100000、quota为50000和period为10000、quota为5000，容器的cpu l
 
 辅以cfs_burst_us，能既获取良好的吞吐能力，又兼顾实时性，具体的：
 * CFS调度器，允许在一个period内，cpu资源用量超过quota限制，预支的部分在后面的period里扣减出去。
+
+#### cpu.rt_runtime_us
+内核需要配置上`CONFIG_RT_GROUP_SCHED`。
 
 #### 分析命令
 ```bash
@@ -1068,11 +1073,15 @@ crio-status config  | grep -i pid
 
 ## 统计容器可读可写层存储用量
 ```bash
+# 复杂的方法
 for config in $(ls /var/lib/containers/storage/overlay-containers/*/userdata/config.json)
 do
   diff=$(cat $config 2>/dev/null | jq .root.path -r|sed 's/merged$/diff/g')
   du -s $diff
 done | awk '{s+=$1} END {print s}'
+
+# 简单的方法
+crictl stats -a -o json | jq -r '.stats[].writableLayer.usedBytes.value' | awk '{s+=$1}END{print s/1024/1024/1024}'
 ```
 
 ## 指定seccomp profile
@@ -1197,6 +1206,15 @@ podman manifest annotate --arch "amd64" localhost/flannel:v0.23.0 foo.bar/dev/fl
 podman manifest annotate --arch "arm64" localhost/flannel:v0.23.0 foo.bar/dev/flannel:v0.23.0-arm64
 # 上传manifest list至镜像仓库
 podman manifest push localhost/flannel:v0.23.0 foo.bar/dev/flannel:v0.23.0
+```
+
+## 使用podman统计容器镜像大小
+```bash
+# 查看容器镜像总大小
+podman system df
+
+# 查看各容器镜像大小、shared size和unique size
+podman system df -v
 ```
 
 ## 常用命令

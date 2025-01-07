@@ -2802,7 +2802,7 @@ sar -u
 #查看disk的io
 sar -b
 # 其中XX为日期，例如9号，就是09
-sar -u -f saXX
+sar -u -f /var/log/sa/saXX
 #查看CPU load，可以查看到历史CPU/系统负载
 sar -q
 #查看网络统计信息
