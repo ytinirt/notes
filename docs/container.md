@@ -25,6 +25,7 @@
     * [找到一个pidns下的进程](#找到一个pidns下的进程)
   * [mount](#mount)
     * [主机上查看和修改容器内文件](#主机上查看和修改容器内文件)
+  * [net](#net)
   * [常用命令](#常用命令)
   * [常用工具](#常用工具)
     * [lsns](#lsns)
@@ -404,6 +405,12 @@ ps -eo pidns,pid,lwp,cmd | awk '$1==xxxxxxxxxx'
 ```bash
 nsenter -t $(pidof xxx) -m ls
 nsenter -t $(pidof xxx) -m vi /path/to/file
+```
+
+## net
+```
+# 使用 ip netns 命令遍历所有网络命名空间，并执行配置
+ip netns ls | awk '{print $1}' | xargs -I {} ip netns exec {} sysctl -w net.ipv4.vs.foo=bar
 ```
 
 ## 常用命令
@@ -1080,7 +1087,7 @@ do
   du -s $diff
 done | awk '{s+=$1} END {print s}'
 
-# 简单的方法
+# 简单的方法，统计出容器可读可写层总用量大小
 crictl stats -a -o json | jq -r '.stats[].writableLayer.usedBytes.value' | awk '{s+=$1}END{print s/1024/1024/1024}'
 ```
 
@@ -1212,6 +1219,8 @@ podman manifest push localhost/flannel:v0.23.0 foo.bar/dev/flannel:v0.23.0
 ```bash
 # 查看容器镜像总大小
 podman system df
+# 使用 Go template 自定义输出
+podman system df --format "{{json .}}"
 
 # 查看各容器镜像大小、shared size和unique size
 podman system df -v
@@ -1229,7 +1238,7 @@ podman image mount  quay.io/openshift-scale/etcd-perf:latest
 podman image unmount quay.io/openshift-scale/etcd-perf:latest
 
 # 查看镜像详情
-cat /var/lib/containers/storage/overlay-images | jq
+cat /var/lib/containers/storage/overlay-images/images.json | jq
 
 # 调整日志级别
 podman pull --authfile /path/to/config.json <image> --log-level debug

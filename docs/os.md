@@ -197,6 +197,7 @@
     * [常用命令](#常用命令-2)
   * [内存信息解读](#内存信息解读)
     * [内存用量TopN](#内存用量topn)
+    * [内存统计](#内存统计)
     * [top内存信息解读](#top内存信息解读)
     * [free信息解读](#free信息解读)
     * [smaps信息解读](#smaps信息解读)
@@ -3008,6 +3009,12 @@ Linux中内存信息错综复杂，统计值相互可能对不上，其原因在
 ps -aux | sort -k4nr | head -n 10
 ```
 
+### 内存统计
+```bash
+ps -e -o "pid,comm,rss" | grep docker | awk '{a+=$3}END{print a}'   # 统计docker相关的进程占用的内存总数
+ps -e -o "pid,comm,rss" | grep -v PID | awk '{a+=$3}END{print a}'
+```
+
 ### top内存信息解读
 top典型携带的内存信息如下：
 ```bash
@@ -3222,6 +3229,8 @@ rpminfo
 rpmls
 rpm -ivh package.rpm
 rpm -q kernel
+# 查看版本和发布信息
+rpm -q --qf '%{VERSION}-%{RELEASE}' runc
 rpm -qa | grep kernel
 # 查看最后安装时间
 rpm -qa --last nss-devel
@@ -4264,8 +4273,6 @@ find /proc/*/fd -lname anon_inode:inotify | cut -d/ -f3 | xargs -I '{}' -- ps --
 find /lib/systemd/system/sysinit.target.wants/ -name "systemd-tmpfiles-setup.service" -delete
 cat 172.25.18.178-mongodbreq.log | sed "s/\./ /g" | awk '{print $1"."$2"."$3"."$4}' | sort -r | uniq -c >> 172.25.18.178-mongodbreq.digest
 hehe=0101;hehe=$(echo $hehe | sed "s/^0*//g");echo $hehe
-ps -e -o "pid,comm,rss" | grep docker | awk '{a+=$3}END{print a}'   # 统计docker相关的进程占用的内存总数
-ps -e -o "pid,comm,rss" | grep -v PID | awk '{a+=$3}END{print a}'
 ps -ef | awk '{print $NF, $(NF-1)}'
 ip addr |grep $local_ip |awk '(NR == 1) {print $NF}'
 grep -Eo "mysql-node[0-9]+" #仅返回匹配值

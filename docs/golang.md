@@ -313,7 +313,9 @@ kube-apiserver集成了pprof工具，可以通过/debug/prof/*获得kube-apiserv
 # 首先开启代理，会监听 127.0.0.1:8001
 kubectl proxy
 # 已采集的性能数据，可以启web server访问
-go tool pprof -http=0.0.0.0:8088 /path/to/pprof.kube-apiserver.goroutine.001.pb.gz
+go tool pprof -http=127.0.0.1:8088 /path/to/pprof.kube-apiserver.goroutine.001.pb.gz
+# 或者浏览器交互式访问远端pprof服务
+go tool pprof -http=127.0.0.1:8088 http://1.2.3.4:12345/debug/pprof
 # 也可以交互式访问
 go tool pprof /path/to/pprof.kube-apiserver.goroutine.001.pb.gz
 
