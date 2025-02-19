@@ -954,6 +954,9 @@ busctl get-property org.freedesktop.systemd1 /org/freedesktop/systemd1/unit/kube
 # 配置CPU亲和性（绑核），详见 man systemd-system.conf
 systemd-system.conf 中设置 CPUAffinity= 可以将所有 systemd 服务启动的进程绑核
 
+# 查看定时器
+systemctl list-timers
+
 # 查看依赖的服务
 systemctl list-dependencies crio
 # 查看被谁依赖
