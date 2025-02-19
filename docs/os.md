@@ -202,6 +202,7 @@
     * [free信息解读](#free信息解读)
     * [smaps信息解读](#smaps信息解读)
     * [meminfo信息解读](#meminfo信息解读)
+    * [dentry信息解读](#dentry信息解读)
   * [中断信息解读](#中断信息解读)
   * [文件系统修复](#文件系统修复)
   * [软件包管理](#软件包管理)
@@ -2906,6 +2907,9 @@ ss -tpn dst :8080
 ### lsblk
 ```bash
 lsblk --pairs --paths --bytes --output "NAME,FSTYPE,MOUNTPOINT,SIZE,STATE,TYPE,ROTA,RO,PKNAME,MAJ:MIN"
+
+# 查看扇区大小
+lsblk -o NAME,SIZE,ROTA,TYPE,MOUNTPOINT,PHY-SEC
 ```
 
 ### 常用命令
@@ -3190,6 +3194,12 @@ DirectMap2M:    100268032 kB
 | Hugepagesize                              | HugePage每页大小。                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | DirectMap4k<br>DirectMap2M<br>DirectMap1G | DirectMap不用于统计内存使用，而是反映TLB效率和负载（Load）的指标，它统计映射为4K、2M和1G页的内存大小。x86架构下，TLB管理更大的“page”，能够提升TLB的性能。                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 
+
+### dentry信息解读
+```bash
+# 查看dentry信息
+cat /proc/sys/fs/dentry-state
+```
 
 ## 中断信息解读
 `/proc/interrupts`
