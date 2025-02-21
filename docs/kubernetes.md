@@ -66,6 +66,7 @@
   * [资源遍历](#资源遍历)
     * [遍历列出所有的资源类型及支持的操作](#遍历列出所有的资源类型及支持的操作)
     * [遍历所有pod](#遍历所有pod)
+    * [遍历所有pod及其容器](#遍历所有pod及其容器)
     * [遍历所有工作负载](#遍历所有工作负载)
     * [遍历一个命名空间下所有资源](#遍历一个命名空间下所有资源)
     * [遍历一个命名空间下所有资源的label和annotations](#遍历一个命名空间下所有资源的label和annotations)
@@ -1175,6 +1176,23 @@ kubectl get pod -n $n $p -o json | jq .spec.containers[].imagePullPolicy -r 2>/d
 kubectl get pod -n $n $p -o json | jq .spec.initContainers[].imagePullPolicy -r 2>/dev/null
 echo
 done
+```
+
+### 遍历所有pod及其容器
+```bash
+pod_temp_file=$(mktemp pod_temp.XXXXX)
+kubectl get namespace -o json | jq -r '.items[].metadata.name' | while read -r ns; do
+    kubectl get pod -n $ns -o json | jq -r '.items[].metadata.name' | while read -r pod; do
+        kubectl get pod -n $ns $pod -o json > $pod_temp_file
+        jq -r '.spec | select(.initContainers != null) |.initContainers[].name' $pod_temp_file | while read -r ic; do
+            echo $ns $pod $ic
+        done
+        jq -r '.spec | select(.containers != null) | .containers[].name' $pod_temp_file | while read -r c; do
+            echo $ns $pod $c
+        done
+    done
+done
+rm -f $pod_temp_file
 ```
 
 ### 遍历所有工作负载
