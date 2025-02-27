@@ -84,6 +84,8 @@
   * [容器存储目录](#容器存储目录)
   * [non-root用户使用devices](#non-root用户使用devices)
   * [检查容器存储数据量是否合理](#检查容器存储数据量是否合理)
+  * [配置修改](#配置修改)
+    * [修改容器内ulimit配置](#修改容器内ulimit配置)
   * [问题debug](#问题debug)
   * [Deep Dive](#deep-dive)
     * [创建容器](#创建容器)
@@ -1137,6 +1139,22 @@ sudo ls /var/lib/containers/storage/overlay | wc -l
 ```
 
 参考链接[cri-o/issues/6981](https://github.com/cri-o/cri-o/issues/6981#issuecomment-1608606437)
+
+## 配置修改
+### 修改容器内ulimit配置
+在`[crio.runtime]`段下面，增加如下内容，例如将coredump文件限制到2GB大小：
+```bash
+default_ulimits = [
+ "core=2147483648:2147483648"
+]
+```
+
+然后重启crio生效（重载reload配置是否就够了）：
+```bash
+systemctl restart crio
+```
+
+注意，后续只有新建的容器才会生效。
 
 ## 问题debug
 **调整日志级别**：
