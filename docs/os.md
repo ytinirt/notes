@@ -957,6 +957,9 @@ systemd-system.conf 中设置 CPUAffinity= 可以将所有 systemd 服务启动�
 # 查看定时器
 systemctl list-timers
 
+# 重启systemd 1号进程
+systemctl daemon-reexec
+
 # 查看依赖的服务
 systemctl list-dependencies crio
 # 查看被谁依赖
