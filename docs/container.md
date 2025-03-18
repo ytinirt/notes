@@ -77,7 +77,6 @@
 * [Containerd](#containerd)
   * [常用操作](#常用操作-2)
   * [如何编译containerd](#如何编译containerd)
-  * [根据进程pid查询pod](#根据进程pid查询pod)
 * [CRI-O](#cri-o)
   * [统计容器可读可写层存储用量](#统计容器可读可写层存储用量)
   * [指定seccomp profile](#指定seccomp-profile)
@@ -106,6 +105,8 @@
   * [查看容器资源用量](#查看容器资源用量)
     * [容器可读可写层存储占用top10](#容器可读可写层存储占用top10)
     * [容器可读可写层inode占用top10](#容器可读可写层inode占用top10)
+  * [根据进程pid查询pod](#根据进程pid查询pod)
+  * [根据pod的uid查询pod](#根据pod的uid查询pod)
 * [Docker](#docker)
   * [容器环境下的swap使用](#容器环境下的swap使用)
   * [深入docker stats命令](#深入docker-stats命令)
@@ -1043,37 +1044,6 @@ cd /go/src/github.com/containerd/containerd
 make
 ```
 
-## 根据进程pid查询pod
-```bash
-function pid2pod {
-  local pid=$1
-  if [ -f /proc/${pid}/cgroup ]; then
-    local cid=$(cat /proc/${pid}/cgroup | grep ":memory:" | awk -F '/' '{print $NF}' | awk -F ':' '{print $NF}' | sed 's/^cri-containerd-//g' | sed 's/.scope$//g' | grep -v "^crio-")
-    if [ "${cid}" = "" ]; then
-      # Try cri-o
-      cid=$(cat /proc/${pid}/cgroup | grep -m1 "/crio-" | awk -F '/' '{print $NF}' | sed 's/^crio-//g' | sed 's/^conmon-//g' | sed 's/.scope$//g')
-      if [ "${cid}" != "" ]; then
-        result=$(sudo crictl inspect ${cid} 2>/dev/null | jq -r '.status.labels["io.kubernetes.pod.namespace"]+" "+.status.labels["io.kubernetes.pod.name"]' 2>/dev/null)
-        if [ "${result}" != "" ]; then
-          echo "${result}"
-        else
-          sudo crictl inspectp ${cid} 2>/dev/null | jq -r '.status.labels["io.kubernetes.pod.namespace"]+" "+.status.labels["io.kubernetes.pod.name"]' 2>/dev/null
-        fi
-      fi
-    else
-      result=$(ctr -n k8s.io c info ${cid} 2>/dev/null | jq -r '.Labels["io.kubernetes.pod.namespace"]+" "+.Labels["io.kubernetes.pod.name"]' 2>/dev/null)
-      if [ "${result}" != "" ]; then
-        echo "${result}"
-      else
-        ctr c ls 2>/dev/null | grep ${cid} 2>/dev/null | awk '{print $2}' 2>/dev/null
-      fi
-    fi
-  fi
-}
-
-```
-
-
 # CRI-O
 ```bash
 # 查看当前生效的配置
@@ -1348,6 +1318,43 @@ crictl stats -a -o json | jq '.stats[] | .writableLayer.usedBytes.value + " " + 
 crictl stats -a -o json | jq '.stats[] | .writableLayer.inodesUsed.value + " " + .attributes.labels["io.kubernetes.pod.namespace"] + " " + .attributes.labels["io.kubernetes.pod.name"]' -r | sort -rn | head -n 10
 ```
 
+
+## 根据进程pid查询pod
+```bash
+function pid2pod {
+  local pid=$1
+  if [ -f /proc/${pid}/cgroup ]; then
+    local cid=$(cat /proc/${pid}/cgroup | grep ":memory:" | awk -F '/' '{print $NF}' | awk -F ':' '{print $NF}' | sed 's/^cri-containerd-//g' | sed 's/.scope$//g' | grep -v "^crio-")
+    if [ "${cid}" = "" ]; then
+      # Try cri-o
+      cid=$(cat /proc/${pid}/cgroup | grep -m1 "/crio-" | awk -F '/' '{print $NF}' | sed 's/^crio-//g' | sed 's/^conmon-//g' | sed 's/.scope$//g')
+      if [ "${cid}" != "" ]; then
+        result=$(sudo crictl inspect ${cid} 2>/dev/null | jq -r '.status.labels["io.kubernetes.pod.namespace"]+" "+.status.labels["io.kubernetes.pod.name"]' 2>/dev/null)
+        if [ "${result}" != "" ]; then
+          echo "${result}"
+        else
+          sudo crictl inspectp ${cid} 2>/dev/null | jq -r '.status.labels["io.kubernetes.pod.namespace"]+" "+.status.labels["io.kubernetes.pod.name"]' 2>/dev/null
+        fi
+      fi
+    else
+      result=$(ctr -n k8s.io c info ${cid} 2>/dev/null | jq -r '.Labels["io.kubernetes.pod.namespace"]+" "+.Labels["io.kubernetes.pod.name"]' 2>/dev/null)
+      if [ "${result}" != "" ]; then
+        echo "${result}"
+      else
+        ctr c ls 2>/dev/null | grep ${cid} 2>/dev/null | awk '{print $2}' 2>/dev/null
+      fi
+    fi
+  fi
+}
+
+```
+
+## 根据pod的uid查询pod
+```bash
+function uid2pod() {
+    sudo crictl pods --label io.kubernetes.pod.uid="$1" --output json | jq -r '.items[].metadata | .namespace+"/"+.name'
+}
+```
 
 # Docker
 
