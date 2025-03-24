@@ -36,6 +36,7 @@
 * [鉴权Authorization](#鉴权authorization)
   * [判断我是否有权限](#判断我是否有权限)
   * [判断谁有权限操作](#判断谁有权限操作)
+  * [常见操作](#常见操作)
 * [安全](#安全)
   * [Pod Security Admission](#pod-security-admission)
   * [配置container Capabilities](#配置container-capabilities)
@@ -62,7 +63,7 @@
   * [kubeconfig跳过服务端证书校验](#kubeconfig跳过服务端证书校验)
   * [定制kubectl输出](#定制kubectl输出)
   * [kubectl patch操作](#kubectl-patch操作)
-  * [常见操作](#常见操作)
+  * [常见操作](#常见操作-1)
   * [资源遍历](#资源遍历)
     * [遍历列出所有的资源类型及支持的操作](#遍历列出所有的资源类型及支持的操作)
     * [遍历所有pod](#遍历所有pod)
@@ -689,6 +690,12 @@ kubectl auth can-i --as=system:serviceaccount:kube-system:replicaset-controller 
 ## 判断谁有权限操作
 ```bash
 oc adm policy who-can use securitycontextconstraints/anyuid
+```
+
+## 常见操作
+```bash
+# 查看未认证用户的权限
+kubectl get clusterrolebinding -o custom-columns=NAME:.metadata.name,ROLE:.roleRef.name,SUBJECTS:.subjects | grep unauthen
 ```
 
 # 安全
