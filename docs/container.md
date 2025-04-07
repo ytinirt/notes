@@ -86,6 +86,7 @@
   * [配置修改](#配置修改)
     * [修改容器内ulimit配置](#修改容器内ulimit配置)
   * [问题debug](#问题debug)
+    * [看crio日志](#看crio日志)
   * [Deep Dive](#deep-dive)
     * [创建容器](#创建容器)
     * [列出镜像ImageService/ListImages](#列出镜像imageservicelistimages)
@@ -1154,6 +1155,12 @@ systemctl kill -s USR1 crio.service
 ```bash
 # 查询容器详情
 curl --unix-socket /var/run/crio/crio.sock http://localhost/containers/{CONTAINER_ID}
+```
+
+### 看crio日志
+```bash
+# 创建容器失败
+journalctl -u crio | grep "Container creation error"
 ```
 
 ## Deep Dive

@@ -87,6 +87,7 @@
   * [获取k8s控制面组件指标](#获取k8s控制面组件指标)
   * [kubeadm部署的集群的操作](#kubeadm部署的集群的操作)
   * [kube-apiserver内部本地访问客户端](#kube-apiserver内部本地访问客户端)
+  * [读取 kubelet_internal_checkpoint](#读取-kubeletinternalcheckpoint)
 * [最佳实践](#最佳实践)
   * [使用finalizers拦截资源删除](#使用finalizers拦截资源删除)
     * [手动清理finalizers](#手动清理finalizers)
@@ -1454,6 +1455,11 @@ curl --resolve apiserver-loopback-client:${KUBE_APISERVER_PORT}:${MASTER_IP} -k 
 ```
 
 详见文章[kubernetes 究竟有没有 LTS？](https://mp.weixin.qq.com/s/3dATYVtgcQDxEOKR5XNofg)
+
+## 读取 kubelet_internal_checkpoint
+```bash
+jq --arg PodUID "xxx" '.Data.PodDeviceEntries[] | select(.PodUID == $PodUID) | select(.ContainerName == "hehe") | select(.ResourceName == "foo.bar/gpu")' /var/lib/kubelet/device-plugins/kubelet_internal_checkpoint | jq '.DeviceIDs["111"]'[]
+```
 
 # 最佳实践
 ## 使用finalizers拦截资源删除
