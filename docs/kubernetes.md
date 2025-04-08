@@ -117,6 +117,7 @@
       * [codec和codec factory](#codec和codec-factory)
     * [资源schema](#资源schema)
     * [健康检查/healthz](#健康检查healthz)
+    * [就绪检查/readyz](#就绪检查readyz)
     * [node authorizer实现](#node-authorizer实现)
   * [kube-controller-manager](#kube-controller-manager)
     * [配置和初始化](#配置和初始化)
@@ -1722,6 +1723,12 @@ GVK和资源model的对应关系，资源model的默认值，资源在不同版�
 [+]poststarthook/apiservice-openapi-controller ok
 healthz check failed
 ```
+
+### 就绪检查/readyz
+1. `kube-apiserver`的`shutdown-delay-duration`参数控制优雅退出。
+2. 在`kube-apiserver`退出期间，就绪检查失败、但健康检查ok，确保*in flight*的请求能正常处理，但不要有新的建连和请求上来
+3. `kube-apiserver`的`shutdown-send-retry-after`控制在优雅退出期间，有新请求到来时，返回`retry`
+4. 实现逻辑在`k8s.io/apiserver/pkg/server/healthz`，详见`func (s *GenericAPIServer) AddReadyzChecks(checks ...healthz.HealthChecker) error`
 
 ### node authorizer实现
 `plugin/pkg/auth/authorizer/node/graph.go`中为同node相关的资源创建的graph：
