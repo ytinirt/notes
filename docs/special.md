@@ -231,6 +231,7 @@
     * [Ngrok](#ngrok)
   * [Hyrum's Law](#hyrums-law)
   * [奇技淫巧](#奇技淫巧)
+    * [Windows下阅读kubernetes源码时staging代码的软链接问题](#windows下阅读kubernetes源码时staging代码的软链接问题)
     * [VMware为NAT网络配置端口转发](#vmware为nat网络配置端口转发)
     * [goland](#goland)
     * [curl取代postman](#curl取代postman)
@@ -423,6 +424,9 @@ sed -i 's/foo/bar/g;s/Foo/Bar/g' file-name
 
 # 去掉字符串中的空格' '
 sed 's/[[:space:]]//g'
+
+# 去掉每行开头的空白，包括空格和tab
+sed -i 's/^[ \t]*//' filename
 
 # 使用正则表达式
 sed -e 's/{[0-9]\+}/%s/g'
@@ -3224,6 +3228,12 @@ remote_port = 6000
 [Hyrum's Law](https://www.hyrumslaw.com/)
 
 ## 奇技淫巧
+
+### Windows下阅读kubernetes源码时staging代码的软链接问题
+以`vscode`为例，需要使用**管理员权限打开**`vscode`，然后`clone`代码时增加配置`-c core.symlinks=true`，例如
+```bash
+git clone -c core.symlinks=true https://github.com/kubernetes/kubernetes.git
+```
 
 ### VMware为NAT网络配置端口转发
 参见： https://superuser.com/questions/571196/port-forwarding-to-a-vmware-workstation-virtual-machine
