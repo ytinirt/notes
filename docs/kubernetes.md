@@ -138,6 +138,7 @@
         * [为容器进程设置oom_score_adj](#为容器进程设置oomscoreadj)
       * [Topology Manager](#topology-manager)
       * [CPU Manager](#cpu-manager)
+        * [遍历所有Pod的cpuset配置](#遍历所有pod的cpuset配置)
       * [Memory Manager](#memory-manager)
       * [Device Manager](#device-manager)
     * [节点优雅关机 GracefulNodeShutdown](#节点优雅关机-gracefulnodeshutdown)
@@ -1798,6 +1799,7 @@ secret -> pv                          // every secret referenced by the PV spec
 
 #### CPU Manager
 
+##### 遍历所有Pod的cpuset配置
 ```bash
 # 遍历打印所有容器的cpuset配置，注意需要特权用户执行
 printf "%-44s %-64s %-48s %s\n" NAMESPACE POD CONTAINER CPUSET
