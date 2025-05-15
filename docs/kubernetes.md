@@ -1959,6 +1959,20 @@ curl -X PUT http://127.0.0.1:8001/api/v1/nodes/${NODENAME}/proxy/debug/flags/v -
 
 # 收集kubelet堆栈，在/tmp目录查看堆栈文件，该操作不会导致kubelet进程重启
 kill -s SIGUSR2 `pidof kubelet`
+
+# 使用kubectl收集
+NODENAME=hehe
+kubectl get --raw /api/v1/nodes/${NODENAME}/proxy/debug/pprof/heap > kubelet-heap-$NODENAME-$(date +"%Y%m%d_%H%M%S").out
+kubectl get --raw /api/v1/nodes/${NODENAME}/proxy/debug/pprof/profile > kubelet-profile-$NODENAME-$(date +"%Y%m%d_%H%M%S").out
+# 查看pprof信息
+go tool pprof -http :8080 xxx.out
+
+# 节点本地收集kubelet的profile文件
+TODO
+
+# 查看kubelet的metrics
+NODENAME=hehe
+kubectl get --raw /api/v1/nodes/$NODENAME/proxy/metrics | grep go_gc_pauses_seconds_bucket
 ```
 
 ## kube-controller-manager

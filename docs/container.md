@@ -187,6 +187,7 @@ cgroup实现本质上是给系统进程挂上hooks，当task运行过程中涉�
 - [CFS Bandwidth Control](https://www.kernel.org/doc/Documentation/scheduler/sched-bwc.txt)
 - [Linux cgroup资源隔离各个击破之 - cpu隔离1](https://developer.aliyun.com/article/54483)
 - [CFS Scheduler](https://www.kernel.org/doc/Documentation/scheduler/sched-design-CFS.txt)
+- [What is the relationship between cpu.shares and cpu.cfs_quota_us in context of cgroup?](https://stackoverflow.com/questions/55901070/what-is-the-relationship-between-cpu-shares-and-cpu-cfs-quota-us-in-context-of-c)
 
 #### 根据pod的cpu request和limit如何设置cpu cgroup参数
 建一个测试Pod，其`resources`配置如下：

@@ -35,6 +35,7 @@
     * [示例：使用pprof定位kube-apiserver问题](#示例使用pprof定位kube-apiserver问题)
     * [示例：使用pprof定位kubelet问题](#示例使用pprof定位kubelet问题)
   * [golang diagnostics](#golang-diagnostics)
+  * [识别gc性能问题](#识别gc性能问题)
 * [Deep Dive系列](#deep-dive系列)
   * [http.Transport中连接池管理](#httptransport中连接池管理)
   * [atomic原子操作](#atomic原子操作)
@@ -384,6 +385,12 @@ go tool pprof -http :8080 ./<profile 文件>
 
 ## golang diagnostics
 TODO: https://golang.org/doc/diagnostics
+
+## 识别gc性能问题
+```bash
+# GC耗时指标
+kubectl get --raw /api/v1/nodes/single/proxy/metrics | grep go_gc_pauses_seconds_bucket
+```
 
 # Deep Dive系列
 ## http.Transport中连接池管理
