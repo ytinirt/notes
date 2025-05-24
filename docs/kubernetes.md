@@ -792,6 +792,12 @@ kubectl taint nodes worker foo=bar:NoExecute
 ```
 
 ## 便捷操作
+* 查找某个节点上带某种注解的pod
+  ```bash
+  NODE_NAME=hehe
+  kubectl get pod -A --field-selector spec.nodeName=$NODE_NAME -o json | jq -r '.items[] | select(.metadata.annotations["foo/bar"] != null) | .metadata | .namespace + " " + .name'
+  ```
+
 * 查询Pod的uid
   ```bash
   kubectl get pod -A -o custom-columns=NS:.metadata.namespace,NAME:.metadata.name,UID:.metadata.uid
@@ -1955,6 +1961,7 @@ go tool pprof -http :8080 *-{heap,goroutine-debug2,profile}-*
 # 动态调整kubelet日志级别，不用重启服务
 NODENAME=hehe
 kubectl proxy &
+sleep 1s  # 等待proxy端口开始监听
 curl -X PUT http://127.0.0.1:8001/api/v1/nodes/${NODENAME}/proxy/debug/flags/v -d "5"
 
 # 收集kubelet堆栈，在/tmp目录查看堆栈文件，该操作不会导致kubelet进程重启

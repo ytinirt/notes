@@ -63,6 +63,8 @@
       * [后台执行函数并等待结束](#后台执行函数并等待结束)
     * [double dash](#double-dash)
     * [其它记录](#其它记录)
+    * [坑](#坑)
+      * [read迭代处理中执行ssh命令会导致提前退出](#read迭代处理中执行ssh命令会导致提前退出)
   * [YAML](#yaml)
   * [JSON](#json)
     * [JSON Patch](#json-patch)
@@ -140,6 +142,8 @@
     * [Alertmanager](#alertmanager)
     * [prometheus-operator](#prometheus-operator)
     * [dashboard表达式实例](#dashboard表达式实例)
+  * [node_exporter](#nodeexporter)
+    * [调试定位node_exporter性能问题](#调试定位nodeexporter性能问题)
   * [Harbor](#harbor)
     * [手动清理镜像](#手动清理镜像)
   * [minio](#minio)
@@ -998,6 +1002,38 @@ grep -- -v file
 kill -s HUP $(pidof dnsmasq)    # 脚本中执行 kill -SIGHUP $(pidof dnsmasq) 会报错
 ```
 
+### 坑
+#### read迭代处理中执行ssh命令会导致提前退出
+```bash
+cat << EEOOFF > /tmp/poc-problem-caused-by-ssh-in-read-iterate.dat
+aaa
+bbb
+ccc
+EEOOFF
+
+# 成功迭代处理
+cat /tmp/poc-problem-caused-by-ssh-in-read-iterate.dat | while read -r l; do
+    echo $l
+done
+
+# 遇到ssh命令，处理中断
+cat /tmp/poc-problem-caused-by-ssh-in-read-iterate.dat | while read -r l; do
+    echo $l
+    ssh localhost echo "ssh called"
+done
+```
+
+ssh 命令默认会从标准输入（stdin）读取数据，如果 ssh 命令没有正确处理输入，它可能会消耗掉 while read 循环的输入流，导致循环提前退出。
+
+解决办法：
+```bash
+# ssh增加 -n 选项，将 stdin 重定向为 /dev/null
+cat /tmp/poc-problem-caused-by-ssh-in-read-iterate.dat | while read -r l; do
+    echo $l
+    ssh -n localhost echo "ssh called"
+done
+
+```
 
 ## YAML
 
@@ -2078,6 +2114,12 @@ histogram_quantile(0.99, sum(rate(etcd_disk_backend_commit_duration_seconds_buck
 
 # ETCD Total Leader Elections Per Day
 changes(etcd_server_leader_changes_seen_total[1d])
+```
+
+## node_exporter
+### 调试定位node_exporter性能问题
+```bash
+curl http://127.0.0.1:9100/debug/pprof/profile -o profile-node_exporter-$(hostname)-$(date +"%Y%m%d_%H%M%S").out
 ```
 
 ## Harbor

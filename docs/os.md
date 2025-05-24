@@ -139,6 +139,8 @@
       * [长期测试CPU性能](#长期测试cpu性能)
       * [查看核上进程切换次数统计](#查看核上进程切换次数统计)
       * [查看繁忙的进程及其运行的核](#查看繁忙的进程及其运行的核)
+      * [查看核的使用率](#查看核的使用率)
+      * [查看核上的top进程/线程](#查看核上的top进程线程)
     * [网络性能](#网络性能)
       * [主机网络指标](#主机网络指标)
       * [iperf测试网络性能](#iperf测试网络性能)
@@ -2288,11 +2290,19 @@ done
 
 #### 查看繁忙的进程及其运行的核
 ```bash
-ps -e -L -o stat,pid,tid,comm,wchan=DD,psr | grep ^[DR] | sort -nk6
+ps -e -L -o stat,psr,pid,tid,comm,wchan=DD | grep ^[DR] | sort -nk2
+```
 
-# 以 3 核为例，统计3核的使用率和top进程/线程
-ps -eLo pid,tid,comm,pcpu,psr | grep -E "\s3$" | awk '{s+=$4}END{print s}'
-ps -eLo pid,tid,comm,pcpu,psr | grep -E "\s3$" | sort -nk4
+#### 查看核的使用率
+```bash
+# 以 1 核为例，统计1核的使用率
+ps -eLo pid,tid,pcpu,comm,psr | grep -E "\s1$" | awk '{s+=$3}END{print s}'
+```
+
+#### 查看核上的top进程/线程
+```bash
+# 以 0-2 核为例，统计0-2核的top进程/线程
+ps -eLo pid,tid,pcpu,comm,psr | grep -E "\s[012]$" | sort -nk3
 
 ```
 
