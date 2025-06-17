@@ -305,6 +305,10 @@ TODO: cgroup v1的oom，文件缓存*file_dirty* 和 *file_writeback* 的内存�
 * 系统参数`vm.dirty*`，参见[更加积极的脏页缓存刷新](./os.md#更加积极的脏页缓存刷新) 。针对大内存节点，调优 vm.dirty 参数，更加积极的脏数据刷新，避免脏页积累导致的容器内 file_dirty 和 file_writeback 过大、容器OOM。
 * 读写文件时*Direct I/O*参数，即`O_DIRECT`标识，避免文件系统缓存，不过相应的带来IO性能降低。
 * cgroupv2会限制内存group中pagecache内存用量，因此能避免上述oom。
+* cgroup oom时，failcnt为什么会出现很大的情况？也就是说，分配内存失败，要失败很多次才触发oom-kill，那这里的策略是什么
+  > failcnt数值反映的是触发limit的次数，memcg每次申请内存的时候都会先判断本次申请是否会超limit，如果会超，则failcnt++（此时并没有真正去申请），
+  > 后续流程中会尝试try_to_free_mem_cgroup_pages，尝试回收，但是力度很小(主要是inode/dentry cache，vm.vfs_cache_pressure这个参数影响回收力度)，
+  > 最终如果不够用，就触发oom，够用则只是增加了failcnt统计。
 
 ### devices
 ```bash

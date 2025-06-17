@@ -568,6 +568,21 @@ vm.dirty_expire_centisecs = 10
 vm.dirty_writeback_centisecs = 10
 ```
 
+系统里，配置cache刷新阈值的参数有哪些，有没有建议配置？
+> 系统里pagecache只能是触发内存回收时释放或者drop cache人为释放，但脏页刷新有配置（只是刷到磁盘，并不影响pagecache释放）
+> /proc/sys/vm/dirty_background_ratio
+> /proc/sys/vm/dirty_ratio
+> /proc/sys/vm/dirty_background_bytes
+> /proc/sys/vm/dirty_bytes
+>
+> dirty_background_ratio，默认10
+> 脏页数量达到可用内存[free pages + reclaimable pages]百分之多少时，触发后台worker进行回写操作，这是异步的
+>
+> dirty_ratio，默认20 （有时改成了40）
+> 1、脏页数量达到可用内存百分之多少时，同步回写脏数据到磁盘，会引起新提交的IO阻塞，这是同步的
+> 2、同步写到脏页小于(background_thresh + dirty_thresh) / 2 后，才可以处理新IO请求
+>
+> *_bytes 的优先级 大于 *_ratio优先级
 
 
 ## 大页内存hugepages
