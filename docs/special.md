@@ -64,6 +64,7 @@
     * [double dash](#double-dash)
     * [其它记录](#其它记录)
     * [坑](#坑)
+      * [标准输出和错误输出重定向](#标准输出和错误输出重定向)
       * [read迭代处理中执行ssh命令会导致提前退出](#read迭代处理中执行ssh命令会导致提前退出)
   * [YAML](#yaml)
   * [JSON](#json)
@@ -1003,6 +1004,12 @@ kill -s HUP $(pidof dnsmasq)    # 脚本中执行 kill -SIGHUP $(pidof dnsmasq) 
 ```
 
 ### 坑
+
+#### 标准输出和错误输出重定向
+* `command 2>&1 > /file` 有问题，执行顺序是`stderr`重定向到`stdout`（此时还是终端），然后`stdout`到`/file`，所以错误输出并未成功重定向到`/file`中
+* `command 2>&1 >& /file`，正确，其等价于`command >& /file`，同时将`stdout`和`stderr`都重定向到`/file`
+* `command > /file 2>&1`，正确，更推荐方法，执行顺序是`stdout`重定向到文件`/file`，然后`stderr`重定向到`stdout`（此时是文件）
+
 #### read迭代处理中执行ssh命令会导致提前退出
 ```bash
 cat << EEOOFF > /tmp/poc-problem-caused-by-ssh-in-read-iterate.dat
