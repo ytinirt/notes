@@ -23,6 +23,7 @@
   * [修改节点kubelet配置](#修改节点kubelet配置)
   * [让cvo不要调谐资源](#让cvo不要调谐资源)
   * [让cvo删除资源](#让cvo删除资源)
+  * [强制rollout组件](#强制rollout组件)
 * [测试](#测试)
   * [执行内容查询](#执行内容查询)
   * [UT](#ut)
@@ -431,6 +432,11 @@ oc patch clusterversion version --type json -p "$(cat patch.yaml)"
 
 ## 让cvo删除资源
 manifests中yaml增加注解`release.openshift.io/delete: "true"`
+
+## 强制rollout组件
+```bash
+kubectl patch kubeapiserver cluster -p='{"spec": {"forceRedeploymentReason": "recovery-'"$( date --rfc-3339=ns )"'"}}' --type=merge
+```
 
 # 测试
 ## 执行内容查询

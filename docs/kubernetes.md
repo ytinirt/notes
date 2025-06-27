@@ -71,7 +71,10 @@
     * [遍历所有工作负载](#遍历所有工作负载)
     * [遍历一个命名空间下所有资源](#遍历一个命名空间下所有资源)
     * [遍历一个命名空间下所有资源的label和annotations](#遍历一个命名空间下所有资源的label和annotations)
+    * [遍历所有区分命名空间的资源的内容](#遍历所有区分命名空间的资源的内容)
     * [遍历所有跨命名空间的资源](#遍历所有跨命名空间的资源)
+    * [遍历所有跨命名空间的资源的label和annotations](#遍历所有跨命名空间的资源的label和annotations)
+    * [遍历所有跨命名空间的资源的内容](#遍历所有跨命名空间的资源的内容)
     * [遍历所有pod的cpu request配置](#遍历所有pod的cpu-request配置)
   * [客户端访问集群时context配置](#客户端访问集群时context配置)
   * [ConfigMap使用](#configmap使用)
@@ -1246,10 +1249,25 @@ kubectl get ${api} --ignore-not-found -n ${NAMESPACE} -o json | jq .items[].meta
 done
 ```
 
+### 遍历所有区分命名空间的资源的内容
+```bash
+for k in $(kubectl api-resources --verbs=list --namespaced -o name); do
+    for ns in $(kubectl get ns -o custom-columns=NAME:.metadata.name --no-headers); do
+        for n in $(kubectl get --ignore-not-found -o custom-columns=NAME:.metadata.name --no-headers $k -n $ns 2>/dev/null); do
+            output=$(kubectl get $k -n $ns $n -o yaml 2>/dev/null | grep hehe)
+            if [ "$output" != "" ]; then
+                echo $k $ns $n "$output"
+            fi
+        done
+    done
+done
+```
+
 ### 遍历所有跨命名空间的资源
 ```bash
 kubectl api-resources --verbs=list --namespaced=false -o name \
 | xargs -n 1 kubectl get --show-kind --ignore-not-found
+```
 
 ### 遍历所有跨命名空间的资源的label和annotations
 ```bash
@@ -1258,6 +1276,18 @@ kubectl get ${api} --ignore-not-found -o json | jq .items[].metadata.labels
 done
 for api in $(kubectl api-resources --verbs=list --namespaced=false -o name); do
 kubectl get ${api} --ignore-not-found -o json | jq .items[].metadata.annotations
+done
+```
+
+### 遍历所有跨命名空间的资源的内容
+```bash
+for k in $(kubectl api-resources --verbs=list --namespaced=false -o name); do
+    for n in $(kubectl get --ignore-not-found -o custom-columns=NAME:.metadata.name --no-headers $k 2>/dev/null); do
+        output=$(kubectl get $k $n -o yaml 2>/dev/null | grep hehe)
+        if [ "$output" != "" ]; then
+            echo $k $n "$output"
+        fi
+    done
 done
 ```
 
