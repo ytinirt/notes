@@ -5,3 +5,4 @@
 * [OpenShift](./docs/openshift.md)
 * [Golang](./docs/golang.md)
 * [Special Column](./docs/special.md)
+* [Performance](./docs/performance.md)
