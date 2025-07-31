@@ -228,6 +228,7 @@
   * [用户管理](#用户管理)
   * [查看用户密码过期时间](#查看用户密码过期时间)
   * [audit系统审计](#audit系统审计)
+    * [监控文件写和其他操作](#监控文件写和其他操作)
   * [HTPasswd认证](#htpasswd认证)
   * [系统资源限制](#系统资源限制)
     * [limits.conf资源限制](#limitsconf资源限制)
@@ -3558,6 +3559,28 @@ auditctl -l
 
 TODO: [参见资料](https://www.cyberciti.biz/tips/linux-audit-files-to-see-who-made-changes-to-a-file.html)
 
+### 监控文件写和其他操作
+```bash
+# 安装audit
+# 检查审计服务在运行
+systemctl status auditd
+
+# 例如监控文件hehe的写和其他操作，key设置为 root_hehe_delete
+auditctl -w /root/hehe -p wa -k root_hehe_delete
+
+# 查询配置规则
+auditctl -l
+
+# 查询修改日志
+ausearch -k root_hehe_delete
+# 也可以直接看日志
+less /var/log/audit/audit.log
+
+# 删除所有规则
+auditctl -D
+```
+
+
 ## HTPasswd认证
 在RHEL/CentOS上，htpasswd来自httpd-tools包。
 ```bash
@@ -4813,6 +4836,8 @@ $(date --iso-8601=seconds -u | cut -d+ -f1)Z   # date输出符合kubernetes时�
 date --date='Mon Apr 2 00:21:03 2018' +'%s'    # date的格式化输入和格式化输出
 date -d "10 day ago" +"%Y-%m-%d"               # 符合自然语言的输入和格式化输出
 date -d @1651406848.038734
+# 13位长度时间戳Timestamp
+date +%s%N | cut -c1-13
 echo -e '\n1.2.3.4 hehe\n2.3.4.5 xixi\n' >> /etc/hosts
 echo ${a%?}  # 无条件去掉最后一个字符
 ```
