@@ -4464,6 +4464,9 @@ SystemMaxFiles=100 ### 默认最多保留100个文件
 ##### 过滤日志
 ```bash
 journalctl -o json _UID=0 MESSAGE_ID=xxx
+
+# 查看error及以上的内核日志
+journalctl -k -p err
 ```
 
 ##### 常用命令
