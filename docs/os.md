@@ -2530,6 +2530,7 @@ echo q > /proc/sysrq-trigger
 
 #### 系统响应慢checklist
 * 麒麟系统，是否有kysec模块
+  * getstatus 参见[文档](https://blog.csdn.net/m0_69493559/article/details/134500144)
 * audit审计是否拖慢系统响应
   * systemctl status auditd
   * 内核审计临时关闭 auditctl -e 0
