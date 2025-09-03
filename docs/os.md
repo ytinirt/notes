@@ -160,6 +160,7 @@
       * [既有日志统计](#既有日志统计)
     * [操作系统](#操作系统)
       * [sysrq](#sysrq)
+      * [系统响应慢checklist](#系统响应慢checklist)
   * [信息收集](#信息收集)
     * [收集系统配置](#收集系统配置)
     * [使用 lshw 查看硬件配置](#使用-lshw-查看硬件配置)
@@ -897,10 +898,13 @@ busctl
 
 ## PCI设备
 ### 获取PCI设备信息
-从如下位置获取pci设备（id）信息
 ```
+# 从如下位置获取pci设备（id）信息
 /sys/bus/pci/devices/<device>/class
 /sys/bus/pci/devices/<device>/vendor
+
+# 获取pci设备所在numa节点信息
+/sys/bus/pci/devices/<device>/numa_node
 ```
 参见[node-feature-discovery如何获取PCI设备信息](https://github.com/kubernetes-sigs/node-feature-discovery/blob/master/source/pci/pci.go)
 
@@ -2524,6 +2528,13 @@ echo p > /proc/sysrq-trigger
 echo q > /proc/sysrq-trigger
 ```
 
+#### 系统响应慢checklist
+* 麒麟系统，是否有kysec模块
+* audit审计是否拖慢系统响应
+  * systemctl status auditd
+  * 内核审计临时关闭 auditctl -e 0
+* todo
+
 详见[Linux Magic System Request Key Hacks](https://www.kernel.org/doc/html/v4.13/admin-guide/sysrq.html) 。
 
 ## 信息收集
@@ -3553,8 +3564,12 @@ auditctl -a exit,always -F arch=b64 -F exe!=/usr/bin/nice&&/usr/bin/du -S execve
 
 # 监控文件修改
 auditctl -w /sys/fs/cgroup/devices/devices.deny -p wrxa -k cgmonitor-t
-# 检查配置是否成功
+
+# 检查审计配置规则是否成功
 auditctl -l
+
+# 临时关闭内核审计audit（持久化方法为内核启动参数增加 audit=0 ）
+auditctl -e 0
 ```
 
 TODO: [参见资料](https://www.cyberciti.biz/tips/linux-audit-files-to-see-who-made-changes-to-a-file.html)

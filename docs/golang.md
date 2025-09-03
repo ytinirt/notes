@@ -44,6 +44,7 @@
   * [cgo](#cgo)
   * [GOARCH跨平台构建](#goarch跨平台构建)
   * [go:embed](#go--embed)
+  * [底层原理](#底层原理)
 * [通过goproxy代理解决package下载问题](#通过goproxy代理解决package下载问题)
 * [示例](#示例)
   * [启HTTP服务](#启http服务)
@@ -453,6 +454,9 @@ TODO
 //go:embed manifests/guard.yaml
 var podTemplate []byte
 ```
+
+## 底层原理
+* TODO： [「Golang进阶之路」底层原理篇]https://learnku.com/articles/89660
 
 # 通过goproxy代理解决package下载问题
 ```bash

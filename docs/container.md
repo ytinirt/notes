@@ -1720,7 +1720,19 @@ skopeo login registry-1.docker.io -u <username> -p <password>
 skopeo login image.foo.bar -u <username> -p <password> --tls-verify=false
 
 i=centos:latest
-skopeo copy --dest-tls-verify=false docker://docker.io/$i docker://image.foo.bar/dev/$i
+skopeo copy --multi-arch all --dest-tls-verify=false docker://docker.io/$i docker://image.foo.bar/dev/$i --insecure-policy --override-os linux
+```
+
+更复杂的例子：
+```bash
+skopeo copy --format=v2s2 \
+    --remove-signatures \
+    --authfile=${authfile} \
+    --dest-tls-verify=false \
+    --override-arch=${arch} \
+    --override-os=linux \
+    docker://${src_image} \
+    docker://${dest_image}-${arch}
 ```
 
 ### Windows环境上源码运行skopeo搬运镜像
@@ -1730,5 +1742,5 @@ GOOS=windows GOARCH=amd64 go build -tags "containers_image_openpgp" -o bin/skope
 
 # 增加 --override-os 搬运指定系统platform的镜像，例如 linux
 # 增加 --insecure-policy 跳过容器安全策略检查 /etc/containers/policy.json
-skopeo copy --dest-tls-verify=false docker://docker.io/$i docker://image.foo.bar/dev/$i --insecure-policy --override-os linux
+skopeo copy --multi-arch all --dest-tls-verify=false docker://docker.io/$i docker://image.foo.bar/dev/$i --insecure-policy --override-os linux
 ```

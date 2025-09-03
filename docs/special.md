@@ -315,9 +315,6 @@ git describe --tags --match='v*' --abbrev=14 "${KUBE_GIT_COMMIT}^{commit}"
 # 撤销add的修改
 git reset --mixed
 
-## 将github上的项目搬运到gitlab
-git remote rename origin old-origin
-git remote add origin git@gitlab.x.y:path/to/project.git
 # 将github上的分支track到本地
 for remote in `git branch -r | grep -v master `; do git checkout --track $remote ; done
 git push -u origin --all
@@ -1401,6 +1398,11 @@ $ docker run --privileged --rm --name=mqtt-scripts \
 crontab -e
 0 * * * * systemctl restart systemd-journald
 # */5 * * * * systemctl restart systemd-journald
+```
+
+查看定时任务：
+```bash
+crontab -l
 ```
 
 # 容器网络
