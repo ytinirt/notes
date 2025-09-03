@@ -1538,6 +1538,10 @@ lspci |grep -i raid
 
 # 查看控制器信息（含Disk信息）
 /opt/bin/storcli64 /c0 show
+/opt/bin/storcli64 /c0/v0 show all
+
+# 查看物理盘信息
+/opt/bin/storcli64 /c0/eall/sall show
 
 # 查看RAID信息
 /opt/bin/storcli64 /c0 /vall show
@@ -2530,10 +2534,10 @@ echo q > /proc/sysrq-trigger
 
 #### 系统响应慢checklist
 * 麒麟系统，是否有kysec模块
-  * getstatus 参见[文档](https://blog.csdn.net/m0_69493559/article/details/134500144)
+  * `getstatus` 参见[文档](https://blog.csdn.net/m0_69493559/article/details/134500144)
 * audit审计是否拖慢系统响应
-  * systemctl status auditd
-  * 内核审计临时关闭 auditctl -e 0
+  * `systemctl status auditd`
+  * 内核审计临时关闭 `auditctl -e 0` ，持久化关闭 `grubby --update-kernel=ALL --args="audit=0"`
 * todo
 
 详见[Linux Magic System Request Key Hacks](https://www.kernel.org/doc/html/v4.13/admin-guide/sysrq.html) 。
