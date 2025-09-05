@@ -1212,6 +1212,9 @@ oc get infrastructure/cluster -o json | jq '.metadata += {"annotations": {"foo":
 ```bash
 # 通过--arg，让key带着变量
 cat json_file | jq -r --arg file "etcd-peer-"${nodename}".crt" '.data[$file]'
+
+key="name"
+jq --arg k "$key" '.[$k]' file.json
 ```
 
 #### 仅输出顶级和或二级key
@@ -3306,6 +3309,9 @@ VMware配置文件路径：`C:\ProgramData\VMware\vmnetnat.conf`
 ```
 curl -H 'Content-Type: application/json' -X POST -T file-name http://10.0.0.1:12345/path/to/api
 curl -H 'Content-Type: application/json' -X POST -d @file-name http://10.0.0.1:12345/path/to/api
+
+# 带cookie
+curl -H "Cookie: xxx; FOO=bar; BAR=foo" -k https://a.b.c/api/v1/xxx
 ```
 
 ### atom超级好用的package
