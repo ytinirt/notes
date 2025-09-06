@@ -1004,6 +1004,41 @@ env >> /root/runtime-hook.log
 echo >> /root/runtime-hook.log
 ```
 
+另一个完整的例子：
+```
+# 容器日志采集信息解析脚本
+cat << EEOOFF > /usr/local/bin/logging-oci-hook.sh
+#!/bin/bash
+
+pwd >> /tmp/logging-oci-hook.log
+cat config.json | jq -r '.annotations["workload.logging.io/paths"]' >> /tmp/logging-oci-hook.log
+EEOOFF
+
+# 为脚本赋予可执行权限
+chmod a+x /usr/local/bin/logging-oci-hook.sh
+
+
+# 配置oci hook，用于监听容器日志采集任务，并触发更新容器日志采集信息
+cat << EEOOFF > /etc/containers/oci/hooks.d/logging-hook.json
+{
+  "version": "1.0.0",
+  "hook": {
+    "path": "/usr/local/bin/logging-oci-hook.sh"
+  },
+  "when": {
+        "annotations": {
+              "^workload.logging.io/paths$": ".*"
+        }
+  },
+  "stages": ["poststart"]
+}
+EEOOFF
+
+# 重启crio，使oci hook生效
+systemctl restart crio
+
+```
+
 # Containerd
 ## 常用操作
 ```bash
