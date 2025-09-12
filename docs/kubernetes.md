@@ -107,6 +107,7 @@
     * [kubelet监控指标](#kubelet监控指标)
   * [内存优化](#内存优化)
   * [查看defaultCpuSet核上CPU使用量](#查看defaultcpuset核上cpu使用量)
+  * [为kubelet service设置GOGC](#为kubelet-service设置gogc)
 * [Deep Dive系列](#deep-dive系列)
   * [kube-apiserver](#kube-apiserver)
     * [服务启动流程](#服务启动流程)
@@ -1636,6 +1637,23 @@ function cores_util {
     rm -f $temp_result
 }
 ```
+
+## 为kubelet service设置GOGC
+```bash
+# 设置kubelet service的GOGC
+cat << EEOOFF > /etc/systemd/system/kubelet.service.d/60-gogc.conf
+[Service]
+Environment="GOGC=200"
+EEOOFF
+
+# 使配置生效
+systemctl daemon-reload
+systemctl restart kubelet
+
+# 检查配置生效
+systemctl show --property=Environment kubelet
+```
+
 
 # Deep Dive系列
 ## kube-apiserver

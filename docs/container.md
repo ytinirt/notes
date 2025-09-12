@@ -1010,6 +1010,9 @@ echo >> /root/runtime-hook.log
 cat << EEOOFF > /usr/local/bin/logging-oci-hook.sh
 #!/bin/bash
 
+# 从标准输入，获取容器bundle信息
+cat >> /tmp/logging-oci-hook.log
+
 pwd >> /tmp/logging-oci-hook.log
 cat config.json | jq -r '.annotations["workload.logging.io/paths"]' >> /tmp/logging-oci-hook.log
 EEOOFF
@@ -1038,6 +1041,8 @@ EEOOFF
 systemctl restart crio
 
 ```
+
+> **接下来** TODO： 为什么`poststart`阶段执行hook的时候，容器还没启动，甚至还没创建出来？？？
 
 # Containerd
 ## 常用操作
