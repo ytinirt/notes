@@ -2016,10 +2016,11 @@ curl -X PUT http://127.0.0.1:8001/api/v1/nodes/${NODENAME}/proxy/debug/flags/v -
 kill -s SIGUSR2 `pidof kubelet`
 
 # 使用kubectl收集
-NODENAME=hehe
+NODENAME=x
 kubectl get --raw /api/v1/nodes/${NODENAME}/proxy/debug/pprof/heap > kubelet-heap-$NODENAME-$(date +"%Y%m%d_%H%M%S").out
 kubectl get --raw /api/v1/nodes/${NODENAME}/proxy/debug/pprof/profile > kubelet-profile-$NODENAME-$(date +"%Y%m%d_%H%M%S").out
 kubectl get --raw /api/v1/nodes/${NODENAME}/proxy/debug/pprof/goroutine > kubelet-goroutine-$NODENAME-$(date +"%Y%m%d_%H%M%S").out
+kubectl get --raw /api/v1/nodes/${NODENAME}/proxy/debug/pprof/goroutine?debug=2 > kubelet-goroutine-$NODENAME-$(date +"%Y%m%d_%H%M%S").txt
 # 查看pprof信息
 go tool pprof -http :8080 xxx.out
 

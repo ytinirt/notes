@@ -86,6 +86,7 @@
   * [配置修改](#配置修改)
     * [修改容器内ulimit配置](#修改容器内ulimit配置)
   * [问题debug](#问题debug)
+    * [收集堆栈信息](#收集堆栈信息)
     * [看crio日志](#看crio日志)
       * [创建容器失败](#创建容器失败)
   * [Deep Dive](#deep-dive)
@@ -99,6 +100,8 @@
   * [创建manifest list支持多架构镜像](#创建manifest-list支持多架构镜像)
   * [使用podman统计容器镜像大小](#使用podman统计容器镜像大小)
   * [常用命令](#常用命令-2)
+  * [podman debug](#podman-debug)
+    * [使用pprof分析podman](#使用pprof分析podman)
 * [crictl](#crictl)
   * [直接创建容器](#直接创建容器)
     * [创建Pod Sandbox](#创建pod-sandbox)
@@ -1203,6 +1206,17 @@ systemctl kill -s USR1 crio.service
 curl --unix-socket /var/run/crio/crio.sock http://localhost/containers/{CONTAINER_ID}
 ```
 
+### 收集堆栈信息
+```bash
+# 堆栈保存在 /tmp/crio-goroutine-stacks-$timestamp.log
+kill -s USR1 $(pidof crio)
+```
+
+```bash
+# 获取 pprof profile
+curl --unix-socket /var/run/crio/crio.sock http://localhost/debug/pprof/profile --output $(hostname)-crio-profile-$(date +"%y%m%d%H%M").out
+```
+
 ### 看crio日志
 
 #### 创建容器失败
@@ -1289,6 +1303,10 @@ podman pull --authfile /path/to/config.json <image> --log-level debug
 # 启容器但不分配网络
 podman run -it --rm --net=none centos:latest bash
 ```
+
+## podman debug
+### 使用pprof分析podman
+
 
 # crictl
 _crictl_ 访问*cri server*，同kubelet的行为一致，因此常用于站在kubelet角度去debug容器运行时。
