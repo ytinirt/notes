@@ -94,6 +94,7 @@
 * [Storage](#storage)
   * [Disk操作](#disk操作)
     * [使用storcli查看存储信息](#使用storcli查看存储信息)
+    * [使用lsscsi查看SCSI/NVMe设备](#使用lsscsi查看scsinvme设备)
     * [使用lshw查看磁盘硬件信息](#使用lshw查看磁盘硬件信息)
     * [使用fdisk操作MBR](#使用fdisk操作mbr)
     * [使用fdisk为分区扩容](#使用fdisk为分区扩容)
@@ -1548,6 +1549,17 @@ lspci |grep -i raid
 
 # 查看cache信息
 /opt/bin/storcli64 /c0 show all |grep -i cache
+
+# 统一收集raid卡信息
+/opt/bin/raid/storcli64 /c0  show all > storcli.showall
+/opt/bin/raid/storcli64 /c0  show events > storcli.events
+/opt/bin/raid/storcli64 /c0  show termlog > storcli.termlog
+/opt/bin/raid/storcli64 /c0  show alilog > storcli.alilog
+```
+
+### 使用lsscsi查看SCSI/NVMe设备
+```bash
+lsscsi -v
 ```
 
 ### 使用lshw查看磁盘硬件信息

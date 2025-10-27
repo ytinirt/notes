@@ -11,6 +11,7 @@
       * [分析命令](#分析命令)
     * [cpuset](#cpuset)
     * [memory](#memory)
+      * [cgroup v1中文件缓存导致memory group的oom](#cgroup-v1中文件缓存导致memory-group的oom)
     * [devices](#devices)
     * [pids](#pids)
   * [挂载cgroupfs](#挂载cgroupfs)
@@ -301,10 +302,7 @@ for f in $(find /sys/fs/cgroup/cpuset -name "cpuset.cpus"); do printf "%-220s %s
 ```
 
 ### memory
-TODO: cgroup v1的oom，文件缓存*file_dirty* 和 *file_writeback* 的内存用量，这部分也记到容器内存，可能导致oom。
-参见链接[cgroup-v2](https://docs.kernel.org/admin-guide/cgroup-v2.html) 。
-
-其它相关说明：
+相关说明：
 * 系统参数`vm.dirty*`，参见[更加积极的脏页缓存刷新](./os.md#更加积极的脏页缓存刷新) 。针对大内存节点，调优 vm.dirty 参数，更加积极的脏数据刷新，避免脏页积累导致的容器内 file_dirty 和 file_writeback 过大、容器OOM。
 * 读写文件时*Direct I/O*参数，即`O_DIRECT`标识，避免文件系统缓存，不过相应的带来IO性能降低。
 * cgroupv2会限制内存group中pagecache内存用量，因此能避免上述oom。
@@ -312,6 +310,43 @@ TODO: cgroup v1的oom，文件缓存*file_dirty* 和 *file_writeback* 的内存�
   > failcnt数值反映的是触发limit的次数，memcg每次申请内存的时候都会先判断本次申请是否会超limit，如果会超，则failcnt++（此时并没有真正去申请），
   > 后续流程中会尝试try_to_free_mem_cgroup_pages，尝试回收，但是力度很小(主要是inode/dentry cache，vm.vfs_cache_pressure这个参数影响回收力度)，
   > 最终如果不够用，就触发oom，够用则只是增加了failcnt统计。
+
+#### cgroup v1中文件缓存导致memory group的oom
+TODO: cgroup v1的oom，文件缓存*file_dirty* 和 *file_writeback* 的内存用量，这部分也记到容器内存，可能导致oom。
+参见链接[cgroup-v2](https://docs.kernel.org/admin-guide/cgroup-v2.html) 。
+
+如下有个memory group oom的日志实例：
+```
+[169155.725807] memory: usage 8388608kB, limit 8388608kB, failcnt 0
+[169155.726402] memory+swap: usage 8388608kB, limit 8388608kB, failcnt 191499
+[169155.727083] kmem: usage 20672kB, limit 9007199254740928kB, failcnt 0
+[169155.727700] Memory cgroup stats for /kubepods.slice/kubepods-burstable.slice/kubepods-burstable-pod9c43bc23_74eb_4113_9baa_b8d4091af4e9.slice/crio-c47ddde3e4a24879d5604bbb2bbe635047ba7ce608b6a6b6198ca28231852330.scope:
+[169155.727727] anon 4863033344
+                file 3705733120
+                kernel_stack 5242880
+                pagetables 11403264
+                ...
+```
+其中`anon`为进程分配使用的内存，`file`为文件缓存，两者加起来超过内存`limit`。
+
+更进一步，容器memory cgroup中`memory.stat`的`total_cache`、`cache`，对应于oom时`file`统计值：
+```
+[root@xxx crio-yyy.scope]# cat memory.stat
+cache 1318649856
+rss 4986896384
+...
+inactive_anon 4986699776
+active_anon 196608
+inactive_file 1264713728
+active_file 53936128
+unevictable 0
+hierarchical_memory_limit 8589934592
+hierarchical_memsw_limit 8589934592
+total_cache 1318649856
+total_rss 4986896384
+```
+
+> **注意**，如果数据盘性能差、io延迟很高，将导致文件缓存高，进一步可能导致memory cgroup oom现象发生，特别是在严重依赖文件缓存，用缓存数据提升查询速度的使用场景中。
 
 ### devices
 ```bash
