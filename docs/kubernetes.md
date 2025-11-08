@@ -52,6 +52,7 @@
     * [筛选慢操作list all](#筛选慢操作list-all)
     * [筛选出最早创建的一组pod（用于onDelete策略的更新）](#筛选出最早创建的一组pod用于ondelete策略的更新)
   * [节点维护](#节点维护)
+  * [通过命令行flag配置kubelet](#通过命令行flag配置kubelet)
   * [便捷操作](#便捷操作)
   * [event使用独立的etcd集群](#event使用独立的etcd集群)
   * [模拟list对kube-apiserver进行压测](#模拟list对kube-apiserver进行压测)
@@ -794,6 +795,21 @@ kubectl drain ${node} --delete-emptydir-data --ignore-daemonsets --force
 kubectl taint nodes worker foo:NoSchedule
 kubectl taint nodes worker foo=bar:NoExecute
 ```
+
+## 通过命令行flag配置kubelet
+虽然推荐使用配置文件，以`KubeletConfiguration`结构化数据配置kubelet，但有时需要灵活的使用命令行flag配置kubelet，或者**覆盖**`KubeletConfiguration`配置文件中的配置。
+
+以配置文件中`cpuManagerPolicyOptions`配置为例，其会被命令行`--cpu-manager-policy-options`这样的flag覆盖。
+
+命令行flag中可以带多个`--cpu-manager-policy-options`，且每一个设置一项cpumanager策略项，例如：
+```bash
+kubelet \
+... \
+--cpu-manager-policy-options=hehe-xixi=foo,bar \
+--cpu-manager-policy-options=align-by-socket=true \
+...
+```
+注意，`hehe-xixi`选项值`foo,bar`不会被`,`分割，而是视作`hehe-xixi`选项的一整个值进行处理的。
 
 ## 便捷操作
 * 查找某个节点上带某种注解的pod
