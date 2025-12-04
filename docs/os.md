@@ -228,6 +228,7 @@
   * [rpc](#rpc)
     * [配置rpc-statd监听的端口](#配置rpc-statd监听的端口)
   * [用户管理](#用户管理)
+  * [使能ssh密码登录](#使能ssh密码登录)
   * [查看用户密码过期时间](#查看用户密码过期时间)
   * [audit系统审计](#audit系统审计)
     * [监控文件写和其他操作](#监控文件写和其他操作)
@@ -3561,12 +3562,18 @@ systemctl restart rpc-statd.service
 
 ```bash
 groupadd                # 创建新的组
-useradd -U zy           # 创建新的用户
+useradd -U zy           # 创建新的用户，并同时创建zy组（-U）
 passwd zy               # 创建（修改）用户密码
 usermod -aG wheel zy    # 将新建的用户加入wheel组，成为sudoer
 su - zy                 # 切换用户，推荐带上'--login'（缩写'-'），以确保像是一次真正的login
 su [-] nova
 usermod -s /bin/bash nova
+```
+
+## 使能ssh密码登录
+修改 `/etc/ssh/sshd_config` 中 `PasswordAuthentication no` 为 `PasswordAuthentication yes`，并重启`sshd`服务生效：
+```bash
+systemctl restart sshd
 ```
 
 ## 查看用户密码过期时间
