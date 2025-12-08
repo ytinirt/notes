@@ -4816,7 +4816,7 @@ TODO
 # 查找链接文件
 find /var/log/kubernetes -type l
 #  查找并删除15天以上未修改的文件
-find ${log_path} -mtime +14 -type f -name "*" -exec rm -rf {} \
+find ${log_path} -mtime +14 -type f -name "*" -exec rm -rf {} \;
 # 替换成unix风格
 find . -type f -exec doc2unix {} \;
 find . -type f ! -name "*.gz"
