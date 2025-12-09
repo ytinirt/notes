@@ -163,7 +163,8 @@
       * [sysrq](#sysrq)
       * [系统响应慢checklist](#系统响应慢checklist)
   * [信息收集](#信息收集)
-    * [收集系统配置](#收集系统配置)
+    * [系统发行版信息](#系统发行版信息)
+    * [系统配置](#系统配置)
     * [使用 lshw 查看硬件配置](#使用-lshw-查看硬件配置)
     * [服务器硬件信息收集](#服务器硬件信息收集)
   * [如何Debug程序和进程](#如何debug程序和进程)
@@ -2557,7 +2558,19 @@ echo q > /proc/sysrq-trigger
 
 ## 信息收集
 
-### 收集系统配置
+### 系统发行版信息
+```bash
+# 所有Linux
+cat /etc/os-release
+
+# systemd系统，查看OS版本、内核和架构信息
+hostnamectl
+
+# 麒麟系统
+nkvers
+```
+
+### 系统配置
 ```bash
 # 系统内核版本详情
 nkvers
