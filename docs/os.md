@@ -122,6 +122,8 @@
   * [xfs文件系统](#xfs文件系统)
     * [配额管理](#配额管理)
     * [常用操作](#常用操作-5)
+  * [ext4文件系统](#ext4文件系统)
+    * [配额管理](#配额管理-1)
   * [samba](#samba)
     * [通过客户端访问samba服务器](#通过客户端访问samba服务器)
   * [NFS](#nfs)
@@ -198,7 +200,8 @@
     * [fuser（文件和设备）](#fuser文件和设备)
     * [netstat（网络）](#netstat网络)
     * [ss（网络）](#ss网络)
-    * [lsblk](#lsblk)
+    * [nc（网络）](#nc网络)
+    * [lsblk（块设备）](#lsblk块设备)
     * [常用命令](#常用命令-2)
   * [内存信息解读](#内存信息解读)
     * [内存用量TopN](#内存用量topn)
@@ -2164,6 +2167,27 @@ xfs_quota -xc 'report -bih'  /data
 xfs_quota -xc 'report -bih'  /
 ```
 
+## ext4文件系统
+
+### 配额管理
+> Uses generic quota tools (quotacheck, setquota, repquota, quotaon).
+> For project/directory quota, supported (since Kernel 4.5+), but often requires manual enabling via tune2fs and setting project IDs with chattr.
+
+以下操作来自模型回答，未经验证，仅做步骤记录：
+```bash
+# 1. 文件系统上，使能quota特性，注意该文件系统处于未挂载状态
+tune2fs -O project -Q prjquota /dev/sdX
+
+# 2. 挂载时增加prjquota选项
+mount -o prjquota /dev/sdX /mnt/data
+
+# 3. 给文件夹设置 Project ID
+chattr +P -p 1234 /mnt/data/myfolder
+
+# 4. 设置配额
+setquota -P 1234 1G 2G 0 0 /mnt/data
+```
+
 ## samba
 
 典型配置：
@@ -2979,7 +3003,17 @@ ss -aonp
 ss -tpn dst :8080
 ```
 
-### lsblk
+### nc（网络）
+网络连通性检查
+```bash
+# 以kube-apiserver服务端口为例
+nc -vz 1.2.3.4 6443
+Ncat: Version 7.91 ( https://nmap.org/ncat )
+Ncat: Connected to 1.2.3.4:6443.
+Ncat: 0 bytes sent, 0 bytes received in 0.06 seconds.
+```
+
+### lsblk（块设备）
 ```bash
 lsblk --pairs --paths --bytes --output "NAME,FSTYPE,MOUNTPOINT,SIZE,STATE,TYPE,ROTA,RO,PKNAME,MAJ:MIN"
 
