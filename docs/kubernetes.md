@@ -30,6 +30,7 @@
       * [服务账号Service Account](#服务账号service-account)
       * [证书用户User](#证书用户user)
         * [如何创建一个证书用户](#如何创建一个证书用户)
+      * [kubelet服务端证书签发POC](#kubelet服务端证书签发poc)
     * [通过webhook对接外部认证提供商](#通过webhook对接外部认证提供商)
   * [到达聚合apiserver的请求中如何携带用户信息](#到达聚合apiserver的请求中如何携带用户信息)
   * [TODO](#todo)
@@ -670,6 +671,61 @@ kubectl config set-credentials john --client-key=/path/to/john.key --client-cert
 kubectl config set-context john@k8s-cluster --cluster=k8s-cluster --user=john
 # 最后，切换到新设置的上下文，以用户john方式访问/操作集群k8s-cluster
 kubectl config use-context john
+```
+
+#### kubelet服务端证书签发POC
+```bash
+# 第1步，创建 node-x 使用的私钥
+openssl genrsa -out node-x.key 2048
+
+# 第2步，创建 csr 配置文件，里面：
+#        * 指定了用户（system:node:node-x）/用户组（system:nodes）用于RBAC鉴权，
+#        * 指定了SAN（域名、IP地址），用于TLS通信时，服务端校验
+cat << EEOOFF > node-x.csr.conf
+[ req ]
+default_bits       = 2048
+distinguished_name = req_distinguished_name
+req_extensions     = req_ext
+prompt             = no
+
+[ req_distinguished_name ]
+CN = system:node:node-x         # Common Name (Usually system:node:<nodeName>)
+O  = system:nodes               # Organization
+
+[ req_ext ]
+subjectAltName = @alt_names
+
+[ alt_names ]
+DNS.1 = node-x                  # Hostname/Domainname
+IP.1  = 1.2.3.4                 # <--- REQUIRED: The IP address
+EEOOFF
+
+# 第3步，创建证书签发请求csr
+openssl req -new -key node-x.key -out node-x.csr -config node-x.csr.conf
+
+# 第4步，创建Kubernetes声明式api资源CertificateSigningRequest
+REQUEST=$(cat node-x.csr | base64 -w 0)
+cat <<EOF | kubectl apply -f -
+apiVersion: certificates.k8s.io/v1
+kind: CertificateSigningRequest
+metadata:
+  name: node-x
+spec:
+  groups:
+  - system:nodes
+  request: $REQUEST
+  signerName: kubernetes.io/kubelet-serving
+  usages:
+  - digital signature
+  - key encipherment
+  - server auth
+EOF
+
+# 第5步，批准证书请求
+kubectl certificate approve node-x
+
+# 第6步，等待批准后，从 csr/node-x 的 status.certificate 中获取服务端公钥
+kubectl get csr node-x -o json | jq .status.certificate -r | base64 -d
 ```
 
 ### 通过webhook对接外部认证提供商
